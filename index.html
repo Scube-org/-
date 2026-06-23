@@ -8,6 +8,7 @@
   <meta name="description"
     content="S³ (SCube) is a student-led platform connecting talented students with startups and opportunities. Networking, skill building, and real-world growth in Hyderabad and beyond.">
   <meta name="keywords" content="S3, SCube, student startup, internship, skill building, Hyderabad, student ecosystem">
+  <link rel="icon" type="image/png" href="images/favicon.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link
@@ -732,6 +733,10 @@
         letter-spacing: 0.1em !important;
       }
       
+      #reel-indicator {
+        display: none !important; /* Hide vertical indicator to clear the side margins */
+      }
+
       /* Slide layout stacking */
       .slide-content-inner {
         display: flex !important;
@@ -739,16 +744,17 @@
         justify-content: flex-start !important;
         align-items: stretch !important;
         height: 100% !important;
-        padding: 110px 20px 20px 20px !important; /* Clear fixed navigation bar */
+        padding: 80px 24px 20px 24px !important; /* Clear fixed nav bar */
         box-sizing: border-box !important;
-        gap: 16px !important;
-        overflow-y: auto !important;
+        gap: 12px !important;
+        overflow: hidden !important;
+        touch-action: none !important;
+        text-align: left !important;
       }
       
       .slide-top-left,
       .slide-bottom-left,
-      .slide-right,
-      .slide-explore-btn {
+      .slide-right {
         position: static !important;
         transform: none !important;
         max-width: 100% !important;
@@ -757,39 +763,115 @@
         flex-direction: column !important;
         align-items: flex-start !important;
         text-align: left !important;
+        box-sizing: border-box !important;
+      }
+
+      .slide-eyebrow,
+      .slide-category,
+      .slide-meta {
+        display: none !important;
       }
       
-      .slide-right {
-        margin-top: 10px !important;
+      .slide-right > div {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 10px !important;
+        width: 100% !important;
+      }
+
+      /* Use 2 columns grid for Slide 6 with 5 benefits */
+      .slide-right > div:has(> :nth-child(4)) {
+        display: grid !important;
+        grid-template-columns: 1fr 1fr !important;
+        gap: 8px 12px !important;
+      }
+      .slide-right > div:has(> :nth-child(4)) > .benefit-card-item:nth-child(5) {
+        grid-column: span 2 !important;
+      }
+
+      .benefit-card-item {
+        align-items: flex-start !important;
+        text-align: left !important;
+        gap: 2px !important;
+        width: 100% !important;
+      }
+      .benefit-icon {
+        font-size: 16px !important;
+        margin-bottom: 2px !important;
+      }
+      .benefit-label {
+        font-size: 9px !important;
+        letter-spacing: 0.15em !important;
+        color: var(--slide-accent) !important;
+      }
+      .benefit-quote {
+        font-size: 13.5px !important;
+        line-height: 1.3 !important;
+        max-width: 100% !important;
       }
       
       .slide-explore-btn {
-        margin-top: 10px !important;
         position: relative !important;
+        left: auto !important;
+        right: auto !important;
+        bottom: auto !important;
+        top: auto !important;
+        display: inline-flex !important;
+        flex-direction: row !important;
         align-items: center !important;
         justify-content: center !important;
-        width: auto !important;
+        gap: 12px !important;
+        width: fit-content !important;
+        margin-top: 10px !important;
         padding: 10px 24px !important;
         font-size: 10px !important;
+        letter-spacing: 0.2em !important;
+        border-radius: 50px !important;
+        box-sizing: border-box !important;
       }
       
       /* Overview Slide Mobile tweaks */
       .overview-inner {
-        padding: 110px 20px 20px 20px !important;
+        padding: 80px 24px 20px 24px !important;
         justify-content: flex-start !important;
       }
       .overview-content-wrap {
-        margin-bottom: 20px !important;
+        margin-bottom: 0px !important;
         max-width: 100% !important;
+        position: static !important;
+        gap: 12px !important;
       }
       
+      /* Flow marquee relative to other elements to prevent overlay */
+      .overview-inner > div:nth-child(2) {
+        position: relative !important;
+        bottom: auto !important;
+        left: auto !important;
+        right: auto !important;
+        margin: 15px 0 !important;
+        transform: rotate(-1.5deg) scale(1.02) !important;
+        width: 100% !important;
+      }
+
+      /* Fade background visuals on mobile so text is readable */
+      [data-slide-graphics] {
+        opacity: 0.35 !important;
+      }
+      [data-slide-graphics] svg {
+        opacity: 0.35 !important;
+      }
+
       /* Adjust typography for mobile */
       .dm-serif {
-        font-size: 2.2rem !important;
+        font-size: 1.8rem !important;
         line-height: 1.1 !important;
       }
       .playfair {
-        font-size: 1.1rem !important;
+        font-size: 0.95rem !important;
+        line-height: 1.35 !important;
+      }
+      #cursor {
+        display: none !important;
       }
     }
   </style>
@@ -869,7 +951,7 @@
   </nav>
 
   <section id="cinema"
-    style="position:relative;height:100dvh;width:100%;overflow:hidden;background:var(--bg);cursor:default;user-select:none;--cinema-pad-x:7.5dvh">
+    style="position:relative;height:100dvh;width:100%;overflow:hidden;background:var(--bg);cursor:default;user-select:none;--cinema-pad-x:7.5dvh;touch-action:none">
 
     <!-- BACKGROUND WAVES -->
     <div class="bg-waves" aria-hidden="true">
@@ -1619,12 +1701,12 @@
 
       // ─── BENEFIT CARD HTML ────────────────────────────────────────────────────
       function benefitCardHtml(b) {
-        const iconHtml = b.icon ? `<div style="font-size:22px;color:var(--slide-ink-soft);line-height:1">${b.icon}</div>` : '';
+        const iconHtml = b.icon ? `<div class="benefit-icon" style="font-size:22px;color:var(--slide-ink-soft);line-height:1">${b.icon}</div>` : '';
         return `
-    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px;text-align:right">
+    <div class="benefit-card-item" style="display:flex;flex-direction:column;align-items:flex-end;gap:8px;text-align:right">
       ${iconHtml}
-      <div style="font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.3em;color:var(--slide-ink-dim)">${b.label}</div>
-      <div class="playfair" style="font-size:17.5px;line-height:1.35;color:var(--slide-ink);font-style:italic;max-width:24ch">&ldquo;${b.quote}&rdquo;</div>
+      <div class="benefit-label" style="font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.3em;color:var(--slide-ink-dim)">${b.label}</div>
+      <div class="benefit-quote playfair" style="font-size:17.5px;line-height:1.35;color:var(--slide-ink);font-style:italic;max-width:24ch">&ldquo;${b.quote}&rdquo;</div>
     </div>
   `;
       }
@@ -1691,15 +1773,15 @@
           <span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--slide-ink-soft)"></span>
           <span style="font-size:9px;font-weight:600;letter-spacing:0.4em;text-transform:uppercase;color:var(--slide-ink-soft)">${s.tag}</span>
         </div>
-        <div style="font-family:'Playfair Display',serif;font-size:clamp(1rem,1.8dvh,2rem);line-height:1;color:var(--slide-ink-soft);font-style:italic">${s.badge.toUpperCase()}</div>
-        <div style="font-size:9.5px;font-weight:500;text-transform:uppercase;letter-spacing:0.28em;color:var(--slide-ink-dim);line-height:1.7;max-width:28ch">${eyebrowHtml}</div>
+        <div class="slide-badge" style="font-family:'Playfair Display',serif;font-size:clamp(1rem,1.8dvh,2rem);line-height:1;color:var(--slide-ink-soft);font-style:italic">${s.badge.toUpperCase()}</div>
+        <div class="slide-eyebrow" style="font-size:9.5px;font-weight:500;text-transform:uppercase;letter-spacing:0.28em;color:var(--slide-ink-dim);line-height:1.7;max-width:28ch">${eyebrowHtml}</div>
       </div>
 
       <!-- BOTTOM LEFT: category + title + meta -->
       <div class="slide-bottom-left" data-reveal style="position:absolute;left:6dvh;bottom:9dvh;display:flex;flex-direction:column;gap:18px">
-        <div style="font-size:9.5px;font-weight:500;text-transform:uppercase;letter-spacing:0.4em;color:var(--slide-ink-dim)">${s.category}</div>
+        <div class="slide-category" style="font-size:9.5px;font-weight:500;text-transform:uppercase;letter-spacing:0.4em;color:var(--slide-ink-dim)">${s.category}</div>
         <h2 class="dm-serif" style="font-weight:400;text-transform:uppercase;font-size:clamp(2.2rem,8dvh,8.5rem);line-height:0.92;letter-spacing:-0.01em;color:var(--slide-ink)">${titleHtml}</h2>
-        <div style="display:flex;align-items:center;gap:14px">
+        <div class="slide-meta" style="display:flex;align-items:center;gap:14px">
           <div style="width:24px;height:1px;background:var(--slide-ink-dim)"></div>
           <span style="font-size:9px;font-weight:500;letter-spacing:0.36em;text-transform:uppercase;color:var(--slide-ink-soft)">S³ · HYDERABAD</span>
         </div>
@@ -1893,7 +1975,7 @@
         pitch = (viewportH * PITCH_VH) / 100;
         slideH = (viewportH * SLIDE_VH) / 100;
         topPad = (viewportH * TOP_PAD_VH) / 100;
-        dragThresh = (viewportH * DRAG_THRESHOLD_VH) / 100;
+        dragThresh = (viewportH * (window.innerWidth < 768 ? 6 : DRAG_THRESHOLD_VH)) / 100;
         if (!autoScrolling) {
           targetYRef = topPad - idxRef * pitch;
           yRef = targetYRef;
@@ -2426,6 +2508,9 @@
       }, { passive: false });
 
       section.addEventListener("pointerdown", e => {
+        if (e.pointerType === "touch") {
+          onSection = true;
+        }
         if (!onSection) return;
         if (e.pointerType === "mouse" && e.button !== 0) return;
         const t = e.target;
@@ -2472,8 +2557,8 @@
         endDrag(true);
       });
       section.addEventListener("pointercancel", () => { drag.delta = 0; yRef = drag.startTrackY; endDrag(false); });
-      section.addEventListener("pointerenter", () => { onSection = true; });
-      section.addEventListener("pointerleave", () => { onSection = false; if (drag.active) endDrag(true); });
+      section.addEventListener("pointerenter", e => { if (e.pointerType !== "touch") onSection = true; });
+      section.addEventListener("pointerleave", e => { if (e.pointerType !== "touch") { onSection = false; if (drag.active) endDrag(true); } });
 
       window.addEventListener("resize", () => {
         imgW = Math.max(600, Math.round(window.innerWidth / 50) * 50);
