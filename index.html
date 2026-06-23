@@ -711,36 +711,85 @@
       stroke-dasharray: 8 16;
       animation: packet-travel 6s infinite linear;
     }
-
-    #mobile-warning {
-      display: none;
-    }
+    #mobile-warning { display: none !important; }
 
     @media (max-width: 767px) {
-
-      html,
-      body {
-        overflow: hidden !important;
-        height: 100% !important;
+      #s3-logo-text {
+        display: none !important;
       }
-
-      #mobile-warning {
+      #s3-nav-actions {
+        gap: 6px !important;
+      }
+      .s3-nav-btn {
+        display: inline-block !important;
+        padding: 6px 12px !important;
+        font-size: 8px !important;
+        letter-spacing: 0.1em !important;
+      }
+      #s3-nav-cta {
+        padding: 6px 12px !important;
+        font-size: 8px !important;
+        letter-spacing: 0.1em !important;
+      }
+      
+      /* Slide layout stacking */
+      .slide-content-inner {
         display: flex !important;
-        position: fixed !important;
-        inset: 0 !important;
-        z-index: 999999 !important;
-        background: #ffffff !important;
-        color: #000000 !important;
         flex-direction: column !important;
+        justify-content: flex-start !important;
+        align-items: stretch !important;
+        height: 100% !important;
+        padding: 110px 20px 20px 20px !important; /* Clear fixed navigation bar */
+        box-sizing: border-box !important;
+        gap: 16px !important;
+        overflow-y: auto !important;
+      }
+      
+      .slide-top-left,
+      .slide-bottom-left,
+      .slide-right,
+      .slide-explore-btn {
+        position: static !important;
+        transform: none !important;
+        max-width: 100% !important;
+        width: 100% !important;
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        text-align: left !important;
+      }
+      
+      .slide-right {
+        margin-top: 10px !important;
+      }
+      
+      .slide-explore-btn {
+        margin-top: 10px !important;
+        position: relative !important;
         align-items: center !important;
         justify-content: center !important;
-        text-align: center !important;
-        padding: 2rem !important;
-        font-family: 'Inter', -apple-system, sans-serif !important;
+        width: auto !important;
+        padding: 10px 24px !important;
+        font-size: 10px !important;
       }
-
-      body>*:not(#mobile-warning) {
-        display: none !important;
+      
+      /* Overview Slide Mobile tweaks */
+      .overview-inner {
+        padding: 110px 20px 20px 20px !important;
+        justify-content: flex-start !important;
+      }
+      .overview-content-wrap {
+        margin-bottom: 20px !important;
+        max-width: 100% !important;
+      }
+      
+      /* Adjust typography for mobile */
+      .dm-serif {
+        font-size: 2.2rem !important;
+        line-height: 1.1 !important;
+      }
+      .playfair {
+        font-size: 1.1rem !important;
       }
     }
   </style>
@@ -748,12 +797,7 @@
 
 <body>
 
-  <!-- Mobile warning overlay -->
-  <div id="mobile-warning">
-    <h1 style="font-size: 1.8rem; font-weight: 600; margin-bottom: 1rem; color: #1a1f3a;">Device Not Supported</h1>
-    <p style="font-size: 1rem; color: #555555; line-height: 1.5; max-width: 40ch;">This website is not optimized for
-      mobile devices. Please view on a desktop computer.</p>
-  </div>
+  <div id="mobile-warning" style="display:none !important;"></div>
 
   <!-- Sign In Modal -->
   <div id="signin-modal"
@@ -1558,7 +1602,7 @@
           return;
         }
         if (!revealLayer.style.maskImage && !revealLayer.style.webkitMaskImage) {
-          const maskImage = 'radial-gradient(circle at center, #fff 0%, #fff 40%, rgba(255,255,255,0.75) 60%, rgba(255,255,255,0.4) 75%, rgba(255,255,255,0.12) 88%, transparent 100%)';
+          const maskImage = 'radial-gradient(circle 260px at center, #fff 0%, #fff 40%, rgba(255,255,255,0.75) 60%, rgba(255,255,255,0.4) 75%, rgba(255,255,255,0.12) 88%, transparent 100%)';
           revealLayer.style.maskImage = maskImage;
           revealLayer.style.webkitMaskImage = maskImage;
           revealLayer.style.maskSize = '520px 520px';
@@ -1589,9 +1633,9 @@
       function buildSlideContent(s, isFirst) {
         if (s.id === "overview") {
           return `
-      <div style="position:relative;height:100%;width:100%;color:var(--slide-ink);display:flex;flex-direction:column;justify-content:center;padding:0 6dvh">
+      <div class="slide-content-inner overview-inner" style="position:relative;height:100%;width:100%;color:var(--slide-ink);display:flex;flex-direction:column;justify-content:center;padding:0 6dvh">
         <!-- Content wrap -->
-        <div data-reveal style="display:flex;flex-direction:column;gap:20px;max-width:800px;margin-bottom:8dvh">
+        <div class="overview-content-wrap" data-reveal style="display:flex;flex-direction:column;gap:20px;max-width:800px;margin-bottom:8dvh">
           
           <!-- Tag -->
           <div style="display:inline-flex;align-items:center;gap:8px">
@@ -1622,7 +1666,7 @@
         </div>
 
         <!-- EXPLORE BUTTON -->
-        <button type="button" data-no-drag data-reveal data-slide-id="${s.id}"
+        <button type="button" data-no-drag data-reveal data-slide-id="${s.id}" class="slide-explore-btn"
           style="position:absolute;right:6dvh;bottom:5dvh;display:flex;align-items:center;gap:18px;overflow:hidden;border-radius:50px;border:1px solid var(--slide-btn-border);background:var(--slide-btn-bg);padding:16px 36px;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.32em;color:var(--slide-ink);backdrop-filter:blur(8px);cursor:pointer;transition:background 300ms ease,border-color 300ms ease,transform 300ms ease,box-shadow 300ms ease;font-family:'Inter',sans-serif"
           onmouseenter="this.style.transform='scale(1.04)';this.style.borderColor='var(--slide-btn-hover-border)';this.style.background='var(--slide-btn-hover-bg)';this.style.boxShadow='0 10px 30px rgba(0,0,0,0.5)'"
           onmouseleave="this.style.transform='';this.style.borderColor='var(--slide-btn-border)';this.style.background='var(--slide-btn-bg)';this.style.boxShadow=''">
@@ -1640,9 +1684,9 @@
         const benefitsHtml = s.benefits.map(b => benefitCardHtml(b)).join("");
 
         return `
-    <div style="position:relative;height:100%;width:100%;color:var(--slide-ink)">
+    <div class="slide-content-inner" style="position:relative;height:100%;width:100%;color:var(--slide-ink)">
       <!-- TOP LEFT: tag + eyebrow -->
-      <div data-reveal style="position:absolute;left:6dvh;top:5.5dvh;display:flex;flex-direction:column;gap:10px">
+      <div class="slide-top-left" data-reveal style="position:absolute;left:6dvh;top:5.5dvh;display:flex;flex-direction:column;gap:10px">
         <div style="display:inline-flex;align-items:center;gap:8px">
           <span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--slide-ink-soft)"></span>
           <span style="font-size:9px;font-weight:600;letter-spacing:0.4em;text-transform:uppercase;color:var(--slide-ink-soft)">${s.tag}</span>
@@ -1652,7 +1696,7 @@
       </div>
 
       <!-- BOTTOM LEFT: category + title + meta -->
-      <div data-reveal style="position:absolute;left:6dvh;bottom:9dvh;display:flex;flex-direction:column;gap:18px">
+      <div class="slide-bottom-left" data-reveal style="position:absolute;left:6dvh;bottom:9dvh;display:flex;flex-direction:column;gap:18px">
         <div style="font-size:9.5px;font-weight:500;text-transform:uppercase;letter-spacing:0.4em;color:var(--slide-ink-dim)">${s.category}</div>
         <h2 class="dm-serif" style="font-weight:400;text-transform:uppercase;font-size:clamp(2.2rem,8dvh,8.5rem);line-height:0.92;letter-spacing:-0.01em;color:var(--slide-ink)">${titleHtml}</h2>
         <div style="display:flex;align-items:center;gap:14px">
@@ -1662,12 +1706,12 @@
       </div>
 
       <!-- RIGHT: benefit cards -->
-      <div style="position:absolute;right:6dvh;top:50%;transform:translateY(-50%)">
+      <div class="slide-right" style="position:absolute;right:6dvh;top:50%;transform:translateY(-50%)">
         <div data-reveal style="display:flex;flex-direction:column;gap:32px">${benefitsHtml}</div>
       </div>
 
       <!-- EXPLORE BUTTON -->
-      <button type="button" data-no-drag data-reveal data-slide-id="${s.id}"
+      <button type="button" data-no-drag data-reveal data-slide-id="${s.id}" class="slide-explore-btn"
         style="position:absolute;right:6dvh;bottom:5dvh;display:flex;align-items:center;gap:18px;overflow:hidden;border-radius:50px;border:1px solid var(--slide-btn-border);background:var(--slide-btn-bg);padding:16px 36px;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.32em;color:var(--slide-ink);backdrop-filter:blur(8px);cursor:pointer;transition:background 300ms ease,border-color 300ms ease,transform 300ms ease,box-shadow 300ms ease;font-family:'Inter',sans-serif"
         onmouseenter="this.style.transform='scale(1.04)';this.style.borderColor='var(--slide-btn-hover-border)';this.style.background='var(--slide-btn-hover-bg)';this.style.boxShadow='0 10px 30px rgba(0,0,0,0.5)'"
         onmouseleave="this.style.transform='';this.style.borderColor='var(--slide-btn-border)';this.style.background='var(--slide-btn-bg)';this.style.boxShadow=''">

@@ -266,39 +266,117 @@ section.hero {
   box-shadow: 0 8px 30px rgba(255,209,92,0.3);
 }
 .btn-dig:active { transform: scale(0.95); }
-#mobile-warning { display: none; }
+#mobile-warning { display: none !important; }
+
 @media (max-width: 767px) {
-  html, body {
-    overflow: hidden !important;
-    height: 100% !important;
+  nav {
+    flex-wrap: wrap !important;
+    padding: 0.75rem 1rem !important;
+    gap: 8px !important;
+    height: auto !important;
   }
-  #mobile-warning {
+  .nav-logo .nav-wordmark {
+    font-size: 1.25rem !important;
+  }
+  .nav-pill {
     display: flex !important;
-    position: fixed !important;
-    inset: 0 !important;
-    z-index: 999999 !important;
-    background: #ffffff !important;
-    color: #000000 !important;
-    flex-direction: column !important;
-    align-items: center !important;
-    justify-content: center !important;
-    text-align: center !important;
-    padding: 2rem !important;
-    font-family: 'Inter', -apple-system, sans-serif !important;
+    position: static !important;
+    transform: none !important;
+    width: 100% !important;
+    justify-content: space-around !important;
+    order: 3 !important;
+    background: rgba(255,255,255,0.05) !important;
+    border-radius: 12px !important;
+    padding: 4px !important;
+    box-sizing: border-box !important;
   }
-  body > *:not(#mobile-warning) {
+  .nav-pill-btn {
+    padding: 6px 8px !important;
+    font-size: 11px !important;
+    flex: 1 !important;
+    text-align: center !important;
+  }
+  .nav-signup {
+    padding: 6px 12px !important;
+    font-size: 12px !important;
+  }
+  
+  /* Clear height of wrapped header */
+  #student-form-section,
+  #student-finder-section,
+  #student-progress-section {
+    padding-top: 120px !important;
+  }
+
+  /* Hero Section adaptations */
+  .hero-heading {
+    top: 15% !important;
+  }
+  .hero-line1, .hero-line2 {
+    font-size: 2.2rem !important;
+  }
+  .hero-bottom-left {
     display: none !important;
+  }
+  .hero-bottom-right {
+    left: 1rem !important;
+    right: 1rem !important;
+    bottom: 2rem !important;
+    max-width: calc(100% - 2rem) !important;
+  }
+
+  /* Onboarding Form scaling */
+  #student-form-section {
+    position: relative !important;
+    height: auto !important;
+    overflow-y: auto !important;
+    box-sizing: border-box !important;
+    padding-bottom: 40px !important;
+  }
+  #student-form-section > div {
+    padding: 20px !important;
+    border-radius: 20px !important;
+  }
+
+  /* Internship Finder layouts stacking */
+  #student-finder-section {
+    flex-direction: column !important;
+    height: auto !important;
+    overflow-y: auto !important;
+    position: relative !important;
+    padding-bottom: 40px !important;
+  }
+  #student-finder-section > div:first-child {
+    width: 100% !important;
+    flex-shrink: 0 !important;
+    box-sizing: border-box !important;
+    padding: 16px !important;
+    border-radius: 16px !important;
+  }
+  #student-finder-section > div:nth-child(2) {
+    height: auto !important;
+  }
+  #internships-grid-container {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Progress & History layout updates */
+  #student-progress-section {
+    position: relative !important;
+    height: auto !important;
+    overflow-y: auto !important;
+    padding-bottom: 40px !important;
+  }
+  #student-progress-section > div {
+    flex-direction: column !important;
+    gap: 16px !important;
   }
 }
 </style>
 </head>
 <body>
 
-<!-- Mobile warning overlay -->
-<div id="mobile-warning">
-  <h1 style="font-size: 1.8rem; font-weight: 600; margin-bottom: 1rem; color: #1a1f3a;">Device Not Supported</h1>
-  <p style="font-size: 1rem; color: #555555; line-height: 1.5; max-width: 40ch;">This website is not optimized for mobile devices. Please view on a desktop computer.</p>
-</div>
+<div id="mobile-warning" style="display:none !important;"></div>
 
 <!-- Sign In Modal -->
 <div id="signin-modal" style="display:none; position:fixed; inset:0; z-index:999999; background:rgba(13,15,26,0.6); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); align-items:center; justify-content:center; opacity:0; transition:opacity 300ms ease;">
@@ -621,7 +699,7 @@ section.hero {
     }
 
     if (!revealLayer.style.maskImage && !revealLayer.style.webkitMaskImage) {
-      const maskImage = 'radial-gradient(circle at center, #fff 0%, #fff 40%, rgba(255,255,255,0.75) 60%, rgba(255,255,255,0.4) 75%, rgba(255,255,255,0.12) 88%, transparent 100%)';
+      const maskImage = 'radial-gradient(circle 260px at center, #fff 0%, #fff 40%, rgba(255,255,255,0.75) 60%, rgba(255,255,255,0.4) 75%, rgba(255,255,255,0.12) 88%, transparent 100%)';
       revealLayer.style.maskImage = maskImage;
       revealLayer.style.webkitMaskImage = maskImage;
       revealLayer.style.maskSize = '520px 520px';
