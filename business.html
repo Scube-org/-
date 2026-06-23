@@ -317,7 +317,7 @@ section.hero {
     </div>
     
     <!-- Continue with Google Button -->
-    <button onclick="handleGoogleSignIn()" style="width:100%; display:flex; align-items:center; justify-content:center; gap:12px; background:#ffffff; border:none; color:#1a1f3a; padding:14px 24px; border-radius:50px; font-size:14px; font-weight:600; cursor:pointer; transition:background 200ms, transform 200ms; font-family:'Inter',sans-serif;" onmouseenter="this.style.background='#f3f4f6'; this.style.transform='scale(1.02)';" onmouseleave="this.style.background='#ffffff'; this.style.transform=''">
+    <button onclick="handleGoogleSignIn('business')" style="width:100%; display:flex; align-items:center; justify-content:center; gap:12px; background:#ffffff; border:none; color:#1a1f3a; padding:14px 24px; border-radius:50px; font-size:14px; font-weight:600; cursor:pointer; transition:background 200ms, transform 200ms; font-family:'Inter',sans-serif;" onmouseenter="this.style.background='#f3f4f6'; this.style.transform='scale(1.02)';" onmouseleave="this.style.background='#ffffff'; this.style.transform=''">
       <!-- Google SVG Icon -->
       <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
         <path d="M17.64 9.20455C17.64 8.56636 17.5827 7.95273 17.4764 7.36364H9V10.845H13.8436C13.635 11.97 13.0009 12.9232 12.0477 13.5614V15.8195H14.9564C16.6582 14.2527 17.64 11.9455 17.64 9.20455Z" fill="#4285F4"/>
@@ -378,9 +378,218 @@ section.hero {
     <a href="https://www.instagram.com/thescubeofficial/" target="_blank" rel="noopener" class="btn-dig">Connect Today</a>
   </div>
 
+  <!-- Business Dashboard Section (Initially Hidden) -->
+  <div id="business-dashboard-section" style="display:none; position:absolute; inset:0; z-index:40; align-items:stretch; justify-content:stretch; padding: 20px; box-sizing: border-box; padding-top: 100px; gap: 20px; height: 100dvh;">
+    <!-- Left Sidebar: Filters -->
+    <div style="background:rgba(26,31,58,0.7); backdrop-filter:blur(24px); -webkit-backdrop-filter:blur(24px); border:1px solid rgba(241,231,210,0.12); padding:25px; border-radius:24px; width: 280px; flex-shrink: 0; box-shadow:0 30px 80px rgba(0,0,0,0.4); display:flex; flex-direction:column; gap:16px; color:#f1e7d2; text-align:left; overflow-y:auto;" data-no-drag>
+      
+      <!-- Post Internship Button -->
+      <button onclick="openPostInternshipModal()" style="background:#ffd15c; border:none; color:#1a1f3a; padding:12px; border-radius:30px; font-size:13px; font-weight:600; cursor:pointer; width:100%; text-align:center; transition:background 200ms, transform 150ms;" onmouseenter="this.style.background='#e6bd50'; this.style.transform='scale(1.02)';" onmouseleave="this.style.background='#ffd15c'; this.style.transform=''">+ Post Internship</button>
+
+      <div style="border-bottom:1px solid rgba(241,231,210,0.1); padding-bottom:8px; margin-bottom:4px;"></div>
+
+      <div>
+        <h3 class="font-playfair" style="font-size:20px; font-weight:400; font-style:italic; color:#ffd15c; margin-bottom:4px;">Dashboard Filters</h3>
+        <p style="font-size:11px; color:rgba(241,231,210,0.5);">Filter registered S³ students by skills and preferences.</p>
+      </div>
+
+      <!-- Skill Filter -->
+      <div style="display:flex; flex-direction:column; gap:6px;">
+        <label style="font-size:10px; font-weight:600; color:rgba(241,231,210,0.6); letter-spacing:0.05em; text-transform:uppercase;">Skill Category</label>
+        <select id="filter-skill" onchange="applyFilters()" style="background:#1a1f3a; border:1px solid rgba(241,231,210,0.2); border-radius:8px; padding:10px; color:#fff; font-size:13px; outline:none; cursor:pointer; width:100%;">
+          <option value="All">All Skills</option>
+          <!-- Filled dynamically -->
+        </select>
+      </div>
+
+      <!-- Work Preference Filter -->
+      <div style="display:flex; flex-direction:column; gap:6px;">
+        <label style="font-size:10px; font-weight:600; color:rgba(241,231,210,0.6); letter-spacing:0.05em; text-transform:uppercase;">Work Preference</label>
+        <select id="filter-pref" onchange="applyFilters()" style="background:#1a1f3a; border:1px solid rgba(241,231,210,0.2); border-radius:8px; padding:10px; color:#fff; font-size:13px; outline:none; cursor:pointer; width:100%;">
+          <option value="All">All Preferences</option>
+          <option value="Remote">Remote</option>
+          <option value="On-site">On-site</option>
+          <option value="Hybrid">Hybrid</option>
+        </select>
+      </div>
+
+      <!-- Grade Filter -->
+      <div style="display:flex; flex-direction:column; gap:6px;">
+        <label style="font-size:10px; font-weight:600; color:rgba(241,231,210,0.6); letter-spacing:0.05em; text-transform:uppercase;">Education / Grade</label>
+        <select id="filter-grade" onchange="applyFilters()" style="background:#1a1f3a; border:1px solid rgba(241,231,210,0.2); border-radius:8px; padding:10px; color:#fff; font-size:13px; outline:none; cursor:pointer; width:100%;">
+          <option value="All">All Grades</option>
+          <option value="11th Grade">11th Grade</option>
+          <option value="12th Grade">12th Grade</option>
+          <option value="12th Pass">12th Pass</option>
+          <option value="NA / Other">NA / Other</option>
+        </select>
+      </div>
+
+      <!-- Status Filter -->
+      <div style="display:flex; flex-direction:column; gap:6px;">
+        <label style="font-size:10px; font-weight:600; color:rgba(241,231,210,0.6); letter-spacing:0.05em; text-transform:uppercase;">Internship Condition</label>
+        <select id="filter-status" onchange="applyFilters()" style="background:#1a1f3a; border:1px solid rgba(241,231,210,0.2); border-radius:8px; padding:10px; color:#fff; font-size:13px; outline:none; cursor:pointer; width:100%;">
+          <option value="All">All Tiers</option>
+          <option value="Available">Available (Unclaimed)</option>
+          <option value="Applied">Applied</option>
+          <option value="Shortlisted">Shortlisted</option>
+          <option value="Completed">Completed</option>
+        </select>
+      </div>
+
+      <button onclick="resetFilters()" style="background:rgba(241,231,210,0.06); border:1px solid rgba(241,231,210,0.2); color:#f1e7d2; padding:10px 15px; border-radius:30px; font-size:12px; font-weight:500; cursor:pointer; width:100%; transition:background 200ms;" onmouseenter="this.style.background='rgba(255,255,255,0.08)'" onmouseleave="this.style.background='rgba(241,231,210,0.06)'">Reset Filters</button>
+    </div>
+
+    <!-- Right Main Panel: Student List & Detail Drawer -->
+    <div style="flex:1; display:flex; flex-direction:column; gap:16px; height:100%; box-sizing:border-box;" data-no-drag>
+      <!-- Student Grid -->
+      <div style="flex:1; overflow-y:auto; background:rgba(26,31,58,0.4); border:1px solid rgba(241,231,210,0.08); border-radius:24px; padding:20px; display:flex; flex-direction:column; gap:12px; box-sizing:border-box;">
+        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(241,231,210,0.1); padding-bottom:10px; margin-bottom:10px;">
+          <h4 style="font-size:14px; font-weight:600; text-transform:uppercase; color:rgba(241,231,210,0.7); letter-spacing:0.08em;">Matching Students</h4>
+          <span id="results-count" style="font-size:12px; color:#ffd15c; font-weight:600;">0 found</span>
+        </div>
+        <div id="student-grid-container" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(240px, 1fr)); gap:16px; align-content:start;">
+          <!-- Populated dynamically -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Detail Drawer Overlay (Right Side Modal overlaying dashboard) -->
+    <div id="detail-drawer" style="display:none; position:fixed; right:0; top:0; bottom:0; width:min(460px, 90%); background:rgba(20,22,40,0.95); backdrop-filter:blur(24px); -webkit-backdrop-filter:blur(24px); border-left:1px solid rgba(241,231,210,0.15); box-shadow:-20px 0 50px rgba(0,0,0,0.6); padding:40px 30px; flex-direction:column; gap:20px; overflow-y:auto; color:#f1e7d2; text-align:left; z-index:50;">
+      <div style="display:flex; justify-content:space-between; align-items:start;">
+        <h3 class="font-playfair" style="font-size:24px; font-style:italic; font-weight:400; color:#ffd15c;">Student Details</h3>
+        <button onclick="closeDetailDrawer()" style="background:none; border:none; color:rgba(241,231,210,0.5); cursor:pointer; font-size:20px; transition:color 200ms;" onmouseenter="this.style.color='#fff'" onmouseleave="this.style.color='rgba(241,231,210,0.5)'">✕</button>
+      </div>
+
+      <div style="display:flex; align-items:center; gap:16px; border-bottom:1px solid rgba(241,231,210,0.1); padding-bottom:16px;">
+        <div id="drawer-avatar" style="width:50px; height:50px; border-radius:50%; background:#ffd15c; color:#1a1f3a; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:18px;">JD</div>
+        <div>
+          <h4 id="drawer-name" style="font-size:18px; font-weight:600;">Jane Doe</h4>
+          <span id="drawer-status-badge" style="display:inline-block; font-size:9px; font-weight:600; text-transform:uppercase; letter-spacing:0.05em; padding:3px 8px; border-radius:50px; margin-top:4px;">Available</span>
+        </div>
+      </div>
+
+      <div style="display:flex; flex-direction:column; gap:14px; font-size:13px; font-family:'Inter',sans-serif;">
+        <div>
+          <div style="font-size:9px; font-weight:600; color:rgba(241,231,210,0.45); letter-spacing:0.05em; text-transform:uppercase; margin-bottom:2px;">Primary Skill</div>
+          <div id="drawer-skill" style="font-weight:600; color:#fff;">Software Development</div>
+        </div>
+
+        <div style="display:flex; gap:20px;">
+          <div style="flex:1;">
+            <div style="font-size:9px; font-weight:600; color:rgba(241,231,210,0.45); letter-spacing:0.05em; text-transform:uppercase; margin-bottom:2px;">Grade / Class</div>
+            <div id="drawer-grade">12th Pass</div>
+          </div>
+          <div style="width:70px;">
+            <div style="font-size:9px; font-weight:600; color:rgba(241,231,210,0.45); letter-spacing:0.05em; text-transform:uppercase; margin-bottom:2px;">Age</div>
+            <div id="drawer-age">18</div>
+          </div>
+          <div style="flex:1;">
+            <div style="font-size:9px; font-weight:600; color:rgba(241,231,210,0.45); letter-spacing:0.05em; text-transform:uppercase; margin-bottom:2px;">Work Preference</div>
+            <div id="drawer-pref">Remote</div>
+          </div>
+        </div>
+
+        <div>
+          <div style="font-size:9px; font-weight:600; color:rgba(241,231,210,0.45); letter-spacing:0.05em; text-transform:uppercase; margin-bottom:2px;">School / College</div>
+          <div id="drawer-school" style="color:rgba(241,231,210,0.95);">Hyderabad Public School</div>
+        </div>
+
+        <div>
+          <div style="font-size:9px; font-weight:600; color:rgba(241,231,210,0.45); letter-spacing:0.05em; text-transform:uppercase; margin-bottom:2px;">Past Experience / Internships</div>
+          <div id="drawer-exp" style="color:rgba(241,231,210,0.85); line-height:1.5; white-space:pre-line;">Built website prototypes...</div>
+        </div>
+
+        <div style="border-top:1px solid rgba(241,231,210,0.1); padding-top:14px; display:flex; flex-direction:column; gap:8px;">
+          <div style="display:flex; gap:20px; flex-wrap:wrap;">
+            <div style="flex:1; min-width:180px;">
+              <div style="font-size:9px; font-weight:600; color:rgba(241,231,210,0.45); letter-spacing:0.05em; text-transform:uppercase; margin-bottom:2px;">Email Address</div>
+              <div id="drawer-email" style="font-weight:500;">jane.doe@gmail.com</div>
+            </div>
+            <div style="flex:1; min-width:140px;">
+              <div style="font-size:9px; font-weight:600; color:rgba(241,231,210,0.45); letter-spacing:0.05em; text-transform:uppercase; margin-bottom:2px;">Mobile Number</div>
+              <div id="drawer-phone" style="font-weight:500;">+91 98765 43210</div>
+            </div>
+          </div>
+        </div>
+
+        <div style="border-top:1px solid rgba(241,231,210,0.1); padding-top:14px;">
+          <div style="font-size:9px; font-weight:600; color:rgba(241,231,210,0.45); letter-spacing:0.05em; text-transform:uppercase; margin-bottom:8px;">Internship History</div>
+          <div id="drawer-history-container" style="display:flex; flex-direction:column; gap:8px;">
+            <!-- Filled dynamically -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Area: Claiming and Status tracking -->
+      <div id="drawer-actions" style="margin-top:auto; padding-top:20px; border-top:1px solid rgba(241,231,210,0.15); display:flex; flex-direction:column; gap:12px;">
+        <!-- Filled dynamically depending on student claiming condition -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Post Internship Modal -->
+  <div id="post-internship-modal" style="display:none; position:fixed; inset:0; z-index:999999; background:rgba(13,15,26,0.6); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); align-items:center; justify-content:center; opacity:0; transition:opacity 300ms ease;">
+    <div style="background:rgba(26,31,58,0.92); border:1px solid rgba(241,231,210,0.12); padding:35px; border-radius:32px; width:min(580px,95%); box-shadow:0 30px 80px rgba(0,0,0,0.5); display:flex; flex-direction:column; gap:20px; color:#f1e7d2; position:relative; text-align:left;">
+      <!-- Close button -->
+      <button onclick="closePostInternshipModal()" aria-label="Close modal" style="position:absolute; right:20px; top:20px; background:none; border:none; color:rgba(241,231,210,0.5); cursor:pointer; font-size:20px; transition:color 200ms;" onmouseenter="this.style.color='#fff'" onmouseleave="this.style.color='rgba(241,231,210,0.5)'">✕</button>
+
+      <div>
+        <h2 class="font-playfair" style="font-size:26px; font-weight:400; margin-bottom:4px; font-style:italic; color:#ffd15c;">Post New Opportunity</h2>
+        <p style="font-size:12px; color:rgba(241,231,210,0.65); font-family:'Inter',sans-serif;">Add the internship details for students to view and apply.</p>
+      </div>
+
+      <form id="post-internship-form" onsubmit="submitPostInternshipForm(event)" style="display:flex; flex-direction:column; gap:14px; font-family:'Inter',sans-serif;">
+        <div style="display:flex; gap:14px; flex-wrap:wrap;">
+          <div style="flex:2; min-width:200px; display:flex; flex-direction:column; gap:6px;">
+            <label style="font-size:11px; font-weight:600; color:rgba(241,231,210,0.7); letter-spacing:0.05em; text-transform:uppercase;">Internship Title</label>
+            <input type="text" id="int-title" required style="background:rgba(255,255,255,0.06); border:1px solid rgba(241,231,210,0.2); border-radius:8px; padding:10px 12px; color:#fff; font-size:13px; outline:none; transition:border-color 200ms;" onfocus="this.style.borderColor='#ffd15c'" onblur="this.style.borderColor='rgba(241,231,210,0.2)'" />
+          </div>
+          <div style="flex:1; min-width:120px; display:flex; flex-direction:column; gap:6px;">
+            <label style="font-size:11px; font-weight:600; color:rgba(241,231,210,0.7); letter-spacing:0.05em; text-transform:uppercase;">Duration</label>
+            <input type="text" id="int-duration" placeholder="e.g. 3 Months" required style="background:rgba(255,255,255,0.06); border:1px solid rgba(241,231,210,0.2); border-radius:8px; padding:10px 12px; color:#fff; font-size:13px; outline:none;" />
+          </div>
+        </div>
+
+        <div style="display:flex; gap:14px; flex-wrap:wrap;">
+          <div style="flex:1; min-width:200px; display:flex; flex-direction:column; gap:6px;">
+            <label style="font-size:11px; font-weight:600; color:rgba(241,231,210,0.7); letter-spacing:0.05em; text-transform:uppercase;">Required Skill Category</label>
+            <select id="int-skill" required style="background:#1a1f3a; border:1px solid rgba(241,231,210,0.2); border-radius:8px; padding:10px; color:#fff; font-size:13px; outline:none; cursor:pointer;">
+              <!-- Filled dynamically -->
+            </select>
+          </div>
+          <div style="flex:1; min-width:140px; display:flex; flex-direction:column; gap:6px;">
+            <label style="font-size:11px; font-weight:600; color:rgba(241,231,210,0.7); letter-spacing:0.05em; text-transform:uppercase;">Preference</label>
+            <select id="int-pref" required style="background:#1a1f3a; border:1px solid rgba(241,231,210,0.2); border-radius:8px; padding:10px; color:#fff; font-size:13px; outline:none; cursor:pointer;">
+              <option value="Remote">Remote</option>
+              <option value="On-site">On-site</option>
+              <option value="Hybrid">Hybrid</option>
+            </select>
+          </div>
+        </div>
+
+        <div style="display:flex; flex-direction:column; gap:6px;">
+          <label style="font-size:11px; font-weight:600; color:rgba(241,231,210,0.7); letter-spacing:0.05em; text-transform:uppercase;">Job Description</label>
+          <textarea id="int-desc" rows="3" placeholder="Describe the responsibilities and daily tasks of the intern..." required style="background:rgba(255,255,255,0.06); border:1px solid rgba(241,231,210,0.2); border-radius:8px; padding:10px 12px; color:#fff; font-size:13px; outline:none; resize:none; font-family:sans-serif;" onfocus="this.style.borderColor='#ffd15c'" onblur="this.style.borderColor='rgba(241,231,210,0.2)'"></textarea>
+        </div>
+
+        <div style="display:flex; flex-direction:column; gap:6px;">
+          <label style="font-size:11px; font-weight:600; color:rgba(241,231,210,0.7); letter-spacing:0.05em; text-transform:uppercase;">Requirements / Skills Needed</label>
+          <textarea id="int-reqs" rows="3" placeholder="Describe any technical background or prerequisites..." required style="background:rgba(255,255,255,0.06); border:1px solid rgba(241,231,210,0.2); border-radius:8px; padding:10px 12px; color:#fff; font-size:13px; outline:none; resize:none; font-family:sans-serif;" onfocus="this.style.borderColor='#ffd15c'" onblur="this.style.borderColor='rgba(241,231,210,0.2)'"></textarea>
+        </div>
+
+        <button type="submit" style="background:#ffd15c; border:none; color:#1a1f3a; padding:12px 24px; border-radius:50px; font-size:14px; font-weight:600; cursor:pointer; margin-top:10px; transition:background 200ms, transform 200ms;" onmouseenter="this.style.background='#e6bd50'; this.style.transform='scale(1.02)';" onmouseleave="this.style.background='#ffd15c'; this.style.transform=''">Post Internship</button>
+      </form>
+    </div>
+  </div>
 </section>
 
-<script>
+<!-- Firebase Init -->
+<script type="module" src="firebase-init.js"></script>
+<!-- Shared Firestore DB & Auth Helpers -->
+<script type="module" src="firebase-db.js"></script>
+
+<script type="module">
 (function () {
   const revealLayer = document.getElementById('revealLayer');
   const hero = document.getElementById('hero');
@@ -424,80 +633,273 @@ section.hero {
   });
 })();
 
-function openSignInModal() {
-  const modal = document.getElementById('signin-modal');
-  if (modal) {
-    modal.style.display = 'flex';
-    setTimeout(() => { modal.style.opacity = '1'; }, 10);
+// Wait for database module to populate SKILLS_LIST
+setTimeout(() => {
+  const filterSkill = document.getElementById("filter-skill");
+  if (filterSkill && window.SKILLS_LIST) {
+    filterSkill.innerHTML = `<option value="All">All Skills</option>` + window.SKILLS_LIST.map(skill => `<option value="${skill}">${skill}</option>`).join("");
   }
-}
-function closeSignInModal() {
-  const modal = document.getElementById('signin-modal');
-  if (modal) {
-    modal.style.opacity = '0';
-    setTimeout(() => { modal.style.display = 'none'; }, 300);
+  const intSkillSelect = document.getElementById("int-skill");
+  if (intSkillSelect && window.SKILLS_LIST) {
+    intSkillSelect.innerHTML = window.SKILLS_LIST.map(skill => `<option value="${skill}">${skill}</option>`).join("");
   }
-}
+}, 400);
 
-function handleGoogleSignIn() {
-  localStorage.setItem('s3_signed_in', 'true');
-  closeSignInModal();
-  updateAuthUI();
-}
-function toggleSignOutDropdown() {
-  const dropdown = document.getElementById('signout-dropdown');
-  if (dropdown) {
-    dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
+let activeStudentId = null;
+
+// Auth callbacks
+window.onAuthSuccess = async function(user) {
+  if (user.role !== 'business') {
+    alert("You are signed in as a Student. Please visit the Students section.");
+    handleSignOut();
+    return;
   }
-}
-function handleSignOut() {
-  localStorage.removeItem('s3_signed_in');
-  updateAuthUI();
-}
-function updateAuthUI() {
-  const isSignedIn = localStorage.getItem('s3_signed_in') === 'true';
-  const navBtn = document.getElementById('nav-signin-btn');
-  const profileContainer = document.getElementById('user-profile-container');
   
-  if (isSignedIn) {
-    if (navBtn) {
-      navBtn.outerHTML = `
-        <div id="user-profile-container" class="user-profile-wrap" style="position:relative; display:inline-block; line-height:0; vertical-align:middle;">
-          <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=facearea&facepad=2&w=80&h=80&q=80" 
-               alt="User Profile" 
-               id="user-profile-pic" 
-               style="width:36px; height:36px; border-radius:50%; border:2px solid rgba(255,255,255,0.4); cursor:pointer; object-fit:cover; transition:transform 200ms, border-color 200ms;" 
-               onclick="toggleSignOutDropdown()" 
-               onmouseenter="this.style.transform='scale(1.05)'; this.style.borderColor='rgba(255,255,255,0.8)';" 
-               onmouseleave="this.style.transform=''; this.style.borderColor='rgba(255,255,255,0.4)';" />
-          <div id="signout-dropdown" style="display:none; position:absolute; right:0; top:42px; background:rgba(26,31,58,0.96); border:1px solid rgba(241,231,210,0.15); border-radius:12px; padding:6px; z-index:1000000; box-shadow:0 10px 30px rgba(0,0,0,0.5); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); min-width:120px;">
-            <button onclick="handleSignOut()" style="width:100%; text-align:left; background:none; border:none; color:#f1e7d2; padding:8px 12px; font-size:13px; font-family:'Inter',sans-serif; cursor:pointer; border-radius:8px; transition:background 200ms;" onmouseenter="this.style.background='rgba(255,255,255,0.08)'" onmouseleave="this.style.background='none'">Sign Out</button>
+  // Hide landing hero elements
+  document.querySelector(".hero-heading").style.display = "none";
+  document.querySelector(".hero-bottom-left").style.display = "none";
+  document.querySelector(".hero-bottom-right").style.display = "none";
+  
+  // Show dashboard
+  const dbSection = document.getElementById("business-dashboard-section");
+  if (dbSection) dbSection.style.display = "flex";
+  
+  // Load database and render students
+  await applyFilters();
+};
+
+window.onAuthSignOut = function() {
+  // Show landing hero
+  document.querySelector(".hero-heading").style.display = "flex";
+  document.querySelector(".hero-bottom-left").style.display = "block";
+  document.querySelector(".hero-bottom-right").style.display = "flex";
+  
+  // Hide dashboard
+  const dbSection = document.getElementById("business-dashboard-section");
+  if (dbSection) dbSection.style.display = "none";
+  closeDetailDrawer();
+};
+
+window.applyFilters = async function() {
+  const list = await getStudents();
+  const skill = document.getElementById("filter-skill").value;
+  const pref = document.getElementById("filter-pref").value;
+  const grade = document.getElementById("filter-grade").value;
+  const status = document.getElementById("filter-status").value;
+  
+  const filtered = list.filter(stud => {
+    if (skill !== "All" && stud.skill !== skill) return false;
+    if (pref !== "All" && stud.preference !== pref) return false;
+    if (grade !== "All" && stud.grade !== grade) return false;
+    if (status !== "All" && stud.status !== status) return false;
+    return true;
+  });
+  
+  // Update count
+  document.getElementById("results-count").textContent = `${filtered.length} found`;
+  
+  // Render grid
+  const grid = document.getElementById("student-grid-container");
+  if (!filtered.length) {
+    grid.innerHTML = `<div style="grid-column: 1/-1; padding: 40px; text-align: center; color: rgba(241,231,210,0.4); font-size: 13px;">No students match these criteria.</div>`;
+    return;
+  }
+  
+  grid.innerHTML = filtered.map(stud => {
+    let badgeColor = "#22c55e"; // Available
+    if (stud.status === "Applied") badgeColor = "#f97316";
+    if (stud.status === "Shortlisted") badgeColor = "#3b82f6";
+    if (stud.status === "Completed") badgeColor = "#9ca3af";
+    
+    return `
+      <div onclick="openDetailDrawer('${stud.id}')" style="background:rgba(255,255,255,0.04); border:1px solid rgba(241,231,210,0.1); border-radius:16px; padding:16px; cursor:pointer; display:flex; flex-direction:column; gap:12px; transition:transform 200ms, border-color 200ms; text-align:left;" onmouseenter="this.style.transform='translateY(-2px)'; this.style.borderColor='rgba(241,231,210,0.3)'" onmouseleave="this.style.transform=''; this.style.borderColor='rgba(241,231,210,0.1)'">
+        <div style="display:flex; justify-content:space-between; align-items:start; gap:8px;">
+          <h5 style="font-size:15px; font-weight:600; color:#fff; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width: 140px;">${stud.name}</h5>
+          <span style="font-size:9px; font-weight:600; text-transform:uppercase; padding:2px 6px; border-radius:50px; background:rgba(255,255,255,0.06); border:1px solid ${badgeColor}; color:${badgeColor}; white-space:nowrap;">${stud.status}</span>
+        </div>
+        <div style="font-size:12px; color:rgba(241,231,210,0.7); font-family:sans-serif;">${stud.skill}</div>
+        <div style="font-size:11px; color:rgba(241,231,210,0.45); font-family:sans-serif; margin-top:auto; display:flex; justify-content:space-between;">
+          <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width: 140px;">${stud.school}</span>
+          <span style="color:#ffd15c;">${stud.preference}</span>
+        </div>
+      </div>
+    `;
+  }).join("");
+};
+
+window.resetFilters = async function() {
+  document.getElementById("filter-skill").value = "All";
+  document.getElementById("filter-pref").value = "All";
+  document.getElementById("filter-grade").value = "All";
+  document.getElementById("filter-status").value = "All";
+  await applyFilters();
+};
+
+window.openDetailDrawer = async function(id) {
+  activeStudentId = id;
+  const stud = await getStudentById(id);
+  if (!stud) return;
+  
+  // Set details
+  document.getElementById("drawer-name").textContent = stud.name;
+  document.getElementById("drawer-skill").textContent = stud.skill;
+  document.getElementById("drawer-grade").textContent = stud.grade;
+  document.getElementById("drawer-age").textContent = stud.age;
+  document.getElementById("drawer-pref").textContent = stud.preference;
+  document.getElementById("drawer-school").textContent = stud.school;
+  document.getElementById("drawer-exp").textContent = stud.experience;
+  document.getElementById("drawer-email").textContent = stud.email;
+  document.getElementById("drawer-phone").textContent = stud.phone;
+  
+  // Avatar initials
+  const initials = stud.name.split(" ").map(w => w[0]).join("").substring(0, 2).toUpperCase();
+  document.getElementById("drawer-avatar").textContent = initials;
+  
+  // Badge
+  const badge = document.getElementById("drawer-status-badge");
+  let badgeColor = "#22c55e"; // Available
+  if (stud.status === "Applied") badgeColor = "#f97316";
+  if (stud.status === "Shortlisted") badgeColor = "#3b82f6";
+  if (stud.status === "Completed") badgeColor = "#9ca3af";
+  badge.textContent = stud.status + (stud.claimedBy ? ` (Claimed by ${stud.claimedBy})` : "");
+  badge.style.background = `rgba(${stud.status === 'Available' ? '34,197,94' : stud.status === 'Applied' ? '249,115,22' : stud.status === 'Shortlisted' ? '59,130,246' : '156,163,175'}, 0.12)`;
+  badge.style.color = badgeColor;
+  badge.style.border = `1px solid ${badgeColor}`;
+  
+  // Render student's application history
+  const history = await getStudentHistory(stud.email);
+  const historyContainer = document.getElementById("drawer-history-container");
+  if (history.length === 0) {
+    historyContainer.innerHTML = `<div style="font-size:11px; color:rgba(241,231,210,0.4); text-align:center; padding: 10px;">No internship history found.</div>`;
+  } else {
+    historyContainer.innerHTML = history.map(app => {
+      let statusColor = "#22c55e"; // Completed
+      if (app.status === "Applied") statusColor = "#f97316";
+      else if (app.status === "Shortlisted" || app.status === "Ongoing") statusColor = "#3b82f6";
+      
+      return `
+        <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(241,231,210,0.08); border-radius:8px; padding:10px; display:flex; flex-direction:column; gap:4px; text-align:left;">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span style="font-size:12px; font-weight:600; color:#fff;">${app.title}</span>
+            <span style="font-size:8px; font-weight:600; text-transform:uppercase; padding:1px 5px; border-radius:4px; background:rgba(255,255,255,0.03); border:1px solid ${statusColor}; color:${statusColor};">${app.status}</span>
+          </div>
+          <div style="display:flex; justify-content:space-between; font-size:10px; color:rgba(241,231,210,0.5);">
+            <span>${app.companyName}</span>
+            <span>Applied: ${app.appliedAt}</span>
           </div>
         </div>
       `;
-    }
+    }).join("");
+  }
+  
+  // Action Area depending on status and session
+  const actionArea = document.getElementById("drawer-actions");
+  const session = getSession();
+  
+  if (!stud.claimedBy) {
+    // Unclaimed: Give option to Claim Student
+    actionArea.innerHTML = `
+      <p style="font-size:11px; color:rgba(241,231,210,0.5);">This student is currently available and has not been claimed by any company.</p>
+      <button onclick="claimStudent('${stud.id}', 'Applied')" style="background:#ffd15c; border:none; color:#1a1f3a; padding:12px; border-radius:30px; font-weight:600; cursor:pointer; width:100%; text-align:center;">Claim & Set to Applied</button>
+    `;
+  } else if (stud.claimedBy === session.name) {
+    // Claimed by CURRENT business: Provide status updating options
+    actionArea.innerHTML = `
+      <p style="font-size:11px; color:#ffd15c;">You have claimed this student. Manage their status:</p>
+      <div style="display:flex; flex-direction:column; gap:8px;">
+        <div style="display:flex; gap:8px;">
+          <button onclick="setStudentStatus('${stud.id}', 'Applied')" style="flex:1; background:${stud.status === 'Applied' ? '#f97316' : 'rgba(255,255,255,0.06)'}; border:1px solid rgba(241,231,210,0.2); color:${stud.status === 'Applied' ? '#fff' : '#f1e7d2'}; padding:10px; border-radius:8px; font-size:12px; font-weight:600; cursor:pointer;">Applied</button>
+          <button onclick="setStudentStatus('${stud.id}', 'Shortlisted')" style="flex:1; background:${stud.status === 'Shortlisted' ? '#3b82f6' : 'rgba(255,255,255,0.06)'}; border:1px solid rgba(241,231,210,0.2); color:${stud.status === 'Shortlisted' ? '#fff' : '#f1e7d2'}; padding:10px; border-radius:8px; font-size:12px; font-weight:600; cursor:pointer;">Shortlisted</button>
+        </div>
+        <button onclick="setStudentStatus('${stud.id}', 'Completed')" style="background:${stud.status === 'Completed' ? '#9ca3af' : 'rgba(255,255,255,0.06)'}; border:1px solid rgba(241,231,210,0.2); color:${stud.status === 'Completed' ? '#fff' : '#f1e7d2'}; padding:10px; border-radius:8px; font-size:12px; font-weight:600; cursor:pointer;">Completed</button>
+        <button onclick="releaseStudent('${stud.id}')" style="background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.3); color:#ef4444; padding:10px; border-radius:8px; font-size:12px; font-weight:600; cursor:pointer; margin-top:8px;">Release (Make Available)</button>
+      </div>
+    `;
   } else {
-    if (profileContainer) {
-      const isSubpage = window.location.pathname.includes('students.html') || window.location.pathname.includes('business.html');
-      const btnHtml = isSubpage 
-        ? `<button id="nav-signin-btn" class="nav-signup" onclick="openSignInModal()" style="background:rgba(255,255,255,0.06); color:#fff; border:1px solid rgba(255,255,255,0.25);">Sign In</button>`
-        : `<button id="nav-signin-btn" class="s3-nav-btn" onclick="openSignInModal()" style="background:rgba(241,231,210,0.06); border-color:rgba(241,231,210,0.3); color:rgba(241,231,210,0.85); font-weight: 500;">Sign In</button>`;
-      profileContainer.outerHTML = btnHtml;
-    }
+    // Claimed by OTHER business: Show disabled actions
+    actionArea.innerHTML = `
+      <div style="background:rgba(239,68,68,0.05); border:1px solid rgba(239,68,68,0.2); border-radius:12px; padding:12px; text-align:center;">
+        <span style="font-size:12px; font-weight:600; color:#ef4444; display:block; margin-bottom:4px;">Internship Active / Claimed</span>
+        <span style="font-size:11px; color:rgba(241,231,210,0.5);">This student is working with or claimed by <strong>${stud.claimedBy}</strong>.</span>
+      </div>
+    `;
   }
-}
+  
+  // Show drawer
+  const drawer = document.getElementById("detail-drawer");
+  if (drawer) drawer.style.display = "flex";
+};
 
-// Close dropdown when clicking outside
-window.addEventListener('click', function(e) {
-  const dropdown = document.getElementById('signout-dropdown');
-  const profilePic = document.getElementById('user-profile-pic');
-  if (dropdown && dropdown.style.display === 'block' && e.target !== profilePic && !dropdown.contains(e.target)) {
-    dropdown.style.display = 'none';
+window.closeDetailDrawer = function() {
+  const drawer = document.getElementById("detail-drawer");
+  if (drawer) drawer.style.display = "none";
+  activeStudentId = null;
+};
+
+window.claimStudent = async function(id, initialStatus) {
+  const session = getSession();
+  if (!session) return;
+  
+  const res = await claimStudentByBusiness(id, session.name, initialStatus);
+  if (res) {
+    await applyFilters();
+    await openDetailDrawer(id); // Reload details
   }
-});
+};
 
-// Run immediately to restore state
-updateAuthUI();
+window.setStudentStatus = async function(id, status) {
+  const res = await setStudentStatusByBusiness(id, status);
+  if (res) {
+    await applyFilters();
+    await openDetailDrawer(id); // Reload details
+  }
+};
+
+window.releaseStudent = async function(id) {
+  const res = await releaseStudentByBusiness(id);
+  if (res) {
+    await applyFilters();
+    await openDetailDrawer(id); // Reload details
+  }
+};
+
+window.openPostInternshipModal = function() {
+  const modal = document.getElementById("post-internship-modal");
+  if (modal) {
+    modal.style.display = "flex";
+    setTimeout(() => { modal.style.opacity = "1"; }, 10);
+  }
+};
+
+window.closePostInternshipModal = function() {
+  const modal = document.getElementById("post-internship-modal");
+  if (modal) {
+    modal.style.opacity = "0";
+    setTimeout(() => { modal.style.display = "none"; }, 300);
+  }
+};
+
+window.submitPostInternshipForm = async function(event) {
+  event.preventDefault();
+  const session = getSession();
+  if (!session) return;
+  
+  const details = {
+    title: document.getElementById("int-title").value,
+    skill: document.getElementById("int-skill").value,
+    preference: document.getElementById("int-pref").value,
+    duration: document.getElementById("int-duration").value,
+    description: document.getElementById("int-desc").value,
+    requirements: document.getElementById("int-reqs").value
+  };
+  
+  await postInternship(session.name, details);
+  alert("Internship opportunity posted successfully!");
+  
+  document.getElementById("post-internship-form").reset();
+  closePostInternshipModal();
+  await applyFilters(); // Refresh display/counts if appropriate
+};
 </script>
 </body>
 </html>

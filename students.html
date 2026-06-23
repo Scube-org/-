@@ -317,7 +317,7 @@ section.hero {
     </div>
     
     <!-- Continue with Google Button -->
-    <button onclick="handleGoogleSignIn()" style="width:100%; display:flex; align-items:center; justify-content:center; gap:12px; background:#ffffff; border:none; color:#1a1f3a; padding:14px 24px; border-radius:50px; font-size:14px; font-weight:600; cursor:pointer; transition:background 200ms, transform 200ms; font-family:'Inter',sans-serif;" onmouseenter="this.style.background='#f3f4f6'; this.style.transform='scale(1.02)';" onmouseleave="this.style.background='#ffffff'; this.style.transform=''">
+    <button onclick="handleGoogleSignIn('student')" style="width:100%; display:flex; align-items:center; justify-content:center; gap:12px; background:#ffffff; border:none; color:#1a1f3a; padding:14px 24px; border-radius:50px; font-size:14px; font-weight:600; cursor:pointer; transition:background 200ms, transform 200ms; font-family:'Inter',sans-serif;" onmouseenter="this.style.background='#f3f4f6'; this.style.transform='scale(1.02)';" onmouseleave="this.style.background='#ffffff'; this.style.transform=''">
       <!-- Google SVG Icon -->
       <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
         <path d="M17.64 9.20455C17.64 8.56636 17.5827 7.95273 17.4764 7.36364H9V10.845H13.8436C13.635 11.97 13.0009 12.9232 12.0477 13.5614V15.8195H14.9564C16.6582 14.2527 17.64 11.9455 17.64 9.20455Z" fill="#4285F4"/>
@@ -338,12 +338,20 @@ section.hero {
     <span class="nav-wordmark font-dm-serif">S³</span>
   </a>
 
-  <div class="nav-pill" role="navigation" aria-label="Main navigation">
+  <!-- Default Nav Pill (Visitor) -->
+  <div class="nav-pill" id="visitor-nav-pill" role="navigation" aria-label="Main navigation">
     <button class="nav-pill-btn active">Creative</button>
     <button class="nav-pill-btn">Marketing</button>
     <button class="nav-pill-btn">Tech</button>
     <button class="nav-pill-btn">Outreach</button>
     <button class="nav-pill-btn">Strategy</button>
+  </div>
+
+  <!-- Student Nav Pill (Logged In) -->
+  <div class="nav-pill" id="student-nav-pill" role="navigation" aria-label="Student Navigation" style="display: none;">
+    <button class="nav-pill-btn active" id="btn-tab-form" onclick="switchStudentTab('form')">Profile Form</button>
+    <button class="nav-pill-btn" id="btn-tab-finder" onclick="switchStudentTab('finder')">Internships</button>
+    <button class="nav-pill-btn" id="btn-tab-progress" onclick="switchStudentTab('progress')">Progress & History</button>
   </div>
 
   <div style="display:flex; align-items:center; gap:12px;">
@@ -380,9 +388,209 @@ section.hero {
     <a href="https://www.instagram.com/thescubeofficial/" target="_blank" rel="noopener" class="btn-dig">Contact Us</a>
   </div>
 
+  <!-- Student Profile Onboarding Form (Initially Hidden) -->
+  <div id="student-form-section" style="display:none; position:absolute; inset:0; z-index:40; align-items:center; justify-content:center; padding: 20px; overflow-y:auto; padding-top: 100px;">
+    <div style="background:rgba(26,31,58,0.7); backdrop-filter:blur(24px); -webkit-backdrop-filter:blur(24px); border:1px solid rgba(241,231,210,0.12); padding:35px; border-radius:32px; width:min(580px,95%); box-shadow:0 30px 80px rgba(0,0,0,0.4); display:flex; flex-direction:column; gap:20px; color:#f1e7d2; margin-top: auto; margin-bottom: auto;" data-no-drag>
+      
+      <!-- Profile Form Input Container -->
+      <div id="student-form-inputs-container" style="display:flex; flex-direction:column; gap:20px; width:100%;">
+        <div>
+          <h2 class="font-playfair" style="font-size:26px; font-weight:400; margin-bottom:4px; font-style:italic; color:#ffd15c;">Student Onboarding</h2>
+          <p style="font-size:12px; color:rgba(241,231,210,0.65); font-family:'Inter',sans-serif;">Let startups find you by submitting your skills and preferences.</p>
+        </div>
+        
+        <form id="student-profile-form" onsubmit="submitStudentForm(event)" style="display:flex; flex-direction:column; gap:14px; font-family:'Inter',sans-serif; text-align:left;">
+          <div style="display:flex; gap:14px; flex-wrap:wrap;">
+            <div style="flex:1; min-width:200px; display:flex; flex-direction:column; gap:6px;">
+              <label style="font-size:11px; font-weight:600; color:rgba(241,231,210,0.7); letter-spacing:0.05em; text-transform:uppercase;">Full Name</label>
+              <input type="text" id="stud-name" required style="background:rgba(255,255,255,0.06); border:1px solid rgba(241,231,210,0.2); border-radius:8px; padding:10px 12px; color:#fff; font-size:13px; outline:none; transition:border-color 200ms;" onfocus="this.style.borderColor='#ffd15c'" onblur="this.style.borderColor='rgba(241,231,210,0.2)'" />
+            </div>
+            <div style="width:90px; display:flex; flex-direction:column; gap:6px;">
+              <label style="font-size:11px; font-weight:600; color:rgba(241,231,210,0.7); letter-spacing:0.05em; text-transform:uppercase;">Age</label>
+              <input type="number" id="stud-age" min="14" max="30" required style="background:rgba(255,255,255,0.06); border:1px solid rgba(241,231,210,0.2); border-radius:8px; padding:10px; color:#fff; font-size:13px; outline:none;" />
+            </div>
+            <div style="flex:1; min-width:140px; display:flex; flex-direction:column; gap:6px;">
+              <label style="font-size:11px; font-weight:600; color:rgba(241,231,210,0.7); letter-spacing:0.05em; text-transform:uppercase;">Grade / Education Level</label>
+              <select id="stud-grade" required style="background:#1a1f3a; border:1px solid rgba(241,231,210,0.2); border-radius:8px; padding:10px; color:#fff; font-size:13px; outline:none; cursor:pointer;">
+                <option value="11th Grade">11th Grade</option>
+                <option value="12th Grade">12th Grade</option>
+                <option value="12th Pass">12th Pass</option>
+                <option value="NA / Other">NA / Other</option>
+              </select>
+            </div>
+          </div>
+
+          <div style="display:flex; gap:14px; flex-wrap:wrap;">
+            <div style="flex:1; min-width:220px; display:flex; flex-direction:column; gap:6px;">
+              <label style="font-size:11px; font-weight:600; color:rgba(241,231,210,0.7); letter-spacing:0.05em; text-transform:uppercase;">Primary Skill (Choose One)</label>
+              <select id="stud-skill" required style="background:#1a1f3a; border:1px solid rgba(241,231,210,0.2); border-radius:8px; padding:10px; color:#fff; font-size:13px; outline:none; cursor:pointer;">
+                <!-- Will be populated dynamically with the 10 skills -->
+              </select>
+            </div>
+            <div style="flex:1; min-width:140px; display:flex; flex-direction:column; gap:6px;">
+              <label style="font-size:11px; font-weight:600; color:rgba(241,231,210,0.7); letter-spacing:0.05em; text-transform:uppercase;">Preference</label>
+              <select id="stud-pref" required style="background:#1a1f3a; border:1px solid rgba(241,231,210,0.2); border-radius:8px; padding:10px; color:#fff; font-size:13px; outline:none; cursor:pointer;">
+                <option value="Remote">Remote</option>
+                <option value="On-site">On-site</option>
+                <option value="Hybrid">Hybrid</option>
+              </select>
+            </div>
+          </div>
+
+          <div style="display:flex; flex-direction:column; gap:6px;">
+            <label style="font-size:11px; font-weight:600; color:rgba(241,231,210,0.7); letter-spacing:0.05em; text-transform:uppercase;">School or College Name</label>
+            <input type="text" id="stud-school" required style="background:rgba(255,255,255,0.06); border:1px solid rgba(241,231,210,0.2); border-radius:8px; padding:10px 12px; color:#fff; font-size:13px; outline:none;" />
+          </div>
+
+          <div style="display:flex; flex-direction:column; gap:6px;">
+            <label style="font-size:11px; font-weight:600; color:rgba(241,231,210,0.7); letter-spacing:0.05em; text-transform:uppercase;">Past Internships & Experience</label>
+            <textarea id="stud-exp" rows="3" placeholder="Tell us about projects you built, events you managed, or writing samples..." required style="background:rgba(255,255,255,0.06); border:1px solid rgba(241,231,210,0.2); border-radius:8px; padding:10px 12px; color:#fff; font-size:13px; outline:none; resize:none; font-family:sans-serif;" onfocus="this.style.borderColor='#ffd15c'" onblur="this.style.borderColor='rgba(241,231,210,0.2)'"></textarea>
+          </div>
+
+          <div style="display:flex; gap:14px; flex-wrap:wrap;">
+            <div style="flex:1; min-width:200px; display:flex; flex-direction:column; gap:6px;">
+              <label style="font-size:11px; font-weight:600; color:rgba(241,231,210,0.7); letter-spacing:0.05em; text-transform:uppercase;">Email Address</label>
+              <input type="email" id="stud-email" readonly style="background:rgba(255,255,255,0.03); border:1px solid rgba(241,231,210,0.1); border-radius:8px; padding:10px 12px; color:rgba(255,255,255,0.5); font-size:13px; outline:none; cursor:not-allowed;" />
+            </div>
+            <div style="flex:1; min-width:200px; display:flex; flex-direction:column; gap:6px;">
+              <label style="font-size:11px; font-weight:600; color:rgba(241,231,210,0.7); letter-spacing:0.05em; text-transform:uppercase;">Mobile Number</label>
+              <input type="tel" id="stud-phone" placeholder="+91 XXXXX XXXXX" required style="background:rgba(255,255,255,0.06); border:1px solid rgba(241,231,210,0.2); border-radius:8px; padding:10px 12px; color:#fff; font-size:13px; outline:none;" />
+            </div>
+          </div>
+
+          <button type="submit" style="background:#ffd15c; border:none; color:#1a1f3a; padding:12px 24px; border-radius:50px; font-size:14px; font-weight:600; cursor:pointer; margin-top:10px; transition:background 200ms, transform 200ms;" onmouseenter="this.style.background='#e6bd50'; this.style.transform='scale(1.02)';" onmouseleave="this.style.background='#ffd15c'; this.style.transform=''">Submit Profile</button>
+        </form>
+      </div>
+
+      <!-- Congrats / Already Submitted View -->
+      <div id="student-form-success-container" style="display:none; flex-direction:column; align-items:center; gap:20px; text-align:center; padding: 20px 0; width:100%;">
+        <div style="width:70px; height:70px; border-radius:50%; background:rgba(34,197,94,0.12); border:2px solid #22c55e; display:flex; align-items:center; justify-content:center; color:#22c55e; font-size:32px;">✓</div>
+        <div>
+          <h2 class="font-playfair" style="font-size:28px; font-weight:400; margin-bottom:10px; font-style:italic; color:#ffd15c;">Profile Submitted!</h2>
+          <p style="font-size:14px; color:rgba(241,231,210,0.8); font-family:'Inter',sans-serif; line-height:1.6; max-width:40ch; margin: 0 auto;">Congratulations! Your profile is active and startups can now view your details and claim your application.</p>
+        </div>
+        <div style="display:flex; gap:14px; margin-top:10px;">
+          <button onclick="switchStudentTab('finder')" style="background:#ffd15c; border:none; color:#1a1f3a; padding:12px 24px; border-radius:50px; font-size:13px; font-weight:600; cursor:pointer; transition:all 200ms;" onmouseenter="this.style.background='#e6bd50'; this.style.transform='scale(1.02)';" onmouseleave="this.style.background='#ffd15c'; this.style.transform=''">Browse Internships</button>
+          <button onclick="enableProfileEditing()" style="background:rgba(255,255,255,0.06); border:1px solid rgba(241,231,210,0.2); color:#f1e7d2; padding:12px 24px; border-radius:50px; font-size:13px; font-weight:500; cursor:pointer; transition:background 200ms;" onmouseenter="this.style.background='rgba(255,255,255,0.08)'" onmouseleave="this.style.background='rgba(255,255,255,0.06)'">Edit Profile</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Tab 2: Internships Finder (Initially Hidden) -->
+  <div id="student-finder-section" style="display:none; position:absolute; inset:0; z-index:40; align-items:stretch; justify-content:stretch; padding: 20px; box-sizing: border-box; padding-top: 100px; gap: 20px; height: 100dvh;">
+    <!-- Left Filter Sidebar -->
+    <div style="background:rgba(26,31,58,0.7); backdrop-filter:blur(24px); -webkit-backdrop-filter:blur(24px); border:1px solid rgba(241,231,210,0.12); padding:25px; border-radius:24px; width: 280px; flex-shrink: 0; box-shadow:0 30px 80px rgba(0,0,0,0.4); display:flex; flex-direction:column; gap:16px; color:#f1e7d2; text-align:left; overflow-y:auto;" data-no-drag>
+      <div>
+        <h3 class="font-playfair" style="font-size:20px; font-weight:400; font-style:italic; color:#ffd15c; margin-bottom:4px;">Find Internships</h3>
+        <p style="font-size:11px; color:rgba(241,231,210,0.5);">Filter available positions based on your interests.</p>
+      </div>
+
+      <!-- Skill Filter -->
+      <div style="display:flex; flex-direction:column; gap:6px;">
+        <label style="font-size:10px; font-weight:600; color:rgba(241,231,210,0.6); letter-spacing:0.05em; text-transform:uppercase;">Skill Category</label>
+        <select id="finder-filter-skill" onchange="renderInternships()" style="background:#1a1f3a; border:1px solid rgba(241,231,210,0.2); border-radius:8px; padding:10px; color:#fff; font-size:13px; outline:none; cursor:pointer; width:100%;">
+          <option value="All">All Skills</option>
+        </select>
+      </div>
+
+      <!-- Preference Filter -->
+      <div style="display:flex; flex-direction:column; gap:6px;">
+        <label style="font-size:10px; font-weight:600; color:rgba(241,231,210,0.6); letter-spacing:0.05em; text-transform:uppercase;">Work Preference</label>
+        <select id="finder-filter-pref" onchange="renderInternships()" style="background:#1a1f3a; border:1px solid rgba(241,231,210,0.2); border-radius:8px; padding:10px; color:#fff; font-size:13px; outline:none; cursor:pointer; width:100%;">
+          <option value="All">All Preferences</option>
+          <option value="Remote">Remote</option>
+          <option value="On-site">On-site</option>
+          <option value="Hybrid">Hybrid</option>
+        </select>
+      </div>
+
+      <button onclick="resetFinderFilters()" style="background:rgba(241,231,210,0.06); border:1px solid rgba(241,231,210,0.2); color:#f1e7d2; padding:10px 15px; border-radius:30px; font-size:12px; font-weight:500; cursor:pointer; width:100%; transition:background 200ms;" onmouseenter="this.style.background='rgba(255,255,255,0.08)'" onmouseleave="this.style.background='rgba(241,231,210,0.06)'">Reset Filters</button>
+    </div>
+
+    <!-- Right Main List -->
+    <div style="flex:1; display:flex; flex-direction:column; gap:16px; height:100%; box-sizing:border-box;" data-no-drag>
+      <div style="flex:1; overflow-y:auto; background:rgba(26,31,58,0.4); border:1px solid rgba(241,231,210,0.08); border-radius:24px; padding:20px; display:flex; flex-direction:column; gap:12px; box-sizing:border-box;">
+        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(241,231,210,0.1); padding-bottom:10px; margin-bottom:10px;">
+          <h4 style="font-size:14px; font-weight:600; text-transform:uppercase; color:rgba(241,231,210,0.7); letter-spacing:0.08em;">Available Opportunities</h4>
+          <span id="finder-results-count" style="font-size:12px; color:#ffd15c; font-weight:600;">0 found</span>
+        </div>
+        <div id="internships-grid-container" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(280px, 1fr)); gap:16px; align-content:start;">
+          <!-- Filled dynamically -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tab 3: Progress & History (Initially Hidden) -->
+  <div id="student-progress-section" style="display:none; position:absolute; inset:0; z-index:40; align-items:flex-start; justify-content:center; padding: 20px; box-sizing: border-box; padding-top: 100px; height: 100dvh; overflow-y:auto;">
+    <div style="width:100%; display:flex; gap:20px; flex-wrap:wrap; max-width:1200px; margin:0 auto; align-items:start; margin-bottom: 40px;">
+      
+      <!-- Left Column: Active Applications & Progress -->
+      <div style="flex:2; min-width:320px; background:rgba(26,31,58,0.7); backdrop-filter:blur(24px); -webkit-backdrop-filter:blur(24px); border:1px solid rgba(241,231,210,0.12); padding:30px; border-radius:24px; box-shadow:0 30px 80px rgba(0,0,0,0.4); display:flex; flex-direction:column; gap:20px; color:#f1e7d2; text-align:left;" data-no-drag>
+        <div>
+          <h3 class="font-playfair" style="font-size:22px; font-weight:400; font-style:italic; color:#ffd15c; margin-bottom:4px;">Your Applications</h3>
+          <p style="font-size:11px; color:rgba(241,231,210,0.5);">Track status updates of your submitted applications.</p>
+        </div>
+        <div id="active-applications-list" style="display:flex; flex-direction:column; gap:16px;">
+          <!-- Filled dynamically -->
+        </div>
+      </div>
+      
+      <!-- Right Column: Completed Internship History -->
+      <div style="flex:1.2; min-width:280px; background:rgba(26,31,58,0.7); backdrop-filter:blur(24px); -webkit-backdrop-filter:blur(24px); border:1px solid rgba(241,231,210,0.12); padding:30px; border-radius:24px; box-shadow:0 30px 80px rgba(0,0,0,0.4); display:flex; flex-direction:column; gap:20px; color:#f1e7d2; text-align:left;" data-no-drag>
+        <div>
+          <h3 class="font-playfair" style="font-size:22px; font-weight:400; font-style:italic; color:#ffd15c; margin-bottom:4px;">Internship History</h3>
+          <p style="font-size:11px; color:rgba(241,231,210,0.5);">Your records of completed internships.</p>
+        </div>
+        <div id="completed-history-list" style="display:flex; flex-direction:column; gap:12px;">
+          <!-- Filled dynamically -->
+        </div>
+      </div>
+      
+    </div>
+  </div>
+
+  <!-- Internship Detail Modal (Overlay) -->
+  <div id="internship-detail-modal" style="display:none; position:fixed; inset:0; z-index:999999; background:rgba(13,15,26,0.6); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); align-items:center; justify-content:center; opacity:0; transition:opacity 300ms ease;">
+    <div style="background:rgba(26,31,58,0.95); border:1px solid rgba(241,231,210,0.15); padding:40px; border-radius:32px; width:min(520px,90%); text-align:left; box-shadow:0 30px 70px rgba(0,0,0,0.5); display:flex; flex-direction:column; gap:20px; position:relative; color:#f1e7d2;">
+      <!-- Close button -->
+      <button onclick="closeInternshipDetailModal()" aria-label="Close modal" style="position:absolute; right:20px; top:20px; background:none; border:none; color:rgba(241,231,210,0.5); cursor:pointer; font-size:20px; transition:color 200ms;" onmouseenter="this.style.color='#fff'" onmouseleave="this.style.color='rgba(241,231,210,0.5)'">✕</button>
+      
+      <div>
+        <span id="modal-int-company" style="font-size:12px; color:#ffd15c; font-weight:600; text-transform:uppercase; letter-spacing:0.05em;">Company Name</span>
+        <h2 id="modal-int-title" class="font-playfair" style="font-size:26px; color:#fff; font-weight:400; margin-top:4px; font-style:italic;">Internship Title</h2>
+      </div>
+
+      <div style="display:flex; gap:16px; font-size:12px; color:rgba(241,231,210,0.7); background:rgba(255,255,255,0.03); border:1px solid rgba(241,231,210,0.08); padding:10px 14px; border-radius:10px;">
+        <div><strong>Skill:</strong> <span id="modal-int-skill">Software Development</span></div>
+        <div>•</div>
+        <div><strong>Location:</strong> <span id="modal-int-pref">Remote</span></div>
+        <div>•</div>
+        <div><strong>Duration:</strong> <span id="modal-int-duration">3 Months</span></div>
+      </div>
+
+      <div>
+        <h4 style="font-size:11px; font-weight:600; color:rgba(241,231,210,0.5); letter-spacing:0.05em; text-transform:uppercase; margin-bottom:6px;">Job Description</h4>
+        <p id="modal-int-desc" style="font-size:13px; line-height:1.6; color:rgba(241,231,210,0.85); white-space:pre-line;">Description details...</p>
+      </div>
+
+      <div>
+        <h4 style="font-size:11px; font-weight:600; color:rgba(241,231,210,0.5); letter-spacing:0.05em; text-transform:uppercase; margin-bottom:6px;">Requirements</h4>
+        <p id="modal-int-reqs" style="font-size:13px; line-height:1.6; color:rgba(241,231,210,0.85); white-space:pre-line;">Requirements details...</p>
+      </div>
+
+      <button id="modal-apply-btn" onclick="applyFromModal()" style="width:100%; background:#ffd15c; border:none; color:#1a1f3a; padding:14px; border-radius:50px; font-size:14px; font-weight:600; cursor:pointer; transition:background 200ms, transform 200ms;" onmouseenter="this.style.background='#e6bd50'; this.style.transform='scale(1.01)';" onmouseleave="this.style.background='#ffd15c'; this.style.transform=''">Apply Now</button>
+    </div>
+  </div>
 </section>
 
-<script>
+<!-- Firebase Init -->
+<script type="module" src="firebase-init.js"></script>
+<!-- Shared Firestore DB & Auth Helpers -->
+<script type="module" src="firebase-db.js"></script>
+
+<script type="module">
 (function () {
   const revealLayer = document.getElementById('revealLayer');
   const hero = document.getElementById('hero');
@@ -426,80 +634,415 @@ section.hero {
   });
 })();
 
-function openSignInModal() {
-  const modal = document.getElementById('signin-modal');
-  if (modal) {
-    modal.style.display = 'flex';
-    setTimeout(() => { modal.style.opacity = '1'; }, 10);
+// Wait for database module to populate SKILLS_LIST
+setTimeout(() => {
+  const skillDropdown = document.getElementById("stud-skill");
+  if (skillDropdown && window.SKILLS_LIST) {
+    skillDropdown.innerHTML = window.SKILLS_LIST.map(skill => `<option value="${skill}">${skill}</option>`).join("");
   }
-}
-function closeSignInModal() {
-  const modal = document.getElementById('signin-modal');
-  if (modal) {
-    modal.style.opacity = '0';
-    setTimeout(() => { modal.style.display = 'none'; }, 300);
+
+  const finderSkillFilter = document.getElementById("finder-filter-skill");
+  if (finderSkillFilter && window.SKILLS_LIST) {
+    finderSkillFilter.innerHTML = `<option value="All">All Skills</option>` + window.SKILLS_LIST.map(skill => `<option value="${skill}">${skill}</option>`).join("");
+  }
+}, 400);
+
+let activeInternshipId = null;
+let currentTab = 'form';
+
+// Tab switching logic
+window.switchStudentTab = async function(tabId) {
+  const session = getSession();
+  if (!session) return;
+  
+  const student = await getStudentByEmail(session.email);
+  const hasProfile = !!student;
+  
+  if (tabId !== 'form' && !hasProfile) {
+    alert("Access Denied: Please fill out and submit the Profile Form first!");
+    return;
+  }
+  
+  // Hide all sections
+  document.getElementById("student-form-section").style.display = "none";
+  document.getElementById("student-finder-section").style.display = "none";
+  document.getElementById("student-progress-section").style.display = "none";
+  
+  // Remove active classes
+  document.getElementById("btn-tab-form").classList.remove("active");
+  document.getElementById("btn-tab-finder").classList.remove("active");
+  document.getElementById("btn-tab-progress").classList.remove("active");
+  
+  // Show target section & set active button
+  if (tabId === 'form') {
+    document.getElementById("student-form-section").style.display = "flex";
+    document.getElementById("btn-tab-form").classList.add("active");
+    
+    // Show congrats view if they already submitted, otherwise show inputs
+    if (hasProfile) {
+      document.getElementById("student-form-inputs-container").style.display = "none";
+      document.getElementById("student-form-success-container").style.display = "flex";
+    } else {
+      document.getElementById("student-form-inputs-container").style.display = "flex";
+      document.getElementById("student-form-success-container").style.display = "none";
+    }
+  } else if (tabId === 'finder') {
+    document.getElementById("student-finder-section").style.display = "flex";
+    document.getElementById("btn-tab-finder").classList.add("active");
+    await renderInternships();
+  } else if (tabId === 'progress') {
+    document.getElementById("student-progress-section").style.display = "flex";
+    document.getElementById("btn-tab-progress").classList.add("active");
+    await renderProgressAndHistory();
+  }
+  
+  currentTab = tabId;
+};
+
+// Check profile presence and style tabs
+function updateTabStates(hasProfile) {
+  const btnFinder = document.getElementById("btn-tab-finder");
+  const btnProgress = document.getElementById("btn-tab-progress");
+  
+  if (!hasProfile) {
+    btnFinder.style.opacity = "0.5";
+    btnFinder.style.cursor = "not-allowed";
+    btnProgress.style.opacity = "0.5";
+    btnProgress.style.cursor = "not-allowed";
+  } else {
+    btnFinder.style.opacity = "1";
+    btnFinder.style.cursor = "pointer";
+    btnProgress.style.opacity = "1";
+    btnProgress.style.cursor = "pointer";
   }
 }
 
-function handleGoogleSignIn() {
-  localStorage.setItem('s3_signed_in', 'true');
-  closeSignInModal();
-  updateAuthUI();
-}
-function toggleSignOutDropdown() {
-  const dropdown = document.getElementById('signout-dropdown');
-  if (dropdown) {
-    dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
-  }
-}
-function handleSignOut() {
-  localStorage.removeItem('s3_signed_in');
-  updateAuthUI();
-}
-function updateAuthUI() {
-  const isSignedIn = localStorage.getItem('s3_signed_in') === 'true';
-  const navBtn = document.getElementById('nav-signin-btn');
-  const profileContainer = document.getElementById('user-profile-container');
+// Render available internships in Tab 2
+window.renderInternships = async function() {
+  const session = getSession();
+  if (!session) return;
   
-  if (isSignedIn) {
-    if (navBtn) {
-      navBtn.outerHTML = `
-        <div id="user-profile-container" class="user-profile-wrap" style="position:relative; display:inline-block; line-height:0; vertical-align:middle;">
-          <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=facearea&facepad=2&w=80&h=80&q=80" 
-               alt="User Profile" 
-               id="user-profile-pic" 
-               style="width:36px; height:36px; border-radius:50%; border:2px solid rgba(255,255,255,0.4); cursor:pointer; object-fit:cover; transition:transform 200ms, border-color 200ms;" 
-               onclick="toggleSignOutDropdown()" 
-               onmouseenter="this.style.transform='scale(1.05)'; this.style.borderColor='rgba(255,255,255,0.8)';" 
-               onmouseleave="this.style.transform=''; this.style.borderColor='rgba(255,255,255,0.4)';" />
-          <div id="signout-dropdown" style="display:none; position:absolute; right:0; top:42px; background:rgba(26,31,58,0.96); border:1px solid rgba(241,231,210,0.15); border-radius:12px; padding:6px; z-index:1000000; box-shadow:0 10px 30px rgba(0,0,0,0.5); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); min-width:120px;">
-            <button onclick="handleSignOut()" style="width:100%; text-align:left; background:none; border:none; color:#f1e7d2; padding:8px 12px; font-size:13px; font-family:'Inter',sans-serif; cursor:pointer; border-radius:8px; transition:background 200ms;" onmouseenter="this.style.background='rgba(255,255,255,0.08)'" onmouseleave="this.style.background='none'">Sign Out</button>
+  const history = await getStudentHistory(session.email);
+  const skillFilter = document.getElementById("finder-filter-skill").value;
+  const prefFilter = document.getElementById("finder-filter-pref").value;
+  
+  const list = await getInternships();
+  
+  const filtered = list.filter(item => {
+    if (skillFilter !== "All" && item.skill !== skillFilter) return false;
+    if (prefFilter !== "All" && item.preference !== prefFilter) return false;
+    return true;
+  });
+  
+  document.getElementById("finder-results-count").textContent = `${filtered.length} found`;
+  
+  const grid = document.getElementById("internships-grid-container");
+  if (filtered.length === 0) {
+    grid.innerHTML = `<div style="grid-column: 1/-1; padding: 40px; text-align: center; color: rgba(241,231,210,0.4); font-size: 13px;">No internships found. Try adjusting your filters.</div>`;
+    return;
+  }
+  
+  grid.innerHTML = filtered.map(item => {
+    const hasApplied = history.some(a => a.internshipId === item.id);
+    const btnText = hasApplied ? "Applied" : "View Details";
+    const btnStyle = hasApplied 
+      ? `background:rgba(255,255,255,0.05); border:1px solid rgba(241,231,210,0.15); color:rgba(241,231,210,0.4); cursor:not-allowed;`
+      : `background:#ffd15c; color:#1a1f3a; cursor:pointer;`;
+      
+    return `
+      <div style="background:rgba(255,255,255,0.04); border:1px solid rgba(241,231,210,0.1); border-radius:20px; padding:22px; display:flex; flex-direction:column; gap:12px; transition:transform 200ms, border-color 200ms; text-align:left;" onmouseenter="this.style.transform='translateY(-2px)'; this.style.borderColor='rgba(241,231,210,0.3)'" onmouseleave="this.style.transform=''; this.style.borderColor='rgba(241,231,210,0.1)'">
+        <div style="display:flex; justify-content:space-between; align-items:start; gap:8px;">
+          <div>
+            <h5 style="font-size:16px; font-weight:600; color:#fff; margin-bottom:2px;">${item.title}</h5>
+            <span style="font-size:12px; color:#ffd15c;">${item.companyName}</span>
+          </div>
+          ${hasApplied ? `<span style="font-size:9px; font-weight:600; text-transform:uppercase; padding:2px 6px; border-radius:50px; background:rgba(255,209,92,0.1); border:1px solid #ffd15c; color:#ffd15c;">Applied</span>` : ''}
+        </div>
+        <div style="font-size:12px; color:rgba(241,231,210,0.7); line-height:1.5; height:54px; overflow:hidden; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical;">
+          ${item.description}
+        </div>
+        <div style="display:flex; justify-content:space-between; align-items:center; font-size:11px; color:rgba(241,231,210,0.5); font-family:sans-serif; border-top:1px solid rgba(241,231,210,0.08); padding-top:12px; margin-top:auto;">
+          <span>⌛ ${item.duration}</span>
+          <span>📍 ${item.preference}</span>
+        </div>
+        <button onclick="openInternshipDetailModal('${item.id}')" style="width:100%; border:none; padding:10px; border-radius:30px; font-size:12px; font-weight:600; transition:all 200ms; margin-top:8px; ${btnStyle}">
+          ${btnText}
+        </button>
+      </div>
+    `;
+  }).join("");
+};
+
+window.resetFinderFilters = async function() {
+  const session = getSession();
+  if (!session) return;
+  const student = await getStudentByEmail(session.email);
+  
+  // Set back to student's defaults from form if available, else All
+  document.getElementById("finder-filter-skill").value = student ? student.skill : "All";
+  document.getElementById("finder-filter-pref").value = student ? student.preference : "All";
+  await renderInternships();
+};
+
+window.openInternshipDetailModal = async function(id) {
+  activeInternshipId = id;
+  const internships = await getInternships();
+  const item = internships.find(i => i.id === id);
+  if (!item) return;
+  
+  document.getElementById("modal-int-company").textContent = item.companyName;
+  document.getElementById("modal-int-title").textContent = item.title;
+  document.getElementById("modal-int-skill").textContent = item.skill;
+  document.getElementById("modal-int-pref").textContent = item.preference;
+  document.getElementById("modal-int-duration").textContent = item.duration;
+  document.getElementById("modal-int-desc").textContent = item.description;
+  document.getElementById("modal-int-reqs").textContent = item.requirements || "None specified.";
+  
+  const session = getSession();
+  const history = await getStudentHistory(session.email);
+  const hasApplied = history.some(a => a.internshipId === id);
+  
+  const btn = document.getElementById("modal-apply-btn");
+  if (hasApplied) {
+    btn.textContent = "Applied";
+    btn.disabled = true;
+    btn.style.background = "rgba(255,255,255,0.06)";
+    btn.style.border = "1px solid rgba(241,231,210,0.15)";
+    btn.style.color = "rgba(241,231,210,0.4)";
+    btn.style.cursor = "not-allowed";
+  } else {
+    btn.textContent = "Apply Now";
+    btn.disabled = false;
+    btn.style.background = "#ffd15c";
+    btn.style.border = "none";
+    btn.style.color = "#1a1f3a";
+    btn.style.cursor = "pointer";
+  }
+  
+  const modal = document.getElementById("internship-detail-modal");
+  modal.style.display = "flex";
+  setTimeout(() => { modal.style.opacity = "1"; }, 10);
+};
+
+window.closeInternshipDetailModal = function() {
+  const modal = document.getElementById("internship-detail-modal");
+  if (modal) {
+    modal.style.opacity = "0";
+    setTimeout(() => { modal.style.display = "none"; }, 300);
+  }
+  activeInternshipId = null;
+};
+
+window.applyFromModal = async function() {
+  const session = getSession();
+  if (!session) return;
+  if (!activeInternshipId) return;
+  
+  const res = await applyToInternship(session.email, activeInternshipId);
+  if (res.success) {
+    alert("Application submitted successfully!");
+    closeInternshipDetailModal();
+    await renderInternships();
+  } else {
+    alert(res.message || "Failed to submit application.");
+  }
+};
+
+// Render Tab 3: Progress & History
+window.renderProgressAndHistory = async function() {
+  const session = getSession();
+  if (!session) return;
+  
+  const history = await getStudentHistory(session.email);
+  
+  // Split into active and completed applications
+  const activeApps = history.filter(a => a.status !== "Completed");
+  const completedApps = history.filter(a => a.status === "Completed");
+  
+  // Render active
+  const activeList = document.getElementById("active-applications-list");
+  if (activeApps.length === 0) {
+    activeList.innerHTML = `<div style="padding: 20px; text-align: center; color: rgba(241,231,210,0.4); font-size: 13px;">No active applications. Find and apply to internships from the finder tab!</div>`;
+  } else {
+    activeList.innerHTML = activeApps.map(app => {
+      // Calculate progress percentage
+      let progressPercent = 0;
+      if (app.status === "Applied") progressPercent = 0;
+      else if (app.status === "Shortlisted" || app.status === "Ongoing") progressPercent = 50;
+      
+      const isOngoing = app.status === "Shortlisted" || app.status === "Ongoing";
+      
+      return `
+        <div style="display:flex; flex-direction:column; gap:14px; background:rgba(255,255,255,0.03); border:1px solid rgba(241,231,210,0.08); padding:20px; border-radius:18px;">
+          <div style="display:flex; justify-content:space-between; align-items:start;">
+            <div>
+              <h4 style="font-size:16px; font-weight:600; color:#fff; margin-bottom:2px;">${app.title}</h4>
+              <span style="font-size:12px; color:#ffd15c; font-weight:500;">${app.companyName}</span>
+            </div>
+            <span style="font-size:11px; color:rgba(241,231,210,0.45);">${app.appliedAt}</span>
+          </div>
+          
+          <!-- Horizontal Timeline Progress Bar -->
+          <div style="display:flex; align-items:center; justify-content:space-between; margin-top:14px; position:relative; padding: 0 16px;">
+            <!-- Background track line -->
+            <div style="position:absolute; top:8px; left:24px; right:24px; height:2px; background:rgba(255,255,255,0.1); z-index:1;"></div>
+            <!-- Active progress line -->
+            <div style="position:absolute; top:8px; left:24px; width:${progressPercent}%; height:2px; background:#ffd15c; z-index:2; transition:width 300ms;"></div>
+            
+            <!-- Step 1: Applied -->
+            <div style="display:flex; flex-direction:column; align-items:center; gap:4px; z-index:3; position:relative; width:60px;">
+              <div style="width:16px; height:16px; border-radius:50%; background:#ffd15c; border:3px solid #1a1f3a; box-shadow:0 0 10px rgba(255,209,92,0.4);"></div>
+              <span style="font-size:9px; font-weight:600; color:#ffd15c;">Applied</span>
+            </div>
+            
+            <!-- Step 2: Shortlisted/Ongoing -->
+            <div style="display:flex; flex-direction:column; align-items:center; gap:4px; z-index:3; position:relative; width:90px;">
+              <div style="width:16px; height:16px; border-radius:50%; background:${isOngoing ? '#ffd15c' : '#2d3356'}; border:3px solid #1a1f3a; ${isOngoing ? 'box-shadow:0 0 10px rgba(255,209,92,0.4);' : ''}"></div>
+              <span style="font-size:9px; font-weight:600; color:${isOngoing ? '#ffd15c' : 'rgba(241,231,210,0.4)'}; text-align:center;">Shortlisted</span>
+            </div>
+            
+            <!-- Step 3: Completed -->
+            <div style="display:flex; flex-direction:column; align-items:center; gap:4px; z-index:3; position:relative; width:60px;">
+              <div style="width:16px; height:16px; border-radius:50%; background:#2d3356; border:3px solid #1a1f3a;"></div>
+              <span style="font-size:9px; font-weight:600; color:rgba(241,231,210,0.4);">Completed</span>
+            </div>
           </div>
         </div>
       `;
-    }
+    }).join("");
+  }
+  
+  // Render completed
+  const completedList = document.getElementById("completed-history-list");
+  if (completedApps.length === 0) {
+    completedList.innerHTML = `<div style="padding: 20px; text-align: center; color: rgba(241,231,210,0.4); font-size: 12px;">No completed internships yet. Keep learning!</div>`;
   } else {
-    if (profileContainer) {
-      const isSubpage = window.location.pathname.includes('students.html') || window.location.pathname.includes('business.html');
-      const btnHtml = isSubpage 
-        ? `<button id="nav-signin-btn" class="nav-signup" onclick="openSignInModal()" style="background:rgba(255,255,255,0.06); color:#fff; border:1px solid rgba(255,255,255,0.25);">Sign In</button>`
-        : `<button id="nav-signin-btn" class="s3-nav-btn" onclick="openSignInModal()" style="background:rgba(241,231,210,0.06); border-color:rgba(241,231,210,0.3); color:rgba(241,231,210,0.85); font-weight: 500;">Sign In</button>`;
-      profileContainer.outerHTML = btnHtml;
+    completedList.innerHTML = completedApps.map(app => `
+      <div style="background:rgba(255,255,255,0.02); border:1px solid rgba(241,231,210,0.06); padding:14px; border-radius:12px; display:flex; flex-direction:column; gap:4px;">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <h5 style="font-size:14px; font-weight:600; color:#fff;">${app.title}</h5>
+          <span style="font-size:9px; font-weight:600; text-transform:uppercase; padding:1px 5px; border-radius:4px; background:rgba(34,197,94,0.1); border:1px solid #22c55e; color:#22c55e;">Completed</span>
+        </div>
+        <div style="font-size:11px; color:#ffd15c;">${app.companyName}</div>
+        <div style="font-size:10px; color:rgba(241,231,210,0.4); font-family:sans-serif; margin-top:4px;">Ended: ${app.appliedAt}</div>
+      </div>
+    `).join("");
+  }
+};
+
+// Auth callbacks
+window.onAuthSuccess = async function(user) {
+  if (user.role !== 'student') {
+    alert("You are signed in as a Business. Please visit the Business section.");
+    handleSignOut();
+    return;
+  }
+  
+  // Hide landing hero elements
+  document.querySelector(".hero-heading").style.display = "none";
+  document.querySelector(".hero-bottom-left").style.display = "none";
+  document.querySelector(".hero-bottom-right").style.display = "none";
+  
+  // Show student nav pill and hide visitor nav pill
+  document.getElementById("visitor-nav-pill").style.display = "none";
+  document.getElementById("student-nav-pill").style.display = "flex";
+  
+  // Check student profile in database
+  const existing = await getStudentByEmail(user.email);
+  
+  updateTabStates(!!existing);
+  
+  // Set form inputs
+  document.getElementById("stud-name").value = existing ? existing.name : user.name;
+  document.getElementById("stud-email").value = user.email;
+  if (existing) {
+    document.getElementById("stud-age").value = existing.age;
+    document.getElementById("stud-grade").value = existing.grade;
+    document.getElementById("stud-skill").value = existing.skill;
+    document.getElementById("stud-pref").value = existing.preference;
+    document.getElementById("stud-school").value = existing.school;
+    document.getElementById("stud-exp").value = existing.experience;
+    document.getElementById("stud-phone").value = existing.phone;
+    
+    // Set default filter values to match profile selections
+    document.getElementById("finder-filter-skill").value = existing.skill;
+    document.getElementById("finder-filter-pref").value = existing.preference;
+  } else {
+    // Reset form fields
+    document.getElementById("stud-age").value = "";
+    document.getElementById("stud-grade").value = "11th Grade";
+    if (window.SKILLS_LIST) {
+      document.getElementById("stud-skill").value = window.SKILLS_LIST[0];
     }
+    document.getElementById("stud-pref").value = "Remote";
+    document.getElementById("stud-school").value = "";
+    document.getElementById("stud-exp").value = "";
+    document.getElementById("stud-phone").value = "";
   }
-}
+  
+  // Switch to form tab by default
+  await switchStudentTab('form');
+};
 
-// Close dropdown when clicking outside
-window.addEventListener('click', function(e) {
-  const dropdown = document.getElementById('signout-dropdown');
-  const profilePic = document.getElementById('user-profile-pic');
-  if (dropdown && dropdown.style.display === 'block' && e.target !== profilePic && !dropdown.contains(e.target)) {
-    dropdown.style.display = 'none';
-  }
-});
+window.onAuthSignOut = function() {
+  // Show landing hero elements
+  document.querySelector(".hero-heading").style.display = "flex";
+  document.querySelector(".hero-bottom-left").style.display = "block";
+  document.querySelector(".hero-bottom-right").style.display = "flex";
+  
+  // Show visitor nav pill, hide student nav pill
+  document.getElementById("visitor-nav-pill").style.display = "flex";
+  document.getElementById("student-nav-pill").style.display = "none";
+  
+  // Hide all dashboard sections
+  document.getElementById("student-form-section").style.display = "none";
+  document.getElementById("student-finder-section").style.display = "none";
+  document.getElementById("student-progress-section").style.display = "none";
+  closeInternshipDetailModal();
+};
 
-// Run immediately to restore state
-updateAuthUI();
+window.submitStudentForm = async function(event) {
+  event.preventDefault();
+  const session = getSession();
+  if (!session) return;
+  
+  const email = session.email;
+  const existing = await getStudentByEmail(email);
+  
+  const studentProfile = {
+    id: existing ? existing.id : "stud_" + Date.now(),
+    name: document.getElementById("stud-name").value,
+    age: parseInt(document.getElementById("stud-age").value) || 18,
+    grade: document.getElementById("stud-grade").value,
+    skill: document.getElementById("stud-skill").value,
+    preference: document.getElementById("stud-pref").value,
+    school: document.getElementById("stud-school").value,
+    experience: document.getElementById("stud-exp").value,
+    email: email,
+    phone: document.getElementById("stud-phone").value,
+    status: existing ? existing.status : "Available",
+    claimedBy: existing ? existing.claimedBy : null
+  };
+  
+  await saveStudentProfile(email, studentProfile);
+  
+  // Unlock other tabs immediately
+  updateTabStates(true);
+  
+  // Update view to success container
+  document.getElementById("student-form-inputs-container").style.display = "none";
+  document.getElementById("student-form-success-container").style.display = "flex";
+  
+  alert("Profile saved successfully! You can now explore internships and track application progress.");
+  
+  // Automatically switch to Finder tab for user convenience
+  await switchStudentTab('finder');
+};
+
+window.enableProfileEditing = function() {
+  document.getElementById("student-form-inputs-container").style.display = "flex";
+  document.getElementById("student-form-success-container").style.display = "none";
+};
 </script>
 </body>
 </html>
