@@ -818,9 +818,7 @@
     <div id="s3-nav-actions" style="display:flex;align-items:center;gap:12px">
       <a class="s3-nav-btn" href="students.html">For Students</a>
       <a class="s3-nav-btn" href="business.html">For Businesses</a>
-      <button id="nav-signin-btn" class="s3-nav-btn" onclick="openSignInModal()"
-        style="background:rgba(241,231,210,0.06); border-color:rgba(241,231,210,0.3); color:rgba(241,231,210,0.85); font-weight: 500;">Sign
-        In</button>
+
       <a id="s3-nav-cta" href="https://www.instagram.com/thescubeofficial/" target="_blank" rel="noopener">Contact
         Us</a>
     </div>
@@ -1555,13 +1553,24 @@
 
       function drawSlide1Mask(revealLayer, cx, cy) {
         if (cx < 0) {
-          revealLayer.style.webkitMaskImage = 'none';
-          revealLayer.style.maskImage = 'none';
+          revealLayer.style.maskPosition = '-999px -999px';
+          revealLayer.style.webkitMaskPosition = '-999px -999px';
           return;
         }
-        const maskStyle = `radial-gradient(circle 260px at ${cx}px ${cy}px, #fff 0%, #fff 40%, rgba(255,255,255,0.75) 60%, rgba(255,255,255,0.4) 75%, rgba(255,255,255,0.12) 88%, transparent 100%)`;
-        revealLayer.style.webkitMaskImage = maskStyle;
-        revealLayer.style.maskImage = maskStyle;
+        if (!revealLayer.style.maskImage && !revealLayer.style.webkitMaskImage) {
+          const maskImage = 'radial-gradient(circle at center, #fff 0%, #fff 40%, rgba(255,255,255,0.75) 60%, rgba(255,255,255,0.4) 75%, rgba(255,255,255,0.12) 88%, transparent 100%)';
+          revealLayer.style.maskImage = maskImage;
+          revealLayer.style.webkitMaskImage = maskImage;
+          revealLayer.style.maskSize = '520px 520px';
+          revealLayer.style.webkitMaskSize = '520px 520px';
+          revealLayer.style.maskRepeat = 'no-repeat';
+          revealLayer.style.webkitMaskRepeat = 'no-repeat';
+        }
+        const px = (cx - 260) | 0;
+        const py = (cy - 260) | 0;
+        const pos = `${px}px ${py}px`;
+        revealLayer.style.maskPosition = pos;
+        revealLayer.style.webkitMaskPosition = pos;
       }
 
       // ─── BENEFIT CARD HTML ────────────────────────────────────────────────────

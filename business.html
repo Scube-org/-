@@ -598,33 +598,66 @@ section.hero {
   let smooth = { x: -999, y: -999 };
   let rafRef = null;
   let running = true;
+  let isUpdating = false;
 
   function onMouseMove(e) {
     const rect = hero.getBoundingClientRect();
     mouse.x = e.clientX - rect.left;
     mouse.y = e.clientY - rect.top;
+
+    if (!isUpdating && running) {
+      isUpdating = true;
+      rafRef = requestAnimationFrame(loop);
+    }
   }
   hero.addEventListener('mousemove', onMouseMove);
 
   function drawMask(cx, cy) {
     if (cx < 0) {
-      revealLayer.style.webkitMaskImage = 'none';
-      revealLayer.style.maskImage = 'none';
+      revealLayer.style.maskPosition = '-999px -999px';
+      revealLayer.style.webkitMaskPosition = '-999px -999px';
       return;
     }
-    const maskStyle = `radial-gradient(circle 260px at ${cx}px ${cy}px, #fff 0%, #fff 40%, rgba(255,255,255,0.75) 60%, rgba(255,255,255,0.4) 75%, rgba(255,255,255,0.12) 88%, transparent 100%)`;
-    revealLayer.style.webkitMaskImage = maskStyle;
-    revealLayer.style.maskImage = maskStyle;
+
+    if (!revealLayer.style.maskImage && !revealLayer.style.webkitMaskImage) {
+      const maskImage = 'radial-gradient(circle at center, #fff 0%, #fff 40%, rgba(255,255,255,0.75) 60%, rgba(255,255,255,0.4) 75%, rgba(255,255,255,0.12) 88%, transparent 100%)';
+      revealLayer.style.maskImage = maskImage;
+      revealLayer.style.webkitMaskImage = maskImage;
+      revealLayer.style.maskSize = '520px 520px';
+      revealLayer.style.webkitMaskSize = '520px 520px';
+      revealLayer.style.maskRepeat = 'no-repeat';
+      revealLayer.style.webkitMaskRepeat = 'no-repeat';
+    }
+
+    const px = (cx - 260) | 0;
+    const py = (cy - 260) | 0;
+    const pos = `${px}px ${py}px`;
+    revealLayer.style.maskPosition = pos;
+    revealLayer.style.webkitMaskPosition = pos;
   }
 
   function loop() {
-    if (!running) return;
-    smooth.x += (mouse.x - smooth.x) * 0.1;
-    smooth.y += (mouse.y - smooth.y) * 0.1;
+    if (!running) {
+      isUpdating = false;
+      return;
+    }
+
+    const dx = mouse.x - smooth.x;
+    const dy = mouse.y - smooth.y;
+
+    if (Math.abs(dx) < 0.1 && Math.abs(dy) < 0.1) {
+      smooth.x = mouse.x;
+      smooth.y = mouse.y;
+      drawMask(smooth.x, smooth.y);
+      isUpdating = false;
+      return;
+    }
+
+    smooth.x += dx * 0.1;
+    smooth.y += dy * 0.1;
     drawMask(smooth.x, smooth.y);
     rafRef = requestAnimationFrame(loop);
   }
-  rafRef = requestAnimationFrame(loop);
 
   window.addEventListener('unload', function () {
     running = false;
