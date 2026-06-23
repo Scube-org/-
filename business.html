@@ -4,6 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>S³ — For Businesses</title>
+<link rel="icon" type="image/png" href="images/favicon.png" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@1,400;1,500;1,600&family=DM+Serif+Display&display=swap" rel="stylesheet" />
@@ -12,6 +13,110 @@
 * { font-family: 'Inter', sans-serif; }
 .font-playfair { font-family: 'Playfair Display', serif; }
 .font-dm-serif { font-family: 'DM Serif Display', Georgia, serif; }
+
+/* Auth Blur & Lock Overlay styles */
+.auth-blurred-content {
+  filter: blur(14px) brightness(0.5);
+  pointer-events: none !important;
+  user-select: none !important;
+  transition: filter 0.3s ease;
+}
+.auth-lock-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(13, 15, 26, 0.3);
+  overflow-y: auto;
+  box-sizing: border-box;
+}
+.auth-lock-card {
+  background: rgba(26, 31, 58, 0.75);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(241, 231, 210, 0.15);
+  padding: 40px 32px;
+  border-radius: 28px;
+  width: min(440px, 95%);
+  text-align: center;
+  box-shadow: 0 30px 60px rgba(0, 0, 0, 0.4);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  animation: floatCard 4s ease-in-out infinite;
+}
+@keyframes floatCard {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+.auth-lock-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: rgba(255, 209, 92, 0.1);
+  border: 1px solid rgba(255, 209, 92, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffd15c;
+  font-size: 28px;
+  box-shadow: 0 0 20px rgba(255, 209, 92, 0.15);
+}
+.auth-lock-title {
+  font-size: 22px;
+  font-weight: 500;
+  color: #f1e7d2;
+  margin-bottom: 8px;
+}
+.auth-lock-desc {
+  font-size: 13px;
+  color: rgba(241, 231, 210, 0.7);
+  line-height: 1.6;
+  font-family: 'Inter', sans-serif;
+}
+.auth-lock-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background: #ffd15c;
+  border: none;
+  color: #1a1f3a;
+  padding: 12px 24px;
+  border-radius: 50px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 200ms, transform 150ms;
+  font-family: 'Inter', sans-serif;
+  margin-top: 8px;
+}
+.auth-lock-btn:hover {
+  background: #e6bd50;
+  transform: scale(1.02);
+}
+@media (max-width: 767px) {
+  .auth-lock-overlay {
+    align-items: flex-start !important;
+    padding-top: 140px !important;
+    padding-bottom: 40px !important;
+  }
+  .auth-lock-card {
+    padding: 30px 20px !important;
+    gap: 16px !important;
+  }
+  .auth-lock-title {
+    font-size: 19px !important;
+  }
+  .auth-lock-desc {
+    font-size: 12px !important;
+  }
+}
 
 @keyframes heroReveal {
   0%   { opacity: 0; transform: translateY(28px); filter: blur(12px); }
@@ -301,9 +406,24 @@ section.hero {
     font-size: 12px !important;
   }
 
-  /* Clear height of wrapped header */
+  /* Clear height of wrapped header and force internal scroll */
   #business-dashboard-section {
-    padding-top: 120px !important;
+    position: absolute !important;
+    inset: 0 !important;
+    height: 100dvh !important;
+    overflow-y: auto !important;
+    padding-top: 130px !important;
+    padding-bottom: 40px !important;
+    box-sizing: border-box !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    justify-content: flex-start !important;
+  }
+
+  /* Make background visuals translucent on mobile for readability */
+  .hero-base,
+  .hero-reveal-layer {
+    opacity: 0.25 !important;
   }
 
   /* Hero Section adaptations */
@@ -324,13 +444,6 @@ section.hero {
   }
 
   /* Dashboard Stacking */
-  #business-dashboard-section {
-    flex-direction: column !important;
-    height: auto !important;
-    overflow-y: auto !important;
-    position: relative !important;
-    padding-bottom: 40px !important;
-  }
   #business-dashboard-section > div:first-child {
     width: 100% !important;
     flex-shrink: 0 !important;
@@ -340,9 +453,26 @@ section.hero {
   }
   #business-dashboard-section > div:nth-child(2) {
     height: auto !important;
+    overflow: visible !important;
   }
   #student-grid-container {
     grid-template-columns: 1fr !important;
+  }
+
+  /* Student Card Mobile Overrides */
+  #student-grid-container > div {
+    padding: 12px !important;
+    gap: 8px !important;
+    border-radius: 12px !important;
+  }
+  #student-grid-container h5 {
+    font-size: 13.5px !important;
+  }
+  #student-grid-container div {
+    font-size: 11px !important;
+  }
+  #student-grid-container span {
+    font-size: 10px !important;
   }
 
   /* Bottom-Sheet Student Detail Drawer for Mobile viewports */
@@ -446,8 +576,31 @@ section.hero {
 
   <!-- Business Dashboard Section (Initially Hidden) -->
   <div id="business-dashboard-section" style="display:none; position:absolute; inset:0; z-index:40; align-items:stretch; justify-content:stretch; padding: 20px; box-sizing: border-box; padding-top: 100px; gap: 20px; height: 100dvh;">
+    <!-- Lock Overlay for Auth (Initially Hidden) -->
+    <section id="business-auth-lock-overlay" class="auth-lock-overlay" style="display: none;">
+      <div class="auth-lock-card">
+        <div class="auth-lock-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+          </svg>
+        </div>
+        <h3 class="auth-lock-title font-playfair" style="font-style: italic;">Unlock SCube Business</h3>
+        <p class="auth-lock-desc">Sign in to access our network of vetted, high-performing student talent, streamline project deliverables, and scale your startup operations seamlessly.</p>
+        <button onclick="handleGoogleSignIn('business')" class="auth-lock-btn">
+          <svg width="16" height="16" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin-right: 4px;">
+            <path d="M17.64 9.20455C17.64 8.56636 17.5827 7.95273 17.4764 7.36364H9V10.845H13.8436C13.635 11.97 13.0009 12.9232 12.0477 13.5614V15.8195H14.9564C16.6582 14.2527 17.64 11.9455 17.64 9.20455Z" fill="#1A1F3A"/>
+            <path d="M9 18C11.43 18 13.4673 17.1941 14.9577 15.8195L12.0491 13.5614C11.2418 14.1027 10.2109 14.4205 9 14.4205C6.65591 14.4205 4.67182 12.8373 3.96409 10.71H0.957275V13.0418C2.43818 15.9832 5.48182 18 9 18Z" fill="#1A1F3A"/>
+            <path d="M3.96409 10.71C3.78409 10.17 3.68182 9.59318 3.68182 9C3.68182 8.40682 3.78409 7.83 3.96409 7.29V4.95818H0.957275C0.347727 6.17318 0 7.54773 0 9C0 10.4523 0.347727 11.8268 0.957275 13.0418L3.96409 10.71Z" fill="#1A1F3A"/>
+            <path d="M9 3.57955C10.3214 3.57955 11.5077 4.03364 12.4405 4.92545L15.0218 2.34409C13.4632 0.891818 11.4259 0 9 0C5.48182 0 2.43818 2.01682 0.957275 4.95818L3.96409 7.29C4.67182 5.16273 6.65591 3.57955 9 3.57955Z" fill="#1A1F3A"/>
+          </svg>
+          Sign In with Google
+        </button>
+      </div>
+    </section>
+
     <!-- Left Sidebar: Filters -->
-    <div style="background:rgba(26,31,58,0.7); backdrop-filter:blur(24px); -webkit-backdrop-filter:blur(24px); border:1px solid rgba(241,231,210,0.12); padding:25px; border-radius:24px; width: 280px; flex-shrink: 0; box-shadow:0 30px 80px rgba(0,0,0,0.4); display:flex; flex-direction:column; gap:16px; color:#f1e7d2; text-align:left; overflow-y:auto;" data-no-drag>
+    <div id="business-sidebar" style="background:rgba(26,31,58,0.7); backdrop-filter:blur(24px); -webkit-backdrop-filter:blur(24px); border:1px solid rgba(241,231,210,0.12); padding:25px; border-radius:24px; width: 280px; flex-shrink: 0; box-shadow:0 30px 80px rgba(0,0,0,0.4); display:flex; flex-direction:column; gap:16px; color:#f1e7d2; text-align:left; overflow-y:auto;" data-no-drag>
       
       <!-- Post Internship Button -->
       <button onclick="openPostInternshipModal()" style="background:#ffd15c; border:none; color:#1a1f3a; padding:12px; border-radius:30px; font-size:13px; font-weight:600; cursor:pointer; width:100%; text-align:center; transition:background 200ms, transform 150ms;" onmouseenter="this.style.background='#e6bd50'; this.style.transform='scale(1.02)';" onmouseleave="this.style.background='#ffd15c'; this.style.transform=''">+ Post Internship</button>
@@ -507,7 +660,7 @@ section.hero {
     </div>
 
     <!-- Right Main Panel: Student List & Detail Drawer -->
-    <div style="flex:1; display:flex; flex-direction:column; gap:16px; height:100%; box-sizing:border-box;" data-no-drag>
+    <div id="business-main-panel" style="flex:1; display:flex; flex-direction:column; gap:16px; height:100%; box-sizing:border-box;" data-no-drag>
       <!-- Student Grid -->
       <div style="flex:1; overflow-y:auto; background:rgba(26,31,58,0.4); border:1px solid rgba(241,231,210,0.08); border-radius:24px; padding:20px; display:flex; flex-direction:column; gap:12px; box-sizing:border-box;">
         <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(241,231,210,0.1); padding-bottom:10px; margin-bottom:10px;">
@@ -759,23 +912,46 @@ window.onAuthSuccess = async function(user) {
   document.querySelector(".hero-bottom-left").style.display = "none";
   document.querySelector(".hero-bottom-right").style.display = "none";
   
-  // Show dashboard
+  // Hide the lock overlay and remove blur on the sidebar and main panel
+  const lockOverlay = document.getElementById("business-auth-lock-overlay");
+  if (lockOverlay) lockOverlay.style.display = "none";
+  const sidebar = document.getElementById("business-sidebar");
+  if (sidebar) sidebar.classList.remove("auth-blurred-content");
+  const mainPanel = document.getElementById("business-main-panel");
+  if (mainPanel) mainPanel.classList.remove("auth-blurred-content");
+  
+  // Show dashboard and make scrollable
   const dbSection = document.getElementById("business-dashboard-section");
-  if (dbSection) dbSection.style.display = "flex";
+  if (dbSection) {
+    dbSection.style.display = "flex";
+    dbSection.style.setProperty("overflow", "auto", "important");
+  }
   
   // Load database and render students
   await applyFilters();
 };
 
 window.onAuthSignOut = function() {
-  // Show landing hero
-  document.querySelector(".hero-heading").style.display = "flex";
-  document.querySelector(".hero-bottom-left").style.display = "block";
-  document.querySelector(".hero-bottom-right").style.display = "flex";
+  // Hide landing hero elements since we show the blurred dashboard instead
+  document.querySelector(".hero-heading").style.display = "none";
+  document.querySelector(".hero-bottom-left").style.display = "none";
+  document.querySelector(".hero-bottom-right").style.display = "none";
   
-  // Hide dashboard
+  // Show dashboard but blurred with lock overlay
   const dbSection = document.getElementById("business-dashboard-section");
-  if (dbSection) dbSection.style.display = "none";
+  if (dbSection) {
+    dbSection.style.display = "flex";
+    dbSection.style.setProperty("overflow", "hidden", "important");
+  }
+  
+  const sidebar = document.getElementById("business-sidebar");
+  if (sidebar) sidebar.classList.add("auth-blurred-content");
+  const mainPanel = document.getElementById("business-main-panel");
+  if (mainPanel) mainPanel.classList.add("auth-blurred-content");
+  
+  const lockOverlay = document.getElementById("business-auth-lock-overlay");
+  if (lockOverlay) lockOverlay.style.display = "flex";
+  
   closeDetailDrawer();
 };
 
