@@ -899,12 +899,25 @@ setTimeout(() => {
 
 let activeStudentId = null;
 
-// Auth callbacks
 window.onAuthSuccess = async function(user) {
   if (user.role !== 'business') {
     alert("You are signed in as a Student. Please visit the Students section.");
     handleSignOut();
     return;
+  }
+
+  // Register or update business profile in database
+  if (window.saveBusinessProfile) {
+    try {
+      await window.saveBusinessProfile(user.email, {
+        name: user.name,
+        email: user.email,
+        photoURL: user.photoURL || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?fit=facearea&facepad=2&w=80&h=80&q=80",
+        role: 'business'
+      });
+    } catch (e) {
+      console.error("Error saving business profile:", e);
+    }
   }
   
   // Hide landing hero elements

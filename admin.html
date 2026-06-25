@@ -1,0 +1,1049 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>S³ — Admin Dashboard</title>
+<link rel="icon" type="image/png" href="images/favicon.png" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@1,400;1,500;1,600&family=DM+Serif+Display&display=swap" rel="stylesheet" />
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+* { font-family: 'Inter', sans-serif; }
+.font-playfair { font-family: 'Playfair Display', serif; }
+.font-dm-serif { font-family: 'DM Serif Display', Georgia, serif; }
+
+body {
+  min-height: 100vh;
+  background: #1a1f3a;
+  color: #f1e7d2;
+  letter-spacing: -0.01em;
+  overflow-x: hidden;
+}
+
+/* Background gradient nodes for premium visual look */
+.bg-gradient-radial {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: radial-gradient(circle at 10% 20%, rgba(26, 31, 58, 1) 0%, rgba(13, 15, 26, 1) 90%);
+}
+
+.gradient-glow-1 {
+  position: fixed;
+  top: -10%; right: -10%;
+  width: 50vw; height: 50vw;
+  background: radial-gradient(circle, rgba(255, 209, 92, 0.05) 0%, rgba(255, 209, 92, 0) 70%);
+  z-index: -1;
+  pointer-events: none;
+}
+
+.gradient-glow-2 {
+  position: fixed;
+  bottom: -10%; left: -10%;
+  width: 50vw; height: 50vw;
+  background: radial-gradient(circle, rgba(107, 23, 36, 0.08) 0%, rgba(107, 23, 36, 0) 70%);
+  z-index: -1;
+  pointer-events: none;
+}
+
+/* Navigation */
+nav {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.25rem 3.5rem;
+  background: rgba(26, 31, 58, 0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(241, 231, 210, 0.08);
+}
+
+.nav-logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-decoration: none;
+}
+
+.nav-wordmark {
+  color: #fff;
+  font-size: 1.5rem;
+  font-family: 'DM Serif Display', Georgia, serif;
+  font-weight: 400;
+}
+
+.nav-tagline {
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: rgba(241, 231, 210, 0.55);
+  margin-top: 2px;
+}
+
+.nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.nav-btn {
+  background: rgba(241, 231, 210, 0.04);
+  color: #f1e7d2;
+  font-size: 0.875rem;
+  font-weight: 600;
+  padding: 0.625rem 1.5rem;
+  border-radius: 9999px;
+  border: 1px solid rgba(241, 231, 210, 0.2);
+  cursor: pointer;
+  transition: all 0.2s;
+  text-decoration: none;
+  font-family: 'Inter', sans-serif;
+}
+
+.nav-btn:hover {
+  background: rgba(241, 231, 210, 0.08);
+  border-color: rgba(241, 231, 210, 0.5);
+  transform: translateY(-1px);
+}
+
+.btn-signout {
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+.btn-signout:hover {
+  background: rgba(239, 68, 68, 0.2);
+  border-color: #ef4444;
+}
+
+/* Main Layout */
+main {
+  max-width: 1280px;
+  margin: 140px auto 60px auto;
+  padding: 0 24px;
+}
+
+.dashboard-header {
+  margin-bottom: 32px;
+}
+
+.dashboard-title {
+  font-size: 2.5rem;
+  font-weight: 400;
+  color: #fff;
+  font-style: italic;
+}
+
+.dashboard-subtitle {
+  font-size: 14px;
+  color: rgba(241, 231, 210, 0.6);
+  margin-top: 4px;
+}
+
+/* Tabs Menu */
+.tabs-menu {
+  display: flex;
+  background: rgba(26, 31, 58, 0.6);
+  border: 1px solid rgba(241, 231, 210, 0.1);
+  border-radius: 16px;
+  padding: 6px;
+  gap: 8px;
+  margin-bottom: 24px;
+  max-width: fit-content;
+}
+
+.tab-btn {
+  background: transparent;
+  border: none;
+  color: rgba(241, 231, 210, 0.6);
+  padding: 10px 24px;
+  font-size: 13.5px;
+  font-weight: 600;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tab-btn:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.tab-btn.active {
+  background: #ffd15c;
+  color: #1a1f3a;
+}
+
+/* Panel */
+.panel {
+  display: none;
+  background: rgba(26, 31, 58, 0.4);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(241, 231, 210, 0.08);
+  border-radius: 24px;
+  padding: 30px;
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+.panel.active {
+  display: block;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Search and Actions Header */
+.panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.search-input {
+  background: rgba(26, 31, 58, 0.8);
+  border: 1px solid rgba(241, 231, 210, 0.2);
+  border-radius: 10px;
+  padding: 10px 16px;
+  color: #fff;
+  font-size: 13.5px;
+  outline: none;
+  width: min(320px, 100%);
+  transition: border-color 0.2s;
+}
+
+.search-input:focus {
+  border-color: #ffd15c;
+}
+
+/* Modern Administrative Table Styles */
+.table-container {
+  overflow-x: auto;
+  border-radius: 16px;
+  border: 1px solid rgba(241, 231, 210, 0.08);
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 13.5px;
+}
+
+th {
+  background: rgba(20, 22, 40, 0.8);
+  color: rgba(241, 231, 210, 0.6);
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 10.5px;
+  letter-spacing: 0.05em;
+  padding: 16px 20px;
+  border-bottom: 1px solid rgba(241, 231, 210, 0.08);
+}
+
+td {
+  padding: 18px 20px;
+  border-bottom: 1px solid rgba(241, 231, 210, 0.05);
+  color: rgba(241, 231, 210, 0.9);
+}
+
+tr:hover td {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+/* User avatar and name layout */
+.user-info-cell {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.user-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: rgba(255, 209, 92, 0.1);
+  border: 1px solid rgba(255, 209, 92, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  color: #ffd15c;
+}
+
+.user-meta-name {
+  font-weight: 600;
+  color: #fff;
+}
+
+.user-meta-email {
+  font-size: 11.5px;
+  color: rgba(241, 231, 210, 0.5);
+  margin-top: 2px;
+}
+
+/* State badges */
+.status-badge {
+  display: inline-block;
+  font-size: 9px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 3px 8px;
+  border-radius: 50px;
+}
+
+.badge-available { background: rgba(34, 197, 94, 0.1); color: #22c55e; border: 1px solid rgba(34, 197, 94, 0.25); }
+.badge-applied { background: rgba(249, 115, 22, 0.1); color: #f97316; border: 1px solid rgba(249, 115, 22, 0.25); }
+.badge-shortlisted { background: rgba(59, 130, 246, 0.1); color: #3b82f6; border: 1px solid rgba(59, 130, 246, 0.25); }
+.badge-completed { background: rgba(156, 163, 175, 0.1); color: #9ca3af; border: 1px solid rgba(156, 163, 175, 0.25); }
+
+.badge-active { background: rgba(34, 197, 94, 0.1); color: #22c55e; border: 1px solid rgba(34, 197, 94, 0.25); }
+.badge-blocked { background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.25); }
+.badge-banned { background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.35); }
+
+/* Buttons & Controls */
+.action-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 6px 12px;
+  font-size: 11.5px;
+  font-weight: 600;
+  border-radius: 6px;
+  transition: all 0.2s;
+  font-family: 'Inter', sans-serif;
+  margin-right: 4px;
+}
+
+.btn-block {
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.05);
+  border: 1px solid rgba(239, 68, 68, 0.15);
+}
+
+.btn-block:hover {
+  background: rgba(239, 68, 68, 0.15);
+  border-color: #ef4444;
+}
+
+.btn-ban {
+  color: #f87171;
+  background: rgba(248, 113, 113, 0.05);
+  border: 1px solid rgba(248, 113, 113, 0.15);
+}
+
+.btn-ban:hover {
+  background: rgba(248, 113, 113, 0.15);
+  border-color: #f87171;
+}
+
+.btn-delete {
+  color: #9ca3af;
+  background: rgba(156, 163, 175, 0.05);
+  border: 1px solid rgba(156, 163, 175, 0.15);
+}
+
+.btn-delete:hover {
+  background: rgba(156, 163, 175, 0.15);
+  border-color: #f3f4f6;
+  color: #fff;
+}
+
+.btn-unrestrict {
+  color: #22c55e;
+  background: rgba(34, 197, 94, 0.05);
+  border: 1px solid rgba(34, 197, 94, 0.15);
+}
+
+.btn-unrestrict:hover {
+  background: rgba(34, 197, 94, 0.15);
+  border-color: #22c55e;
+}
+
+/* Restriction panel additions */
+.restriction-creator {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto auto;
+  gap: 14px;
+  background: rgba(26, 31, 58, 0.6);
+  border: 1px solid rgba(241, 231, 210, 0.1);
+  padding: 24px;
+  border-radius: 16px;
+  margin-bottom: 30px;
+  align-items: end;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.form-group label {
+  font-size: 10px;
+  font-weight: 600;
+  color: rgba(241, 231, 210, 0.6);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.form-group select {
+  background: #1a1f3a;
+  border: 1px solid rgba(241, 231, 210, 0.2);
+  border-radius: 8px;
+  padding: 10px;
+  color: #fff;
+  font-size: 13px;
+  outline: none;
+  cursor: pointer;
+}
+
+.btn-apply-restriction {
+  background: #ef4444;
+  color: white;
+  border: none;
+  font-weight: 600;
+  font-size: 13.5px;
+  border-radius: 8px;
+  padding: 11px 24px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-apply-restriction:hover {
+  background: #dc2626;
+  transform: translateY(-1px);
+}
+
+/* Empty placeholder */
+.empty-placeholder {
+  padding: 60px;
+  text-align: center;
+  color: rgba(241, 231, 210, 0.45);
+  font-size: 14px;
+}
+
+/* Mobile responsive styles */
+@media (max-width: 767px) {
+  nav {
+    padding: 1rem 1.5rem;
+  }
+  .nav-wordmark {
+    font-size: 1.25rem;
+  }
+  .nav-tagline {
+    display: none;
+  }
+  main {
+    margin-top: 100px;
+  }
+  .tabs-menu {
+    flex-wrap: wrap;
+    max-width: 100%;
+  }
+  .tab-btn {
+    flex: 1;
+    padding: 8px 16px;
+    font-size: 12px;
+    justify-content: center;
+  }
+  .restriction-creator {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  .btn-apply-restriction {
+    width: 100%;
+  }
+}
+</style>
+</head>
+<body>
+
+<div class="bg-gradient-radial"></div>
+<div class="gradient-glow-1"></div>
+<div class="gradient-glow-2"></div>
+
+<!-- Nav Bar -->
+<nav>
+  <a href="index.html" class="nav-logo">
+    <img src="images/logo.png" alt="S³ Logo" style="width:36px;height:36px;border-radius:50%;object-fit:cover;flex-shrink:0;background:#f5efe8" />
+    <div style="display:flex; flex-direction:column;">
+      <span class="nav-wordmark">S³</span>
+      <span class="nav-tagline">Building Opportunities</span>
+    </div>
+  </a>
+
+  <div class="nav-actions">
+    <a href="index.html" class="nav-btn">Back to Home</a>
+    <button onclick="handleSignOut()" class="nav-btn btn-signout">Sign Out</button>
+  </div>
+</nav>
+
+<main>
+  <!-- Header -->
+  <div class="dashboard-header">
+    <h1 class="font-playfair dashboard-title">Admin Dashboard</h1>
+    <p class="dashboard-subtitle">Manage registered students, businesses, and platform security access controls.</p>
+  </div>
+
+  <!-- Menu / Tab Selection -->
+  <div class="tabs-menu" role="tablist" aria-label="Admin Sections">
+    <button id="tab-restrictions-btn" class="tab-btn active" onclick="switchTab('restrictions')">
+      🛡️ Ban / Block / Delete
+    </button>
+    <button id="tab-students-btn" class="tab-btn" onclick="switchTab('students')">
+      🎓 View Students
+    </button>
+    <button id="tab-businesses-btn" class="tab-btn" onclick="switchTab('businesses')">
+      🏢 View Businesses
+    </button>
+  </div>
+
+  <!-- Tab 1: Restrictions Management -->
+  <section id="panel-restrictions" class="panel active" role="tabpanel">
+    <h3 class="font-playfair" style="font-size: 20px; font-weight: 400; color: #ffd15c; margin-bottom: 8px;">Restrict Account Access</h3>
+    <p style="font-size: 12.5px; color: rgba(241, 231, 210, 0.55); margin-bottom: 24px;">Restrict custom accounts immediately by selecting role, email, and action type.</p>
+
+    <!-- Restrict Creator Form -->
+    <div class="restriction-creator">
+      <div class="form-group">
+        <label for="restrict-role">Account Type</label>
+        <select id="restrict-role">
+          <option value="student">Student</option>
+          <option value="business">Business</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="restrict-email">Email Address</label>
+        <input type="email" id="restrict-email" placeholder="e.g. user@gmail.com" class="search-input" style="width:100%;" />
+      </div>
+      <div class="form-group">
+        <label for="restrict-action">Action Type</label>
+        <select id="restrict-action">
+          <option value="block">Block Account</option>
+          <option value="ban">Ban Account</option>
+        </select>
+      </div>
+      <button onclick="applyManualRestriction()" class="btn-apply-restriction">Apply Access Restriction</button>
+    </div>
+
+    <!-- Active Bans/Blocks List -->
+    <div class="panel-header" style="margin-top: 10px;">
+      <h4 style="font-size:14px; font-weight:600; text-transform:uppercase; color:rgba(241, 231, 210, 0.7); letter-spacing:0.08em;">Restricted User Accounts</h4>
+      <input type="text" id="restrict-search" placeholder="Search restricted users..." class="search-input" oninput="renderRestrictions()" />
+    </div>
+
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th>User Account</th>
+            <th>Type</th>
+            <th>Email</th>
+            <th>Access Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="restrictions-table-body">
+          <!-- Populated dynamically -->
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Tab 2: Students List -->
+  <section id="panel-students" class="panel" role="tabpanel">
+    <div class="panel-header">
+      <div>
+        <h4 style="font-size:14px; font-weight:600; text-transform:uppercase; color:rgba(241, 231, 210, 0.7); letter-spacing:0.08em; margin-bottom: 2px;">Registered Students</h4>
+        <span id="students-count" style="font-size: 12px; color: #ffd15c; font-weight: 500;">0 listed</span>
+      </div>
+      <input type="text" id="students-search" placeholder="Search students by name, email..." class="search-input" oninput="renderStudents()" />
+    </div>
+
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th>Student Info</th>
+            <th>Main Skill</th>
+            <th>Education & School</th>
+            <th>Location</th>
+            <th>Status</th>
+            <th>Access</th>
+            <th>Manage Account</th>
+          </tr>
+        </thead>
+        <tbody id="students-table-body">
+          <!-- Populated dynamically -->
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Tab 3: Businesses List -->
+  <section id="panel-businesses" class="panel" role="tabpanel">
+    <div class="panel-header">
+      <div>
+        <h4 style="font-size:14px; font-weight:600; text-transform:uppercase; color:rgba(241, 231, 210, 0.7); letter-spacing:0.08em; margin-bottom: 2px;">Registered Businesses</h4>
+        <span id="businesses-count" style="font-size: 12px; color: #ffd15c; font-weight: 500;">0 listed</span>
+      </div>
+      <input type="text" id="businesses-search" placeholder="Search businesses..." class="search-input" oninput="renderBusinesses()" />
+    </div>
+
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th>Business Details</th>
+            <th>Email</th>
+            <th>Access Status</th>
+            <th>Manage Account</th>
+          </tr>
+        </thead>
+        <tbody id="businesses-table-body">
+          <!-- Populated dynamically -->
+        </tbody>
+      </table>
+    </div>
+  </section>
+</main>
+
+<!-- Firebase Scripts -->
+<script type="module" src="firebase-init.js"></script>
+<script type="module" src="firebase-db.js"></script>
+
+<script type="module">
+// Strict Security Validation
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+
+document.addEventListener("DOMContentLoaded", () => {
+  const session = window.getSession ? window.getSession() : null;
+  if (!session || session.email !== 'thescubeofficial@gmail.com') {
+    alert("Access Denied: Admin access only.");
+    window.location.href = 'index.html';
+    return;
+  }
+  
+  // Start loading data after a brief delay for database initialisation
+  setTimeout(loadDashboardData, 500);
+});
+
+// Cache variables for search logic
+let studentsList = [];
+let businessesList = [];
+
+async function loadDashboardData() {
+  if (!window.getStudents || !window.getBusinesses) {
+    console.log("Database helpers not ready yet, retrying...");
+    setTimeout(loadDashboardData, 300);
+    return;
+  }
+
+  try {
+    studentsList = await window.getStudents();
+    businessesList = await window.getBusinesses();
+    
+    renderRestrictions();
+    renderStudents();
+    renderBusinesses();
+  } catch (err) {
+    console.error("Error loading dashboard collections:", err);
+  }
+}
+
+// Tab switcher
+window.switchTab = function(tabName) {
+  // Hide panels
+  document.getElementById("panel-restrictions").classList.remove("active");
+  document.getElementById("panel-students").classList.remove("active");
+  document.getElementById("panel-businesses").classList.remove("active");
+  
+  // Deactivate buttons
+  document.getElementById("tab-restrictions-btn").classList.remove("active");
+  document.getElementById("tab-students-btn").classList.remove("active");
+  document.getElementById("tab-businesses-btn").classList.remove("active");
+
+  // Activate selected panel and tab button
+  document.getElementById("panel-" + tabName).classList.add("active");
+  document.getElementById("tab-" + tabName + "-btn").classList.add("active");
+};
+
+// Render Restrictions view
+window.renderRestrictions = function() {
+  const searchQuery = document.getElementById("restrict-search").value.toLowerCase();
+  const tbody = document.getElementById("restrictions-table-body");
+  
+  // Filter students who are banned/blocked
+  const restrictedStudents = studentsList
+    .filter(s => s.blocked || s.banned || s.status === 'Banned' || s.status === 'Blocked')
+    .map(s => ({ ...s, type: 'student' }));
+    
+  // Filter businesses who are banned/blocked
+  const restrictedBusinesses = businessesList
+    .filter(b => b.blocked || b.banned || b.status === 'Banned' || b.status === 'Blocked')
+    .map(b => ({ ...b, type: 'business' }));
+
+  const mergedList = [...restrictedStudents, ...restrictedBusinesses].filter(user => {
+    return user.name.toLowerCase().includes(searchQuery) || user.email.toLowerCase().includes(searchQuery);
+  });
+
+  if (mergedList.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="5" class="empty-placeholder">No active account restrictions found.</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = mergedList.map(user => {
+    const isBanned = user.banned || user.status === 'Banned';
+    const badgeHtml = isBanned 
+      ? `<span class="status-badge badge-banned">Banned</span>` 
+      : `<span class="status-badge badge-blocked">Blocked</span>`;
+      
+    const initials = user.name.split(" ").map(w => w[0]).join("").substring(0, 2).toUpperCase();
+
+    return `
+      <tr>
+        <td>
+          <div class="user-info-cell">
+            <div class="user-avatar">${initials}</div>
+            <div>
+              <span class="user-meta-name">${user.name}</span>
+            </div>
+          </div>
+        </td>
+        <td>
+          <span style="font-weight: 500; font-size: 11px; text-transform: uppercase; color: ${user.type === 'student' ? '#ffd15c' : '#f87171'}">${user.type}</span>
+        </td>
+        <td>${user.email}</td>
+        <td>${badgeHtml}</td>
+        <td>
+          <button onclick="unrestrictUser('${user.email}', '${user.type}')" class="action-btn btn-unrestrict">Unrestrict Account</button>
+        </td>
+      </tr>
+    `;
+  }).join("");
+};
+
+// Render Students view
+window.renderStudents = function() {
+  const searchQuery = document.getElementById("students-search").value.toLowerCase();
+  const tbody = document.getElementById("students-table-body");
+  
+  const filtered = studentsList.filter(s => {
+    return s.name.toLowerCase().includes(searchQuery) || s.email.toLowerCase().includes(searchQuery) || (s.school && s.school.toLowerCase().includes(searchQuery));
+  });
+
+  document.getElementById("students-count").textContent = `${filtered.length} student${filtered.length === 1 ? '' : 's'} listed`;
+
+  if (filtered.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="7" class="empty-placeholder">No students match your search criteria.</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = filtered.map(stud => {
+    let badgeColorClass = "badge-available";
+    if (stud.status === "Applied") badgeColorClass = "badge-applied";
+    else if (stud.status === "Shortlisted") badgeColorClass = "badge-shortlisted";
+    else if (stud.status === "Completed") badgeColorClass = "badge-completed";
+
+    const isBanned = stud.banned || stud.status === 'Banned';
+    const isBlocked = stud.blocked || stud.status === 'Blocked';
+
+    let accessBadge = `<span class="status-badge badge-active">Active</span>`;
+    if (isBanned) accessBadge = `<span class="status-badge badge-banned">Banned</span>`;
+    else if (isBlocked) accessBadge = `<span class="status-badge badge-blocked">Blocked</span>`;
+
+    const blockLabel = isBlocked ? "Unblock" : "Block";
+    const banLabel = isBanned ? "Unban" : "Ban";
+
+    const initials = stud.name.split(" ").map(w => w[0]).join("").substring(0, 2).toUpperCase();
+
+    return `
+      <tr>
+        <td>
+          <div class="user-info-cell">
+            <div class="user-avatar">${initials}</div>
+            <div>
+              <div class="user-meta-name">${stud.name}</div>
+              <div class="user-meta-email">${stud.email}</div>
+            </div>
+          </div>
+        </td>
+        <td><span style="font-weight: 500;">${stud.skill}</span></td>
+        <td>
+          <div style="font-weight:500;">${stud.grade}</div>
+          <div style="font-size:11.5px; color:rgba(241,231,210,0.5);">${stud.school}</div>
+        </td>
+        <td>${stud.preference}</td>
+        <td><span class="status-badge ${badgeColorClass}">${stud.status}</span></td>
+        <td>${accessBadge}</td>
+        <td>
+          <button onclick="toggleBlock('${stud.email}', 'student', ${isBlocked})" class="action-btn btn-block">${blockLabel}</button>
+          <button onclick="toggleBan('${stud.email}', 'student', ${isBanned})" class="action-btn btn-ban">${banLabel}</button>
+          <button onclick="triggerDelete('${stud.email}', 'student')" class="action-btn btn-delete">Delete</button>
+        </td>
+      </tr>
+    `;
+  }).join("");
+};
+
+// Render Businesses view
+window.renderBusinesses = function() {
+  const searchQuery = document.getElementById("businesses-search").value.toLowerCase();
+  const tbody = document.getElementById("businesses-table-body");
+  
+  const filtered = businessesList.filter(b => {
+    return b.name.toLowerCase().includes(searchQuery) || b.email.toLowerCase().includes(searchQuery);
+  });
+
+  document.getElementById("businesses-count").textContent = `${filtered.length} business${filtered.length === 1 ? '' : 'es'} listed`;
+
+  if (filtered.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="4" class="empty-placeholder">No businesses match your search criteria.</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = filtered.map(b => {
+    const isBanned = b.banned || b.status === 'Banned';
+    const isBlocked = b.blocked || b.status === 'Blocked';
+
+    let accessBadge = `<span class="status-badge badge-active">Active</span>`;
+    if (isBanned) accessBadge = `<span class="status-badge badge-banned">Banned</span>`;
+    else if (isBlocked) accessBadge = `<span class="status-badge badge-blocked">Blocked</span>`;
+
+    const blockLabel = isBlocked ? "Unblock" : "Block";
+    const banLabel = isBanned ? "Unban" : "Ban";
+
+    const initials = b.name.split(" ").map(w => w[0]).join("").substring(0, 2).toUpperCase();
+
+    return `
+      <tr>
+        <td>
+          <div class="user-info-cell">
+            <div class="user-avatar">${initials}</div>
+            <div>
+              <div class="user-meta-name">${b.name}</div>
+            </div>
+          </div>
+        </td>
+        <td>${b.email}</td>
+        <td>${accessBadge}</td>
+        <td>
+          <button onclick="toggleBlock('${b.email}', 'business', ${isBlocked})" class="action-btn btn-block">${blockLabel}</button>
+          <button onclick="toggleBan('${b.email}', 'business', ${isBanned})" class="action-btn btn-ban">${banLabel}</button>
+          <button onclick="triggerDelete('${b.email}', 'business')" class="action-btn btn-delete">Delete</button>
+        </td>
+      </tr>
+    `;
+  }).join("");
+};
+
+// Administrative Operations
+window.toggleBlock = async function(email, type, currentBlockedState) {
+  const confirmMsg = `Are you sure you want to ${currentBlockedState ? 'UNBLOCK' : 'BLOCK'} access for ${email}?`;
+  if (!confirm(confirmMsg)) return;
+
+  try {
+    if (type === 'student') {
+      const existing = await window.getStudentByEmail(email);
+      if (existing) {
+        existing.blocked = !currentBlockedState;
+        // Keep status sync
+        if (existing.blocked) {
+          existing.status = 'Blocked';
+        } else {
+          existing.status = 'Available';
+        }
+        await window.saveStudentProfile(email, existing);
+      }
+    } else {
+      const existing = await window.getBusinessByEmail(email);
+      if (existing) {
+        existing.blocked = !currentBlockedState;
+        if (existing.blocked) {
+          existing.status = 'Blocked';
+        } else {
+          existing.status = 'Active';
+        }
+        await window.saveBusinessProfile(email, existing);
+      }
+    }
+    
+    alert(`Successfully ${currentBlockedState ? 'unblocked' : 'blocked'} ${email}!`);
+    await loadDashboardData();
+  } catch (err) {
+    alert("Operation failed: " + err.message);
+  }
+};
+
+window.toggleBan = async function(email, type, currentBannedState) {
+  const confirmMsg = `Are you sure you want to ${currentBannedState ? 'UNBAN' : 'BAN'} access for ${email}?`;
+  if (!confirm(confirmMsg)) return;
+
+  try {
+    if (type === 'student') {
+      const existing = await window.getStudentByEmail(email);
+      if (existing) {
+        existing.banned = !currentBannedState;
+        if (existing.banned) {
+          existing.status = 'Banned';
+        } else {
+          existing.status = 'Available';
+        }
+        await window.saveStudentProfile(email, existing);
+      }
+    } else {
+      const existing = await window.getBusinessByEmail(email);
+      if (existing) {
+        existing.banned = !currentBannedState;
+        if (existing.banned) {
+          existing.status = 'Banned';
+        } else {
+          existing.status = 'Active';
+        }
+        await window.saveBusinessProfile(email, existing);
+      }
+    }
+    
+    alert(`Successfully ${currentBannedState ? 'unbanned' : 'banned'} ${email}!`);
+    await loadDashboardData();
+  } catch (err) {
+    alert("Operation failed: " + err.message);
+  }
+};
+
+window.unrestrictUser = async function(email, type) {
+  try {
+    if (type === 'student') {
+      const existing = await window.getStudentByEmail(email);
+      if (existing) {
+        existing.blocked = false;
+        existing.banned = false;
+        existing.status = 'Available';
+        await window.saveStudentProfile(email, existing);
+      }
+    } else {
+      const existing = await window.getBusinessByEmail(email);
+      if (existing) {
+        existing.blocked = false;
+        existing.banned = false;
+        existing.status = 'Active';
+        await window.saveBusinessProfile(email, existing);
+      }
+    }
+    alert(`Access restrictions removed for ${email}!`);
+    await loadDashboardData();
+  } catch (err) {
+    alert("Operation failed: " + err.message);
+  }
+};
+
+window.triggerDelete = async function(email, type) {
+  const confirmMsg = `WARNING: Are you sure you want to PERMANENTLY DELETE ${email} profile from the database? This cannot be undone.`;
+  if (!confirm(confirmMsg)) return;
+
+  try {
+    if (type === 'student') {
+      await window.deleteStudent(email);
+    } else {
+      await window.deleteBusiness(email);
+    }
+    alert(`Successfully deleted profile of ${email}!`);
+    await loadDashboardData();
+  } catch (err) {
+    alert("Delete failed: " + err.message);
+  }
+};
+
+// Apply manual restriction by entering email
+window.applyManualRestriction = async function() {
+  const role = document.getElementById("restrict-role").value;
+  const email = document.getElementById("restrict-email").value.trim().toLowerCase();
+  const action = document.getElementById("restrict-action").value;
+
+  if (!email) {
+    alert("Please enter a valid email address.");
+    return;
+  }
+
+  const confirmMsg = `Are you sure you want to manually ${action} the ${role} email ${email}?`;
+  if (!confirm(confirmMsg)) return;
+
+  try {
+    if (role === 'student') {
+      let profile = await window.getStudentByEmail(email);
+      if (!profile) {
+        // Create a basic student record shell
+        profile = {
+          id: "stud_" + Date.now(),
+          name: email.split("@")[0],
+          email: email,
+          skill: "Software Development",
+          grade: "NA / Other",
+          preference: "Remote",
+          school: "Unknown School",
+          experience: "None listed.",
+          phone: "+91 00000 00000",
+          status: "Available"
+        };
+      }
+      
+      if (action === 'block') {
+        profile.blocked = true;
+        profile.status = 'Blocked';
+      } else {
+        profile.banned = true;
+        profile.status = 'Banned';
+      }
+      await window.saveStudentProfile(email, profile);
+      
+    } else {
+      let profile = await window.getBusinessByEmail(email);
+      if (!profile) {
+        profile = {
+          name: email.split("@")[0],
+          email: email,
+          role: "business",
+          photoURL: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?fit=facearea&facepad=2&w=80&h=80&q=80"
+        };
+      }
+      
+      if (action === 'block') {
+        profile.blocked = true;
+        profile.status = 'Blocked';
+      } else {
+        profile.banned = true;
+        profile.status = 'Banned';
+      }
+      await window.saveBusinessProfile(email, profile);
+    }
+    
+    alert(`Successfully applied restriction to ${email}!`);
+    document.getElementById("restrict-email").value = "";
+    await loadDashboardData();
+  } catch (err) {
+    alert("Restriction failed: " + err.message);
+  }
+};
+</script>
+
+</body>
+</html>

@@ -444,8 +444,69 @@ async function seedFirestoreIfEmpty() {
   for (const a of seedApplications) {
     await setDoc(doc(db, "applications", a.id), a);
   }
+
+  // Seed default businesses if empty
+  const seedBusinesses = [
+    {
+      name: "A.R. Founders",
+      email: "ventures@arfounders.com",
+      photoURL: "https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?fit=facearea&facepad=2&w=80&h=80&q=80",
+      role: "business",
+      blocked: false
+    },
+    {
+      name: "Hyderabad Tech Hub",
+      email: "hr@hydtechhub.in",
+      photoURL: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?fit=facearea&facepad=2&w=80&h=80&q=80",
+      role: "business",
+      blocked: false
+    }
+  ];
+  for (const b of seedBusinesses) {
+    await setDoc(doc(db, "businesses", b.email), b);
+  }
   
   console.log("Firestore seeding completed successfully.");
+}
+
+// Business Database Query Helpers
+async function getBusinesses() {
+  const db = getFirestoreDb();
+  const snap = await getDocs(collection(db, "businesses"));
+  const list = [];
+  snap.forEach(docSnap => {
+    list.push(docSnap.data());
+  });
+  return list;
+}
+
+async function getBusinessByEmail(email) {
+  if (!email) return null;
+  const db = getFirestoreDb();
+  const docRef = doc(db, "businesses", email);
+  const docSnap = await getDoc(docRef);
+  return docSnap.exists() ? docSnap.data() : null;
+}
+
+async function saveBusinessProfile(email, profile) {
+  const db = getFirestoreDb();
+  const docRef = doc(db, "businesses", email);
+  await setDoc(docRef, profile, { merge: true });
+  return profile;
+}
+
+async function deleteBusiness(email) {
+  const db = getFirestoreDb();
+  const docRef = doc(db, "businesses", email);
+  await deleteDoc(docRef);
+  return true;
+}
+
+async function deleteStudent(email) {
+  const db = getFirestoreDb();
+  const docRef = doc(db, "students", email);
+  await deleteDoc(docRef);
+  return true;
 }
 
 // Export to Global Window Context
@@ -462,6 +523,13 @@ window.claimStudentByBusiness = claimStudentByBusiness;
 window.setStudentStatusByBusiness = setStudentStatusByBusiness;
 window.releaseStudentByBusiness = releaseStudentByBusiness;
 
+// Admin exports
+window.getBusinesses = getBusinesses;
+window.getBusinessByEmail = getBusinessByEmail;
+window.saveBusinessProfile = saveBusinessProfile;
+window.deleteBusiness = deleteBusiness;
+window.deleteStudent = deleteStudent;
+
 // Execute Seeding Check
 setTimeout(() => {
   try {
@@ -470,3 +538,4 @@ setTimeout(() => {
     console.error("Firestore seed trigger failed:", err);
   }
 }, 300);
+
