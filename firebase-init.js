@@ -27,6 +27,11 @@ window.fbAuth = auth;
 window.firestoreDb = db;
 
 // Session Utility Functions
+const ADMIN_EMAILS = ['thescubeofficial@gmail.com', 'akshithreddyworld2020@gmail.com'];
+function isAdminEmail(email) {
+  return email ? ADMIN_EMAILS.includes(email.trim().toLowerCase()) : false;
+}
+
 function getSession() {
   const sessionStr = localStorage.getItem('s3_session');
   if (!sessionStr) return null;
@@ -51,9 +56,10 @@ function clearSession() {
 window.getSession = getSession;
 window.setSession = setSession;
 window.clearSession = clearSession;
+window.isAdminEmail = isAdminEmail;
 
 /**
- * Initiates Google Sign-in popup (with Simulator Fallback for file:// protocol)
+ * Initiates Google Sign-in popup using Firebase Auth
  */
 function handleGoogleSignIn(role) {
   // If role is not provided, try to detect or default to 'student'
@@ -62,12 +68,6 @@ function handleGoogleSignIn(role) {
   }
   
   closeSignInModal();
-
-  if (window.location.protocol === 'file:') {
-    console.log("Running on file:// protocol. Using Google Auth Simulator fallback.");
-    runMockAuthOverlay(role);
-    return;
-  }
 
   localStorage.setItem('s3_session_role', role);
   
@@ -96,7 +96,7 @@ function handleGoogleSignIn(role) {
  * Handles simulated login popup fallback
  */
 async function checkUserRestrictions(email, role) {
-  if (email === 'thescubeofficial@gmail.com') return false; // Admin is never blocked
+  if (isAdminEmail(email)) return false; // Admin is never blocked
   try {
     if (role === 'student' && window.getStudentByEmail) {
       const p = await window.getStudentByEmail(email);
@@ -111,122 +111,7 @@ async function checkUserRestrictions(email, role) {
   return false;
 }
 
-/**
- * Handles simulated login popup fallback
- */
-function runMockAuthOverlay(role) {
-  const overlay = document.createElement('div');
-  overlay.id = 'google-auth-overlay';
-  overlay.style.cssText = `
-    position: fixed; inset: 0; z-index: 9999999;
-    background: rgba(13,15,26,0.6); backdrop-filter: blur(16px);
-    display: flex; align-items: center; justify-content: center;
-    font-family: 'Inter', sans-serif;
-  `;
 
-  const panel = document.createElement('div');
-  panel.style.cssText = `
-    background: #ffffff; border-radius: 24px; padding: 40px;
-    width: min(440px, 90%); box-shadow: 0 20px 60px rgba(0,0,0,0.35);
-    text-align: center; border: 1px solid rgba(0, 0, 0, 0.08); color: #202124;
-  `;
-
-  const accounts = role === 'student' ? [
-    { name: "Aarav Mehta", email: "aarav.mehta@gmail.com", pic: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?fit=facearea&facepad=2&w=80&h=80&q=80" },
-    { name: "Jane Doe", email: "jane.doe@gmail.com", pic: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?fit=facearea&facepad=2&w=80&h=80&q=80" },
-    { name: "SCube Admin", email: "thescubeofficial@gmail.com", pic: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?fit=facearea&facepad=2&w=80&h=80&q=80" }
-  ] : [
-    { name: "A.R. Founders", email: "ventures@arfounders.com", pic: "https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?fit=facearea&facepad=2&w=80&h=80&q=80" },
-    { name: "Hyderabad Tech Hub", email: "hr@hydtechhub.in", pic: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?fit=facearea&facepad=2&w=80&h=80&q=80" },
-    { name: "SCube Admin", email: "thescubeofficial@gmail.com", pic: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?fit=facearea&facepad=2&w=80&h=80&q=80" }
-  ];
-
-  let accountsHtml = accounts.map((acc, index) => `
-    <div class="google-acc-row" onclick="selectGoogleAccount(${index}, '${role}')" style="display: flex; align-items: center; gap: 16px; padding: 12px; border-radius: 12px; border: 1px solid #dadce0; margin-bottom: 12px; cursor: pointer; transition: background 200ms;" onmouseenter="this.style.background='#f8f9fa'" onmouseleave="this.style.background='none'">
-      <img src="${acc.pic}" style="width: 38px; height: 38px; border-radius: 50%; object-fit: cover;" />
-      <div style="text-align: left;">
-        <div style="font-size: 14px; font-weight: 600; color: #3c4043;">${acc.name}</div>
-        <div style="font-size: 12px; color: #5f6368;">${acc.email}</div>
-      </div>
-    </div>
-  `).join("");
-
-  panel.innerHTML = `
-    <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" style="width: 42px; margin-bottom: 16px;" alt="Google Logo" />
-    <h2 style="font-size: 22px; font-weight: 500; margin-bottom: 8px; color: #202124;">Sign in with Google (Preview)</h2>
-    <p style="font-size: 13px; color: #5f6368; margin-bottom: 24px;">to continue to <strong>SCube ${role === 'student' ? 'Students' : 'Business'}</strong></p>
-    <div style="margin-bottom: 24px;">
-      ${accountsHtml}
-      <div class="google-acc-row" onclick="selectGoogleAccount(-1, '${role}')" style="display: flex; align-items: center; gap: 16px; padding: 12px; border-radius: 12px; border: 1px solid #dadce0; cursor: pointer; transition: background 200ms;" onmouseenter="this.style.background='#f8f9fa'" onmouseleave="this.style.background='none'">
-        <div style="width: 38px; height: 38px; border-radius: 50%; background: #f1e7d2; display: flex; align-items: center; justify-content: center; font-size: 20px; color: #5f6368;">+</div>
-        <div style="text-align: left;">
-          <div style="font-size: 14px; font-weight: 600; color: #3c4043;">Use another account</div>
-        </div>
-      </div>
-    </div>
-    <div style="display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: #70757a;">
-      <span>English (United States)</span>
-      <button onclick="closeGoogleAuth()" style="border: none; background: none; font-size: 13px; font-weight: 600; color: #1a73e8; cursor: pointer;">Cancel</button>
-    </div>
-  `;
-
-  overlay.appendChild(panel);
-  document.body.appendChild(overlay);
-
-  window.selectGoogleAccount = async function(index, authRole) {
-    let sessionUser;
-    if (index === -1) {
-      const name = prompt("Enter dummy name:", authRole === 'student' ? "Sai Kiran" : "Delta Internships");
-      if (!name) { closeGoogleAuth(); return; }
-      const email = prompt("Enter dummy email:", `${name.toLowerCase().replace(/\s/g, '')}@gmail.com`);
-      if (!email) { closeGoogleAuth(); return; }
-      sessionUser = {
-        name: name,
-        email: email,
-        photoURL: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?fit=facearea&facepad=2&w=80&h=80&q=80",
-        role: authRole
-      };
-    } else {
-      sessionUser = {
-        name: accounts[index].name,
-        email: accounts[index].email,
-        photoURL: accounts[index].pic,
-        role: authRole
-      };
-    }
-
-    if (sessionUser.email === 'thescubeofficial@gmail.com') {
-      sessionUser.role = 'admin';
-    } else {
-      const isRestricted = await checkUserRestrictions(sessionUser.email, authRole);
-      if (isRestricted) {
-        alert("Access Denied: Your account has been banned/blocked by the admin.");
-        closeGoogleAuth();
-        return;
-      }
-    }
-
-    setSession(sessionUser);
-    closeGoogleAuth();
-    updateAuthUI();
-
-    if (sessionUser.role === 'admin') {
-      if (!window.location.pathname.includes('admin.html')) {
-        window.location.href = 'admin.html';
-      }
-      return;
-    }
-
-    if (typeof onAuthSuccess === 'function') {
-      onAuthSuccess(sessionUser);
-    }
-  };
-
-  window.closeGoogleAuth = function() {
-    const el = document.getElementById('google-auth-overlay');
-    if (el) el.remove();
-  };
-}
 
 /**
  * Handle Sign Out flow
@@ -285,7 +170,7 @@ function updateAuthUI() {
     const profilePicUrl = session.photoURL || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=facearea&facepad=2&w=80&h=80&q=80';
     const displayName = session.name || 'User Profile';
     
-    const adminLink = session.email === 'thescubeofficial@gmail.com' 
+    const adminLink = isAdminEmail(session.email) 
       ? `<a href="admin.html" style="display:block; text-align:left; text-decoration:none; color:#ffd15c; padding:8px 12px; font-size:13px; font-family:'Inter',sans-serif; cursor:pointer; border-radius:8px; transition:background 200ms;" onmouseenter="this.style.background='rgba(255,255,255,0.08)'" onmouseleave="this.style.background='none'">Admin Panel</a>`
       : '';
       
@@ -354,7 +239,7 @@ document.addEventListener("DOMContentLoaded", () => {
         role: role
       };
 
-      if (user.email === 'thescubeofficial@gmail.com') {
+      if (isAdminEmail(user.email)) {
         sessionUser.role = 'admin';
         setSession(sessionUser);
         updateAuthUI();
@@ -382,40 +267,10 @@ document.addEventListener("DOMContentLoaded", () => {
         onAuthSuccess(sessionUser);
       }
     } else {
-      // Fallback check: If simulator has a session set, don't clear it
-      const session = getSession();
-      if (session) {
-        if (session.email === 'thescubeofficial@gmail.com') {
-          session.role = 'admin';
-          setSession(session);
-          updateAuthUI();
-          if (!window.location.pathname.includes('admin.html')) {
-            window.location.href = 'admin.html';
-          }
-          return;
-        }
-
-        const isRestricted = await checkUserRestrictions(session.email, session.role);
-        if (isRestricted) {
-          alert("Access Denied: Your account has been banned/blocked by the admin.");
-          clearSession();
-          updateAuthUI();
-          if (typeof onAuthSignOut === 'function') {
-            onAuthSignOut();
-          }
-          return;
-        }
-
-        updateAuthUI();
-        if (typeof onAuthSuccess === 'function') {
-          onAuthSuccess(session);
-        }
-      } else {
-        clearSession();
-        updateAuthUI();
-        if (typeof onAuthSignOut === 'function') {
-          onAuthSignOut();
-        }
+      clearSession();
+      updateAuthUI();
+      if (typeof onAuthSignOut === 'function') {
+        onAuthSignOut();
       }
     }
   });

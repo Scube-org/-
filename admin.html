@@ -637,7 +637,8 @@ import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.15.0/f
 
 document.addEventListener("DOMContentLoaded", () => {
   const session = window.getSession ? window.getSession() : null;
-  if (!session || session.email !== 'thescubeofficial@gmail.com') {
+  const isAdmin = session && (window.isAdminEmail ? window.isAdminEmail(session.email) : ['thescubeofficial@gmail.com', 'akshithreddyworld2020@gmail.com'].includes(session.email));
+  if (!isAdmin) {
     alert("Access Denied: Admin access only.");
     window.location.href = 'index.html';
     return;
