@@ -473,6 +473,153 @@ tr:hover td {
     width: 100%;
   }
 }
+
+/* Modal overlay and card style */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: rgba(13, 15, 26, 0.7);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 300ms ease;
+  padding: 20px;
+}
+
+.modal-overlay.active {
+  display: flex;
+  opacity: 1;
+}
+
+.modal-card {
+  background: rgba(26, 31, 58, 0.96);
+  border: 1px solid rgba(241, 231, 210, 0.12);
+  padding: 35px;
+  border-radius: 24px;
+  width: min(580px, 95%);
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  color: #f1e7d2;
+  position: relative;
+  max-height: 90vh;
+  overflow-y: auto;
+  text-align: left;
+}
+
+.modal-close-btn {
+  position: absolute;
+  right: 20px;
+  top: 20px;
+  background: none;
+  border: none;
+  color: rgba(241, 231, 210, 0.5);
+  cursor: pointer;
+  font-size: 20px;
+  transition: color 200ms;
+}
+
+.modal-close-btn:hover {
+  color: #fff;
+}
+
+.form-row {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.form-item {
+  flex: 1;
+  min-width: 180px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  text-align: left;
+}
+
+.form-item label {
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(241, 231, 210, 0.7);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.form-item input, .form-item textarea, .form-item select {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(241, 231, 210, 0.2);
+  border-radius: 8px;
+  padding: 10px 12px;
+  color: #fff;
+  font-size: 13px;
+  outline: none;
+  transition: border-color 200ms;
+  width: 100%;
+}
+
+.form-item select {
+  background: #1a1f3a;
+  cursor: pointer;
+}
+
+.form-item input:focus, .form-item textarea:focus, .form-item select:focus {
+  border-color: #ffd15c;
+}
+
+.btn-submit-form {
+  background: #ffd15c;
+  border: none;
+  color: #1a1f3a;
+  padding: 12px 24px;
+  border-radius: 50px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 200ms, transform 200ms;
+  margin-top: 10px;
+  width: 100%;
+}
+
+.btn-submit-form:hover {
+  background: #e6bd50;
+  transform: scale(1.02);
+}
+
+.btn-submit-form:active {
+  transform: scale(0.98);
+}
+
+.btn-primary {
+  background: #ffd15c;
+  color: #1a1f3a;
+  border: none;
+  font-weight: 600;
+  font-size: 13px;
+  border-radius: 8px;
+  padding: 10px 20px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: 'Inter', sans-serif;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-primary:hover {
+  background: #e6bd50;
+  transform: translateY(-1px);
+}
+
+.btn-primary:active {
+  transform: translateY(0);
+}
+}
 </style>
 </head>
 <body>
@@ -576,7 +723,10 @@ tr:hover td {
         <h4 style="font-size:14px; font-weight:600; text-transform:uppercase; color:rgba(241, 231, 210, 0.7); letter-spacing:0.08em; margin-bottom: 2px;">Registered Students</h4>
         <span id="students-count" style="font-size: 12px; color: #ffd15c; font-weight: 500;">0 listed</span>
       </div>
-      <input type="text" id="students-search" placeholder="Search students by name, email..." class="search-input" oninput="renderStudents()" />
+      <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+        <input type="text" id="students-search" placeholder="Search students by name, email..." class="search-input" oninput="renderStudents()" />
+        <button onclick="openAddStudentModal()" class="btn-primary">➕ Add Student</button>
+      </div>
     </div>
 
     <div class="table-container">
@@ -606,7 +756,10 @@ tr:hover td {
         <h4 style="font-size:14px; font-weight:600; text-transform:uppercase; color:rgba(241, 231, 210, 0.7); letter-spacing:0.08em; margin-bottom: 2px;">Registered Businesses</h4>
         <span id="businesses-count" style="font-size: 12px; color: #ffd15c; font-weight: 500;">0 listed</span>
       </div>
-      <input type="text" id="businesses-search" placeholder="Search businesses..." class="search-input" oninput="renderBusinesses()" />
+      <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+        <input type="text" id="businesses-search" placeholder="Search businesses..." class="search-input" oninput="renderBusinesses()" />
+        <button onclick="openAddBusinessModal()" class="btn-primary">➕ Add Business</button>
+      </div>
     </div>
 
     <div class="table-container">
@@ -1044,7 +1197,223 @@ window.applyManualRestriction = async function() {
     alert("Restriction failed: " + err.message);
   }
 };
+
+// Add Student Modal controls
+window.openAddStudentModal = function() {
+  const modal = document.getElementById("add-student-modal");
+  modal.style.display = "flex";
+  setTimeout(() => { modal.classList.add("active"); }, 10);
+};
+
+window.closeAddStudentModal = function() {
+  const modal = document.getElementById("add-student-modal");
+  modal.classList.remove("active");
+  setTimeout(() => { modal.style.display = "none"; }, 300);
+  document.getElementById("add-student-form").reset();
+};
+
+window.submitAddStudentForm = async function(event) {
+  event.preventDefault();
+  
+  const email = document.getElementById("add-stud-email").value.trim().toLowerCase();
+  const name = document.getElementById("add-stud-name").value.trim();
+  
+  if (!email) {
+    alert("Please enter a valid email address.");
+    return;
+  }
+
+  try {
+    const profile = {
+      id: "stud_" + Date.now(),
+      name: name,
+      age: parseInt(document.getElementById("add-stud-age").value),
+      grade: document.getElementById("add-stud-grade").value,
+      skill: document.getElementById("add-stud-skill").value,
+      preference: document.getElementById("add-stud-pref").value,
+      school: document.getElementById("add-stud-school").value.trim(),
+      experience: document.getElementById("add-stud-exp").value.trim(),
+      email: email,
+      phone: document.getElementById("add-stud-phone").value.trim(),
+      status: "Available",
+      claimedBy: null
+    };
+
+    if (window.saveStudentProfile) {
+      await window.saveStudentProfile(email, profile);
+      alert(`Student profile for ${profile.name} added successfully!`);
+      closeAddStudentModal();
+      await loadDashboardData();
+    } else {
+      alert("Database error: saveStudentProfile is not loaded yet.");
+    }
+  } catch (err) {
+    alert("Failed to add student: " + err.message);
+  }
+};
+
+// Add Business Modal controls
+window.openAddBusinessModal = function() {
+  const modal = document.getElementById("add-business-modal");
+  modal.style.display = "flex";
+  setTimeout(() => { modal.classList.add("active"); }, 10);
+};
+
+window.closeAddBusinessModal = function() {
+  const modal = document.getElementById("add-business-modal");
+  modal.classList.remove("active");
+  setTimeout(() => { modal.style.display = "none"; }, 300);
+  document.getElementById("add-business-form").reset();
+};
+
+window.submitAddBusinessForm = async function(event) {
+  event.preventDefault();
+  
+  const email = document.getElementById("add-biz-email").value.trim().toLowerCase();
+  const name = document.getElementById("add-biz-name").value.trim();
+  
+  if (!email) {
+    alert("Please enter a valid email address.");
+    return;
+  }
+
+  try {
+    const photoURL = document.getElementById("add-biz-photo").value.trim() 
+      || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?fit=facearea&facepad=2&w=80&h=80&q=80";
+
+    const profile = {
+      name: name,
+      email: email,
+      photoURL: photoURL,
+      role: "business",
+      blocked: false
+    };
+
+    if (window.saveBusinessProfile) {
+      await window.saveBusinessProfile(email, profile);
+      alert(`Business profile for ${profile.name} added successfully!`);
+      closeAddBusinessModal();
+      await loadDashboardData();
+    } else {
+      alert("Database error: saveBusinessProfile is not loaded yet.");
+    }
+  } catch (err) {
+    alert("Failed to add business: " + err.message);
+  }
+};
 </script>
+
+<!-- Add Student Modal -->
+<div id="add-student-modal" class="modal-overlay">
+  <div class="modal-card">
+    <button onclick="closeAddStudentModal()" class="modal-close-btn" aria-label="Close modal">✕</button>
+    <div>
+      <h3 class="font-playfair" style="font-size: 24px; color: #ffd15c; font-style: italic; font-weight: 400; margin-bottom: 4px;">Add New Student</h3>
+      <p style="font-size: 12px; color: rgba(241, 231, 210, 0.65);">Create a new student profile. All fields are required.</p>
+    </div>
+
+    <form id="add-student-form" onsubmit="submitAddStudentForm(event)" style="display: flex; flex-direction: column; gap: 16px;">
+      <div class="form-row">
+        <div class="form-item">
+          <label for="add-stud-name">Full Name</label>
+          <input type="text" id="add-stud-name" required placeholder="e.g. Sai Kiran" />
+        </div>
+        <div class="form-item" style="flex: 0 0 100px; min-width: 100px;">
+          <label for="add-stud-age">Age</label>
+          <input type="number" id="add-stud-age" min="14" max="30" required placeholder="18" />
+        </div>
+        <div class="form-item">
+          <label for="add-stud-grade">Grade / Education</label>
+          <select id="add-stud-grade" required>
+            <option value="11th Grade">11th Grade</option>
+            <option value="12th Grade">12th Grade</option>
+            <option value="12th Pass">12th Pass</option>
+            <option value="NA / Other">NA / Other</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-item">
+          <label for="add-stud-skill">Primary Skill</label>
+          <select id="add-stud-skill" required>
+            <option value="Software Development">Software Development</option>
+            <option value="Digital Marketing">Digital Marketing</option>
+            <option value="Graphic Design">Graphic Design</option>
+            <option value="UI/UX Design">UI/UX Design</option>
+            <option value="Content Writing">Content Writing</option>
+            <option value="Social Media Management">Social Media Management</option>
+            <option value="Data Analytics">Data Analytics</option>
+            <option value="Sales & Business Development">Sales & Business Development</option>
+            <option value="Video Editing">Video Editing</option>
+            <option value="Product Management">Product Management</option>
+          </select>
+        </div>
+        <div class="form-item">
+          <label for="add-stud-pref">Work Preference</label>
+          <select id="add-stud-pref" required>
+            <option value="Remote">Remote</option>
+            <option value="On-site">On-site</option>
+            <option value="Hybrid">Hybrid</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-item">
+        <label for="add-stud-school">School or College Name</label>
+        <input type="text" id="add-stud-school" required placeholder="e.g. HPS Hyderabad" />
+      </div>
+
+      <div class="form-item">
+        <label for="add-stud-exp">Past Internships & Experience</label>
+        <textarea id="add-stud-exp" rows="3" required placeholder="Describe projects, writing samples, or managed social accounts..."></textarea>
+      </div>
+
+      <div class="form-row">
+        <div class="form-item">
+          <label for="add-stud-email">Email Address</label>
+          <input type="email" id="add-stud-email" required placeholder="e.g. student@gmail.com" />
+        </div>
+        <div class="form-item">
+          <label for="add-stud-phone">Mobile Number</label>
+          <input type="tel" id="add-stud-phone" required placeholder="e.g. +91 98765 43210" />
+        </div>
+      </div>
+
+      <button type="submit" class="btn-submit-form">Add Student Profile</button>
+    </form>
+  </div>
+</div>
+
+<!-- Add Business Modal -->
+<div id="add-business-modal" class="modal-overlay">
+  <div class="modal-card" style="width: min(480px, 95%);">
+    <button onclick="closeAddBusinessModal()" class="modal-close-btn" aria-label="Close modal">✕</button>
+    <div>
+      <h3 class="font-playfair" style="font-size: 24px; color: #ffd15c; font-style: italic; font-weight: 400; margin-bottom: 4px;">Add New Business</h3>
+      <p style="font-size: 12px; color: rgba(241, 231, 210, 0.65);">Create a new business profile. All fields are required.</p>
+    </div>
+
+    <form id="add-business-form" onsubmit="submitAddBusinessForm(event)" style="display: flex; flex-direction: column; gap: 16px;">
+      <div class="form-item">
+        <label for="add-biz-name">Business / Company Name</label>
+        <input type="text" id="add-biz-name" required placeholder="e.g. Delta Ventures" />
+      </div>
+
+      <div class="form-item">
+        <label for="add-biz-email">Contact Email Address</label>
+        <input type="email" id="add-biz-email" required placeholder="e.g. contact@deltaventures.com" />
+      </div>
+
+      <div class="form-item">
+        <label for="add-biz-photo">Profile Photo URL (Optional)</label>
+        <input type="url" id="add-biz-photo" placeholder="https://images.unsplash.com/... (or leave empty for default)" />
+      </div>
+
+      <button type="submit" class="btn-submit-form">Add Business Profile</button>
+    </form>
+  </div>
+</div>
 
 </body>
 </html>
