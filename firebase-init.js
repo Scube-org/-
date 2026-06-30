@@ -26,6 +26,11 @@ const provider = new GoogleAuthProvider();
 window.fbAuth = auth;
 window.firestoreDb = db;
 
+let resolveAuthReady;
+window.firebaseAuthReady = new Promise((resolve) => {
+  resolveAuthReady = resolve;
+});
+
 // Session Utility Functions
 const ADMIN_EMAILS = ['thescubeofficial@gmail.com', 'akshithreddyworld2020@gmail.com'];
 function isAdminEmail(email) {
@@ -226,6 +231,10 @@ window.updateAuthUI = updateAuthUI;
 // Setup auth listener
 document.addEventListener("DOMContentLoaded", () => {
   onAuthStateChanged(auth, async (user) => {
+    // Resolve auth ready promise on first fire
+    if (resolveAuthReady) {
+      resolveAuthReady(user);
+    }
     if (user) {
       let role = localStorage.getItem('s3_session_role');
       if (!role) {
@@ -245,6 +254,9 @@ document.addEventListener("DOMContentLoaded", () => {
         updateAuthUI();
         if (!window.location.pathname.includes('admin.html')) {
           window.location.href = 'admin.html';
+        }
+        if (typeof onAuthSuccess === 'function') {
+          onAuthSuccess(sessionUser);
         }
         return;
       }

@@ -36,33 +36,52 @@ const getFirestoreDb = () => {
   return window.firestoreDb;
 };
 
+// Generic retry helper for firestore calls to handle initialization / auth propagation delays
+async function retryFirestoreCall(fn, retries = 3, delay = 500) {
+  for (let i = 0; i < retries; i++) {
+    try {
+      return await fn();
+    } catch (error) {
+      if (i === retries - 1) throw error;
+      console.warn(`Firestore call failed (attempt ${i + 1}/${retries}), retrying in ${delay}ms...`, error);
+      await new Promise(resolve => setTimeout(resolve, delay));
+    }
+  }
+}
+
 // Database Query Helpers
 async function getStudents() {
-  const db = getFirestoreDb();
-  const snap = await getDocs(collection(db, "students"));
-  const list = [];
-  snap.forEach(docSnap => {
-    list.push(docSnap.data());
+  return retryFirestoreCall(async () => {
+    const db = getFirestoreDb();
+    const snap = await getDocs(collection(db, "students"));
+    const list = [];
+    snap.forEach(docSnap => {
+      list.push(docSnap.data());
+    });
+    return list;
   });
-  return list;
 }
 
 async function getStudentByEmail(email) {
   if (!email) return null;
-  const db = getFirestoreDb();
-  const docRef = doc(db, "students", email);
-  const docSnap = await getDoc(docRef);
-  return docSnap.exists() ? docSnap.data() : null;
+  return retryFirestoreCall(async () => {
+    const db = getFirestoreDb();
+    const docRef = doc(db, "students", email);
+    const docSnap = await getDoc(docRef);
+    return docSnap.exists() ? docSnap.data() : null;
+  });
 }
 
 async function getStudentById(id) {
-  const db = getFirestoreDb();
-  const q = query(collection(db, "students"), where("id", "==", id));
-  const querySnapshot = await getDocs(q);
-  if (!querySnapshot.empty) {
-    return querySnapshot.docs[0].data();
-  }
-  return null;
+  return retryFirestoreCall(async () => {
+    const db = getFirestoreDb();
+    const q = query(collection(db, "students"), where("id", "==", id));
+    const querySnapshot = await getDocs(q);
+    if (!querySnapshot.empty) {
+      return querySnapshot.docs[0].data();
+    }
+    return null;
+  });
 }
 
 async function saveStudentProfile(email, profile) {
@@ -73,13 +92,15 @@ async function saveStudentProfile(email, profile) {
 }
 
 async function getInternships() {
-  const db = getFirestoreDb();
-  const snap = await getDocs(collection(db, "internships"));
-  const list = [];
-  snap.forEach(docSnap => {
-    list.push(docSnap.data());
+  return retryFirestoreCall(async () => {
+    const db = getFirestoreDb();
+    const snap = await getDocs(collection(db, "internships"));
+    const list = [];
+    snap.forEach(docSnap => {
+      list.push(docSnap.data());
+    });
+    return list;
   });
-  return list;
 }
 
 async function postInternship(companyName, details) {
@@ -142,32 +163,34 @@ async function applyToInternship(studentEmail, internshipId) {
 }
 
 async function getStudentHistory(studentEmail) {
-  const db = getFirestoreDb();
-  const q = query(collection(db, "applications"), where("studentEmail", "==", studentEmail));
-  const snap = await getDocs(q);
-  const studentApps = [];
-  snap.forEach(docSnap => {
-    studentApps.push(docSnap.data());
-  });
-  
-  // Fetch internships to map details
-  const internships = await getInternships();
-  const internshipMap = {};
-  internships.forEach(i => {
-    internshipMap[i.id] = i;
-  });
-  
-  return studentApps.map(app => {
-    const internship = internshipMap[app.internshipId];
-    return {
-      ...app,
-      title: internship ? internship.title : "Direct Placement",
-      companyName: internship ? internship.companyName : (app.companyName || "Unknown Company"),
-      description: internship ? internship.description : "Direct placement by company.",
-      requirements: internship ? internship.requirements : "Flexible.",
-      duration: internship ? internship.duration : "Flexible",
-      preference: internship ? internship.preference : "Hybrid"
-    };
+  return retryFirestoreCall(async () => {
+    const db = getFirestoreDb();
+    const q = query(collection(db, "applications"), where("studentEmail", "==", studentEmail));
+    const snap = await getDocs(q);
+    const studentApps = [];
+    snap.forEach(docSnap => {
+      studentApps.push(docSnap.data());
+    });
+    
+    // Fetch internships to map details
+    const internships = await getInternships();
+    const internshipMap = {};
+    internships.forEach(i => {
+      internshipMap[i.id] = i;
+    });
+    
+    return studentApps.map(app => {
+      const internship = internshipMap[app.internshipId];
+      return {
+        ...app,
+        title: internship ? internship.title : "Direct Placement",
+        companyName: internship ? internship.companyName : (app.companyName || "Unknown Company"),
+        description: internship ? internship.description : "Direct placement by company.",
+        requirements: internship ? internship.requirements : "Flexible.",
+        duration: internship ? internship.duration : "Flexible",
+        preference: internship ? internship.preference : "Hybrid"
+      };
+    });
   });
 }
 
@@ -294,9 +317,27 @@ async function releaseStudentByBusiness(studentId) {
 // Seeding implementation
 async function seedFirestoreIfEmpty() {
   const db = getFirestoreDb();
+  
+  // Check if we have already seeded in the past using a metadata document
+  const seedRef = doc(db, "system", "seeding");
+  try {
+    const seedSnap = await getDoc(seedRef);
+    if (seedSnap.exists() && seedSnap.data().seeded === true) {
+      console.log("Firestore already seeded (verified by system configuration).");
+      return;
+    }
+  } catch (error) {
+    console.warn("Could not read system seeding status, checking collection state:", error);
+  }
+  
   const querySnapshot = await getDocs(collection(db, "internships"));
   if (!querySnapshot.empty) {
-    console.log("Firestore already seeded with datasets.");
+    console.log("Firestore already seeded with datasets. Marking system as seeded.");
+    try {
+      await setDoc(seedRef, { seeded: true });
+    } catch (e) {
+      console.error("Failed to mark system as seeded:", e);
+    }
     return;
   }
   
@@ -466,26 +507,36 @@ async function seedFirestoreIfEmpty() {
     await setDoc(doc(db, "businesses", b.email), b);
   }
   
+  try {
+    await setDoc(seedRef, { seeded: true });
+  } catch (e) {
+    console.error("Failed to mark system as seeded after seeding:", e);
+  }
+
   console.log("Firestore seeding completed successfully.");
 }
 
 // Business Database Query Helpers
 async function getBusinesses() {
-  const db = getFirestoreDb();
-  const snap = await getDocs(collection(db, "businesses"));
-  const list = [];
-  snap.forEach(docSnap => {
-    list.push(docSnap.data());
+  return retryFirestoreCall(async () => {
+    const db = getFirestoreDb();
+    const snap = await getDocs(collection(db, "businesses"));
+    const list = [];
+    snap.forEach(docSnap => {
+      list.push(docSnap.data());
+    });
+    return list;
   });
-  return list;
 }
 
 async function getBusinessByEmail(email) {
   if (!email) return null;
-  const db = getFirestoreDb();
-  const docRef = doc(db, "businesses", email);
-  const docSnap = await getDoc(docRef);
-  return docSnap.exists() ? docSnap.data() : null;
+  return retryFirestoreCall(async () => {
+    const db = getFirestoreDb();
+    const docRef = doc(db, "businesses", email);
+    const docSnap = await getDoc(docRef);
+    return docSnap.exists() ? docSnap.data() : null;
+  });
 }
 
 async function saveBusinessProfile(email, profile) {

@@ -886,20 +886,31 @@ section.hero {
 })();
 
 // Wait for database module to populate SKILLS_LIST
-setTimeout(() => {
-  const filterSkill = document.getElementById("filter-skill");
-  if (filterSkill && window.SKILLS_LIST) {
-    filterSkill.innerHTML = `<option value="All">All Skills</option>` + window.SKILLS_LIST.map(skill => `<option value="${skill}">${skill}</option>`).join("");
+function populateBusinessDropdowns() {
+  if (window.SKILLS_LIST) {
+    const filterSkill = document.getElementById("filter-skill");
+    if (filterSkill) {
+      filterSkill.innerHTML = `<option value="All">All Skills</option>` + window.SKILLS_LIST.map(skill => `<option value="${skill}">${skill}</option>`).join("");
+    }
+    const intSkillSelect = document.getElementById("int-skill");
+    if (intSkillSelect) {
+      intSkillSelect.innerHTML = window.SKILLS_LIST.map(skill => `<option value="${skill}">${skill}</option>`).join("");
+    }
+  } else {
+    setTimeout(populateBusinessDropdowns, 100);
   }
-  const intSkillSelect = document.getElementById("int-skill");
-  if (intSkillSelect && window.SKILLS_LIST) {
-    intSkillSelect.innerHTML = window.SKILLS_LIST.map(skill => `<option value="${skill}">${skill}</option>`).join("");
-  }
-}, 400);
+}
+populateBusinessDropdowns();
 
 let activeStudentId = null;
 
+// Auth callbacks
+let initialAuthHandled = false;
+
 window.onAuthSuccess = async function(user) {
+  if (initialAuthHandled) return;
+  initialAuthHandled = true;
+
   if (user.role !== 'business') {
     alert("You are signed in as a Student. Please visit the Students section.");
     handleSignOut();
@@ -945,6 +956,8 @@ window.onAuthSuccess = async function(user) {
 };
 
 window.onAuthSignOut = function() {
+  initialAuthHandled = true;
+  
   // Hide landing hero elements since we show the blurred dashboard instead
   document.querySelector(".hero-heading").style.display = "none";
   document.querySelector(".hero-bottom-left").style.display = "none";
@@ -1188,6 +1201,25 @@ window.submitPostInternshipForm = async function(event) {
   closePostInternshipModal();
   await applyFilters(); // Refresh display/counts if appropriate
 };
+
+// Wait for firebase auth to be resolved and check if we need to call handlers due to race conditions
+if (window.firebaseAuthReady) {
+  window.firebaseAuthReady.then(async (user) => {
+    if (!initialAuthHandled) {
+      if (user) {
+        if (typeof window.onAuthSuccess === 'function') {
+          await window.onAuthSuccess(user);
+        }
+      } else {
+        if (typeof window.onAuthSignOut === 'function') {
+          window.onAuthSignOut();
+        }
+      }
+    }
+  }).catch(err => {
+    console.error("Auth resolution check failed in business.html:", err);
+  });
+}
 </script>
 </body>
 </html>

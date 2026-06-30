@@ -884,17 +884,22 @@ section.hero {
 })();
 
 // Wait for database module to populate SKILLS_LIST
-setTimeout(() => {
-  const skillDropdown = document.getElementById("stud-skill");
-  if (skillDropdown && window.SKILLS_LIST) {
-    skillDropdown.innerHTML = window.SKILLS_LIST.map(skill => `<option value="${skill}">${skill}</option>`).join("");
-  }
+function populateSkillsDropdowns() {
+  if (window.SKILLS_LIST) {
+    const skillDropdown = document.getElementById("stud-skill");
+    if (skillDropdown) {
+      skillDropdown.innerHTML = window.SKILLS_LIST.map(skill => `<option value="${skill}">${skill}</option>`).join("");
+    }
 
-  const finderSkillFilter = document.getElementById("finder-filter-skill");
-  if (finderSkillFilter && window.SKILLS_LIST) {
-    finderSkillFilter.innerHTML = `<option value="All">All Skills</option>` + window.SKILLS_LIST.map(skill => `<option value="${skill}">${skill}</option>`).join("");
+    const finderSkillFilter = document.getElementById("finder-filter-skill");
+    if (finderSkillFilter) {
+      finderSkillFilter.innerHTML = `<option value="All">All Skills</option>` + window.SKILLS_LIST.map(skill => `<option value="${skill}">${skill}</option>`).join("");
+    }
+  } else {
+    setTimeout(populateSkillsDropdowns, 100);
   }
-}, 400);
+}
+populateSkillsDropdowns();
 
 let activeInternshipId = null;
 let currentTab = 'form';
@@ -1180,7 +1185,12 @@ window.renderProgressAndHistory = async function() {
 };
 
 // Auth callbacks
+let initialAuthHandled = false;
+
 window.onAuthSuccess = async function(user) {
+  if (initialAuthHandled) return;
+  initialAuthHandled = true;
+  
   if (user.role !== 'student') {
     alert("You are signed in as a Business. Please visit the Business section.");
     handleSignOut();
@@ -1224,8 +1234,10 @@ window.onAuthSuccess = async function(user) {
     document.getElementById("stud-phone").value = existing.phone;
     
     // Set default filter values to match profile selections
-    document.getElementById("finder-filter-skill").value = existing.skill;
-    document.getElementById("finder-filter-pref").value = existing.preference;
+    const filterSkill = document.getElementById("finder-filter-skill");
+    if (filterSkill) filterSkill.value = existing.skill;
+    const filterPref = document.getElementById("finder-filter-pref");
+    if (filterPref) filterPref.value = existing.preference;
   } else {
     // Reset form fields
     document.getElementById("stud-age").value = "";
@@ -1244,6 +1256,8 @@ window.onAuthSuccess = async function(user) {
 };
 
 window.onAuthSignOut = function() {
+  initialAuthHandled = true;
+  
   // Hide landing hero elements since we show the blurred form instead
   document.querySelector(".hero-heading").style.display = "none";
   document.querySelector(".hero-bottom-left").style.display = "none";
@@ -1313,6 +1327,25 @@ window.enableProfileEditing = function() {
   document.getElementById("student-form-inputs-container").style.display = "flex";
   document.getElementById("student-form-success-container").style.display = "none";
 };
+
+// Wait for firebase auth to be resolved and check if we need to call handlers due to race conditions
+if (window.firebaseAuthReady) {
+  window.firebaseAuthReady.then(async (user) => {
+    if (!initialAuthHandled) {
+      if (user) {
+        if (typeof window.onAuthSuccess === 'function') {
+          await window.onAuthSuccess(user);
+        }
+      } else {
+        if (typeof window.onAuthSignOut === 'function') {
+          window.onAuthSignOut();
+        }
+      }
+    }
+  }).catch(err => {
+    console.error("Auth resolution check failed in students.html:", err);
+  });
+}
 </script>
 </body>
 </html>

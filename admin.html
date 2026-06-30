@@ -788,7 +788,7 @@ tr:hover td {
 // Strict Security Validation
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
 
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
   const session = window.getSession ? window.getSession() : null;
   const isAdmin = session && (window.isAdminEmail ? window.isAdminEmail(session.email) : ['thescubeofficial@gmail.com', 'akshithreddyworld2020@gmail.com'].includes(session.email));
   if (!isAdmin) {
@@ -797,8 +797,22 @@ document.addEventListener("DOMContentLoaded", () => {
     return;
   }
   
-  // Start loading data after a brief delay for database initialisation
-  setTimeout(loadDashboardData, 500);
+  // Wait for firebase auth to be resolved and check if we are still admin
+  if (window.firebaseAuthReady) {
+    try {
+      const user = await window.firebaseAuthReady;
+      if (!user || !(window.isAdminEmail ? window.isAdminEmail(user.email) : ['thescubeofficial@gmail.com', 'akshithreddyworld2020@gmail.com'].includes(user.email))) {
+        alert("Access Denied: Admin access only.");
+        window.location.href = 'index.html';
+        return;
+      }
+    } catch (e) {
+      console.error("Auth ready check failed:", e);
+    }
+  }
+  
+  // Start loading data
+  loadDashboardData();
 });
 
 // Cache variables for search logic
@@ -812,15 +826,26 @@ async function loadDashboardData() {
     return;
   }
 
-  try {
-    studentsList = await window.getStudents();
-    businessesList = await window.getBusinesses();
-    
-    renderRestrictions();
-    renderStudents();
-    renderBusinesses();
-  } catch (err) {
-    console.error("Error loading dashboard collections:", err);
+  let retries = 3;
+  while (retries > 0) {
+    try {
+      studentsList = await window.getStudents();
+      businessesList = await window.getBusinesses();
+      
+      renderRestrictions();
+      renderStudents();
+      renderBusinesses();
+      return; // Success!
+    } catch (err) {
+      retries--;
+      console.warn(`Error loading dashboard collections (retries left: ${retries}):`, err);
+      if (retries > 0) {
+        await new Promise(resolve => setTimeout(resolve, 500));
+      } else {
+        console.error("Failed to load dashboard data after multiple attempts:", err);
+        alert("Failed to load data from database. Please refresh the page.");
+      }
+    }
   }
 }
 
