@@ -53,6 +53,11 @@
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-6px); }
 }
+@keyframes pulse {
+  0% { opacity: 0.4; transform: scale(0.95); }
+  50% { opacity: 1; transform: scale(1.05); }
+  100% { opacity: 0.4; transform: scale(0.95); }
+}
 .auth-lock-icon {
   width: 64px;
   height: 64px;
@@ -533,6 +538,33 @@ section.hero {
   </div>
 </div>
 
+<!-- Coaching Prompt Modal -->
+<div id="coaching-prompt-modal" style="display:none; position:fixed; inset:0; z-index:999999; background:rgba(13,15,26,0.6); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); align-items:center; justify-content:center; opacity:0; transition:opacity 300ms ease;">
+  <div style="background:rgba(26,31,58,0.95); border:1px solid rgba(241,231,210,0.15); padding:40px; border-radius:32px; width:min(500px,90%); text-align:center; box-shadow:0 30px 70px rgba(0,0,0,0.5); display:flex; flex-direction:column; align-items:center; gap:20px; position:relative; color:#f1e7d2;">
+    
+    <!-- Icon/Badge -->
+    <div style="width:64px; height:64px; border-radius:50%; background:rgba(255,209,92,0.1); display:flex; align-items:center; justify-content:center; font-size:32px; margin-bottom:8px;">🚀</div>
+
+    <div>
+      <h2 class="font-playfair" style="font-size:26px; color:#fff; font-weight:400; margin-bottom:12px; font-style:italic;">Ready to Accelerate Your Journey?</h2>
+      <p id="coaching-prompt-text" style="font-size:13.5px; color:rgba(241,231,210,0.8); line-height:1.6; font-family:'Inter',sans-serif; max-width:400px; margin:0 auto;">
+        Want to excel in your chosen skill? Register for our specialized coaching sessions to learn alongside ambitious peers and guided by industry mentors.
+      </p>
+    </div>
+
+    <!-- Actions -->
+    <div style="display:flex; flex-direction:column; gap:12px; width:100%; margin-top:8px;">
+      <button id="coaching-prompt-confirm-btn" style="width:100%; background:#ffd15c; border:none; color:#1a1f3a; padding:14px; border-radius:50px; font-size:14px; font-weight:600; cursor:pointer; transition:background 200ms, transform 200ms; font-family:'Inter',sans-serif;" onmouseenter="this.style.background='#e6bd50'; this.style.transform='scale(1.02)';" onmouseleave="this.style.background='#ffd15c'; this.style.transform=''">
+        Register for Coaching Session
+      </button>
+      <button id="coaching-prompt-cancel-btn" style="width:100%; background:none; border:1px solid rgba(241,231,210,0.2); color:#f1e7d2; padding:14px; border-radius:50px; font-size:14px; font-weight:500; cursor:pointer; transition:background 200ms; font-family:'Inter',sans-serif;" onmouseenter="this.style.background='rgba(255,255,255,0.04)';" onmouseleave="this.style.background='none';">
+        Maybe Later
+      </button>
+    </div>
+
+  </div>
+</div>
+
 <!-- NAV -->
 <nav>
   <a href="index.html" class="nav-logo">
@@ -545,6 +577,7 @@ section.hero {
     <button class="nav-pill-btn active" id="btn-tab-form" onclick="switchStudentTab('form')">Profile Form</button>
     <button class="nav-pill-btn" id="btn-tab-finder" onclick="switchStudentTab('finder')">Internships</button>
     <button class="nav-pill-btn" id="btn-tab-progress" onclick="switchStudentTab('progress')">Progress & History</button>
+    <button class="nav-pill-btn" id="btn-tab-coaching" onclick="switchStudentTab('coaching')">Coaching</button>
   </div>
 
   <div style="display:flex; align-items:center; gap:12px;">
@@ -767,6 +800,13 @@ section.hero {
     </div>
   </div>
 
+  <!-- Tab 4: Coaching & Cohort (Initially Hidden) -->
+  <div id="student-coaching-section" style="display:none; position:absolute; inset:0; z-index:40; align-items:flex-start; justify-content:center; padding: 20px; box-sizing: border-box; padding-top: 100px; height: 100dvh; overflow-y:auto;">
+    <div id="student-coaching-container" style="width:100%; max-width:1100px; margin:0 auto; margin-bottom: 40px;">
+      <!-- Dynamic content injected here -->
+    </div>
+  </div>
+
   <!-- Internship Detail Modal (Overlay) -->
   <div id="internship-detail-modal" style="display:none; position:fixed; inset:0; z-index:999999; background:rgba(13,15,26,0.6); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); align-items:center; justify-content:center; opacity:0; transition:opacity 300ms ease;">
     <div style="background:rgba(26,31,58,0.95); border:1px solid rgba(241,231,210,0.15); padding:40px; border-radius:32px; width:min(520px,90%); text-align:left; box-shadow:0 30px 70px rgba(0,0,0,0.5); display:flex; flex-direction:column; gap:20px; position:relative; color:#f1e7d2;">
@@ -921,11 +961,13 @@ window.switchStudentTab = async function(tabId) {
   document.getElementById("student-form-section").style.display = "none";
   document.getElementById("student-finder-section").style.display = "none";
   document.getElementById("student-progress-section").style.display = "none";
+  document.getElementById("student-coaching-section").style.display = "none";
   
   // Remove active classes
   document.getElementById("btn-tab-form").classList.remove("active");
   document.getElementById("btn-tab-finder").classList.remove("active");
   document.getElementById("btn-tab-progress").classList.remove("active");
+  document.getElementById("btn-tab-coaching").classList.remove("active");
   
   // Show target section & set active button
   if (tabId === 'form') {
@@ -948,6 +990,10 @@ window.switchStudentTab = async function(tabId) {
     document.getElementById("student-progress-section").style.display = "flex";
     document.getElementById("btn-tab-progress").classList.add("active");
     await renderProgressAndHistory();
+  } else if (tabId === 'coaching') {
+    document.getElementById("student-coaching-section").style.display = "flex";
+    document.getElementById("btn-tab-coaching").classList.add("active");
+    await renderCoachingTab();
   }
   
   currentTab = tabId;
@@ -957,17 +1003,22 @@ window.switchStudentTab = async function(tabId) {
 function updateTabStates(hasProfile) {
   const btnFinder = document.getElementById("btn-tab-finder");
   const btnProgress = document.getElementById("btn-tab-progress");
+  const btnCoaching = document.getElementById("btn-tab-coaching");
   
   if (!hasProfile) {
     btnFinder.style.opacity = "0.5";
     btnFinder.style.cursor = "not-allowed";
     btnProgress.style.opacity = "0.5";
     btnProgress.style.cursor = "not-allowed";
+    btnCoaching.style.opacity = "0.5";
+    btnCoaching.style.cursor = "not-allowed";
   } else {
     btnFinder.style.opacity = "1";
     btnFinder.style.cursor = "pointer";
     btnProgress.style.opacity = "1";
     btnProgress.style.cursor = "pointer";
+    btnCoaching.style.opacity = "1";
+    btnCoaching.style.cursor = "pointer";
   }
 }
 
@@ -1282,6 +1333,7 @@ window.onAuthSignOut = function() {
   // Hide other dashboard sections if visible
   document.getElementById("student-finder-section").style.display = "none";
   document.getElementById("student-progress-section").style.display = "none";
+  document.getElementById("student-coaching-section").style.display = "none";
   closeInternshipDetailModal();
 };
 
@@ -1317,15 +1369,177 @@ window.submitStudentForm = async function(event) {
   document.getElementById("student-form-inputs-container").style.display = "none";
   document.getElementById("student-form-success-container").style.display = "flex";
   
-  alert("Profile saved successfully! You can now explore internships and track application progress.");
+  // Check if they are already registered in the coaching cohort for their skill
+  const group = await window.getCoachingGroupBySkill(studentProfile.skill);
+  const alreadyEnrolled = group && group.studentEmails && group.studentEmails.includes(email);
   
-  // Automatically switch to Finder tab for user convenience
-  await switchStudentTab('finder');
+  if (!alreadyEnrolled) {
+    // Open coaching modal prompt
+    window.openCoachingPromptModal(studentProfile.skill, email);
+  } else {
+    alert("Profile saved successfully!");
+    // Automatically switch to Finder tab for user convenience
+    await switchStudentTab('finder');
+  }
 };
 
 window.enableProfileEditing = function() {
   document.getElementById("student-form-inputs-container").style.display = "flex";
   document.getElementById("student-form-success-container").style.display = "none";
+};
+
+// Render Coaching Tab
+window.renderCoachingTab = async function() {
+  const session = getSession();
+  if (!session) return;
+  
+  const student = await getStudentByEmail(session.email);
+  if (!student) return;
+  
+  const studentSkill = student.skill;
+  const studentEmail = student.email;
+  
+  const container = document.getElementById("student-coaching-container");
+  
+  // Fetch group details
+  const groupData = await window.getCoachingGroupBySkill(studentSkill);
+  
+  const isEnrolled = groupData && groupData.studentEmails && groupData.studentEmails.includes(studentEmail);
+  
+  if (!isEnrolled) {
+    // Show promo view
+    container.innerHTML = `
+      <div style="background:rgba(26,31,58,0.7); backdrop-filter:blur(24px); -webkit-backdrop-filter:blur(24px); border:1px solid rgba(241,231,210,0.12); padding:45px 30px; border-radius:28px; text-align:center; box-shadow:0 30px 80px rgba(0,0,0,0.4); max-width:680px; margin: 40px auto; display:flex; flex-direction:column; align-items:center; gap:20px;" data-no-drag>
+        <div style="width:60px; height:60px; border-radius:50%; background:rgba(255,209,92,0.1); display:flex; align-items:center; justify-content:center; font-size:28px;">🏫</div>
+        <h3 class="font-playfair" style="font-size:28px; font-weight:400; color:#ffd15c; font-style:italic;">Unlock Specialized Coaching</h3>
+        <p style="font-size:14px; line-height:1.6; color:rgba(241,231,210,0.8); max-width:520px;">
+          Accelerate your learning path in <strong>${studentSkill}</strong>. Join a focused cohort led by an expert guide, learn together with peers, and get access to a private WhatsApp communication channel.
+        </p>
+        <button onclick="registerForCoachingGroupDirect('${studentEmail}', '${studentSkill}')" style="background:#ffd15c; border:none; color:#1a1f3a; padding:12px 28px; border-radius:50px; font-size:14px; font-weight:600; cursor:pointer; transition:all 200ms;" onmouseenter="this.style.background='#e6bd50'; this.style.transform='scale(1.02)'" onmouseleave="this.style.background='#ffd15c'; this.style.transform='none'">
+          Enlist in ${studentSkill} Cohort
+        </button>
+      </div>
+    `;
+    return;
+  }
+  
+  // Student is enrolled. Get peers
+  const allStudents = await window.getStudents();
+  const peers = allStudents.filter(s => groupData.studentEmails.includes(s.email) && s.email !== studentEmail);
+  
+  let cohortPeersHtml = "";
+  if (peers.length === 0) {
+    cohortPeersHtml = `<div style="text-align:center; padding:30px; color:rgba(241,231,210,0.4); font-size:13px; border:1px dashed rgba(241,231,210,0.15); border-radius:14px; width:100%;">No other students enrolled in this cohort yet. Be the pioneer!</div>`;
+  } else {
+    cohortPeersHtml = peers.map(p => `
+      <div style="display:flex; align-items:center; justify-content:space-between; padding:12px 16px; border-radius:12px; background:rgba(255,255,255,0.03); border:1px solid rgba(241,231,210,0.06); gap:12px;">
+        <div style="display:flex; align-items:center; gap:10px;">
+          <div style="width:34px; height:34px; border-radius:50%; background:rgba(255,255,255,0.08); display:flex; align-items:center; justify-content:center; font-size:14px; font-weight:600; color:#ffd15c;">
+            ${(p.name || p.email)[0].toUpperCase()}
+          </div>
+          <div style="text-align:left;">
+            <div style="font-size:13px; font-weight:600; color:#fff;">${p.name || "Anonymous User"}</div>
+            <div style="font-size:11px; color:rgba(241,231,210,0.55);">${p.school || "No School Added"}</div>
+          </div>
+        </div>
+        <div style="text-align:right;">
+          <span style="display:inline-block; font-size:10px; padding:3px 8px; border-radius:12px; background:rgba(241,231,210,0.08); color:#f1e7d2;">
+            ${p.grade || "Student"}
+          </span>
+        </div>
+      </div>
+    `).join("");
+  }
+  
+  container.innerHTML = `
+    <!-- Top WhatsApp Banner -->
+    <div class="whatsapp-banner" style="background:rgba(37,211,102,0.08); border:1px solid rgba(37,211,102,0.2); padding:16px 24px; border-radius:18px; margin-bottom:24px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; backdrop-filter:blur(8px);" data-no-drag>
+      <div style="display:flex; align-items:center; gap:12px;">
+        <span style="font-size:20px; animation: pulse 1.5s infinite; color:#25D366; display:inline-block;">🟢</span>
+        <div style="text-align:left;">
+          <h5 style="font-size:14px; font-weight:600; color:#fff; margin:0;">Adding to WhatsApp group: "${groupData.skill}"...</h5>
+          <p style="font-size:11.5px; color:rgba(241,231,210,0.6); margin:2px 0 0 0;">We are preparing your cohort workspace. You can join the group chat directly using the link.</p>
+        </div>
+      </div>
+      <a href="${groupData.whatsappLink || '#'}" target="_blank" style="background:#25D366; color:#fff; text-decoration:none; padding:8px 18px; border-radius:30px; font-size:12.5px; font-weight:600; display:inline-flex; align-items:center; gap:6px; transition:background 200ms;" onmouseenter="this.style.background='#20ba59'" onmouseleave="this.style.background='#25D366'">
+        Join Chat Group
+      </a>
+    </div>
+
+    <div style="display:flex; gap:20px; flex-wrap:wrap; align-items:start;">
+      <!-- Left Side: Class details and Mentor info -->
+      <div style="flex:1.2; min-width:300px; background:rgba(26,31,58,0.7); backdrop-filter:blur(24px); -webkit-backdrop-filter:blur(24px); border:1px solid rgba(241,231,210,0.12); padding:30px; border-radius:24px; box-shadow:0 30px 80px rgba(0,0,0,0.4); display:flex; flex-direction:column; gap:20px; color:#f1e7d2; text-align:left;" data-no-drag>
+        <div>
+          <span style="font-size:11px; color:#ffd15c; font-weight:600; text-transform:uppercase; letter-spacing:0.05em;">Your Cohort</span>
+          <h3 class="font-playfair" style="font-size:24px; font-weight:400; font-style:italic; color:#fff; margin-top:2px;">${groupData.skill}</h3>
+        </div>
+        
+        <div style="display:flex; flex-direction:column; gap:12px; background:rgba(255,255,255,0.03); border:1px solid rgba(241,231,210,0.08); padding:16px; border-radius:14px;">
+          <div>
+            <span style="font-size:11px; color:rgba(241,231,210,0.5); text-transform:uppercase;">Group Mentor</span>
+            <div style="font-size:14px; font-weight:600; color:#ffd15c; margin-top:2px;">${groupData.leaderEmail || "Not Assigned"}</div>
+          </div>
+          <div style="border-top:1px solid rgba(241,231,210,0.06); padding-top:10px;">
+            <span style="font-size:11px; color:rgba(241,231,210,0.5); text-transform:uppercase;">Class Frequency / Duration</span>
+            <div style="font-size:14px; color:#fff; margin-top:2px;">${groupData.duration || "Weekly"}</div>
+          </div>
+        </div>
+
+        <button onclick="unregisterFromCoachingGroup('${studentEmail}', '${groupData.skill}')" style="background:none; border:1px solid rgba(241,231,210,0.15); color:rgba(241,231,210,0.6); padding:10px; border-radius:30px; font-size:12px; cursor:pointer; transition:all 200ms; margin-top:10px;" onmouseenter="this.style.borderColor='rgba(107, 23, 36, 0.4)'; this.style.color='#f27474';" onmouseleave="this.style.borderColor='rgba(241,231,210,0.15)'; this.style.color='rgba(241,231,210,0.6)';">
+          Leave Cohort
+        </button>
+      </div>
+
+      <!-- Right Side: Cohort Peers List -->
+      <div style="flex:2; min-width:320px; background:rgba(26,31,58,0.7); backdrop-filter:blur(24px); -webkit-backdrop-filter:blur(24px); border:1px solid rgba(241,231,210,0.12); padding:30px; border-radius:24px; box-shadow:0 30px 80px rgba(0,0,0,0.4); display:flex; flex-direction:column; gap:20px; color:#f1e7d2; text-align:left;" data-no-drag>
+        <div>
+          <h3 class="font-playfair" style="font-size:22px; font-weight:400; font-style:italic; color:#ffd15c; margin-bottom:4px;">Enrolled Peers</h3>
+          <p style="font-size:11px; color:rgba(241,231,210,0.5);">Meet the other students studying ${groupData.skill} alongside you.</p>
+        </div>
+        
+        <div style="display:flex; flex-direction:column; gap:12px;">
+          ${cohortPeersHtml}
+        </div>
+      </div>
+    </div>
+  `;
+};
+
+window.registerForCoachingGroupDirect = async function(email, skillName) {
+  await window.registerStudentForCoaching(email, skillName);
+  await renderCoachingTab();
+};
+
+window.unregisterFromCoachingGroup = async function(email, skillName) {
+  if (confirm("Are you sure you want to leave this coaching cohort?")) {
+    await window.unregisterStudentFromCoaching(email, skillName);
+    await renderCoachingTab();
+  }
+};
+
+window.openCoachingPromptModal = function(skillName, email) {
+  const modal = document.getElementById("coaching-prompt-modal");
+  document.getElementById("coaching-prompt-text").innerHTML = `Want to excel in <strong>${skillName}</strong>? Register for our specialized coaching sessions to learn alongside ambitious peers and guided by industry mentors.`;
+  
+  document.getElementById("coaching-prompt-confirm-btn").onclick = async () => {
+    await window.registerStudentForCoaching(email, skillName);
+    closeCoachingPromptModal();
+    await switchStudentTab('coaching');
+  };
+  
+  document.getElementById("coaching-prompt-cancel-btn").onclick = () => {
+    closeCoachingPromptModal();
+    switchStudentTab('finder');
+  };
+  
+  modal.style.display = "flex";
+  setTimeout(() => { modal.style.opacity = "1"; }, 10);
+};
+
+window.closeCoachingPromptModal = function() {
+  const modal = document.getElementById("coaching-prompt-modal");
+  modal.style.opacity = "0";
+  setTimeout(() => { modal.style.display = "none"; }, 300);
 };
 
 // Wait for firebase auth to be resolved and check if we need to call handlers due to race conditions

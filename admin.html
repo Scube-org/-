@@ -662,6 +662,9 @@ tr:hover td {
     <button id="tab-businesses-btn" class="tab-btn" onclick="switchTab('businesses')">
       🏢 View Businesses
     </button>
+    <button id="tab-classes-btn" class="tab-btn" onclick="switchTab('classes')">
+      🏫 Coaching Classes
+    </button>
   </div>
 
   <!-- Tab 1: Restrictions Management -->
@@ -778,6 +781,34 @@ tr:hover td {
       </table>
     </div>
   </section>
+
+  <!-- Tab 4: Coaching Classes Management -->
+  <section id="panel-classes" class="panel" role="tabpanel">
+    <div class="panel-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; gap: 16px; flex-wrap: wrap;">
+      <div>
+        <h3 class="font-playfair" style="font-size: 20px; font-weight: 400; color: #ffd15c; margin-bottom: 8px;">Coaching Classes & Skills Cohorts</h3>
+        <p style="font-size: 12.5px; color: rgba(241, 231, 210, 0.55);">Manage coaching groups, assign group leaders, adjust duration, and view enrolled student counts.</p>
+      </div>
+    </div>
+
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th>Group (Skill)</th>
+            <th>Mentor/Leader Email</th>
+            <th>Duration</th>
+            <th>WhatsApp Chat Link</th>
+            <th>Enrolled Students</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="classes-table-body">
+          <!-- Populated dynamically -->
+        </tbody>
+      </table>
+    </div>
+  </section>
 </main>
 
 <!-- Firebase Scripts -->
@@ -818,9 +849,10 @@ document.addEventListener("DOMContentLoaded", async () => {
 // Cache variables for search logic
 let studentsList = [];
 let businessesList = [];
+let classesList = [];
 
 async function loadDashboardData() {
-  if (!window.getStudents || !window.getBusinesses) {
+  if (!window.getStudents || !window.getBusinesses || !window.getCoachingGroups) {
     console.log("Database helpers not ready yet, retrying...");
     setTimeout(loadDashboardData, 300);
     return;
@@ -831,10 +863,12 @@ async function loadDashboardData() {
     try {
       studentsList = await window.getStudents();
       businessesList = await window.getBusinesses();
+      classesList = await window.getCoachingGroups();
       
       renderRestrictions();
       renderStudents();
       renderBusinesses();
+      renderClasses();
       return; // Success!
     } catch (err) {
       retries--;
@@ -855,11 +889,13 @@ window.switchTab = function(tabName) {
   document.getElementById("panel-restrictions").classList.remove("active");
   document.getElementById("panel-students").classList.remove("active");
   document.getElementById("panel-businesses").classList.remove("active");
+  document.getElementById("panel-classes").classList.remove("active");
   
   // Deactivate buttons
   document.getElementById("tab-restrictions-btn").classList.remove("active");
   document.getElementById("tab-students-btn").classList.remove("active");
   document.getElementById("tab-businesses-btn").classList.remove("active");
+  document.getElementById("tab-classes-btn").classList.remove("active");
 
   // Activate selected panel and tab button
   document.getElementById("panel-" + tabName).classList.add("active");
@@ -1326,6 +1362,204 @@ window.submitAddBusinessForm = async function(event) {
     alert("Failed to add business: " + err.message);
   }
 };
+
+// Render Coaching Classes List
+window.renderClasses = function() {
+  const tbody = document.getElementById("classes-table-body");
+  
+  if (!window.SKILLS_LIST) {
+    tbody.innerHTML = `<tr><td colspan="6" class="empty-placeholder">Skill configurations not loaded.</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = window.SKILLS_LIST.map(skillName => {
+    // Find if we have loaded Firestore data for this skill group
+    const group = classesList.find(c => c.skill === skillName) || {
+      skill: skillName,
+      leaderEmail: "Not Assigned",
+      duration: "Weekly",
+      whatsappLink: "Not Set",
+      studentEmails: []
+    };
+
+    const enrolledCount = group.studentEmails ? group.studentEmails.length : 0;
+    
+    return `
+      <tr>
+        <td style="font-weight: 600; color: #fff;">${skillName}</td>
+        <td>${group.leaderEmail || "Not Assigned"}</td>
+        <td><span class="status-badge" style="background: rgba(255,255,255,0.06); color: #f1e7d2; border: 1px solid rgba(241,231,210,0.15);">${group.duration || "Weekly"}</span></td>
+        <td style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+          ${group.whatsappLink && group.whatsappLink !== "Not Set" && group.whatsappLink !== "https://chat.whatsapp.com/mock-chat-link"
+            ? `<a href="${group.whatsappLink}" target="_blank" style="color: #25d366; text-decoration: underline;">Open Link</a>` 
+            : `<span style="opacity: 0.5;">No link assigned</span>`
+          }
+        </td>
+        <td>
+          <span style="font-weight: bold; color: #ffd15c;">${enrolledCount}</span> students
+        </td>
+        <td>
+          <button onclick="openManageClassModal('${skillName}')" class="btn-primary" style="padding: 6px 12px; font-size: 11.5px; border-radius: 6px;">Manage Group</button>
+        </td>
+      </tr>
+    `;
+  }).join("");
+};
+
+// Manage Coaching Class modal controls
+let activeManageGroupSkill = null;
+
+window.openManageClassModal = async function(skillName) {
+  activeManageGroupSkill = skillName;
+  
+  // Set title
+  document.getElementById("manage-class-title").textContent = `Skill Group: ${skillName}`;
+  document.getElementById("edit-class-skill").value = skillName;
+  
+  // Find group data
+  const group = classesList.find(c => c.skill === skillName) || {
+    skill: skillName,
+    leaderEmail: "",
+    duration: "Weekly",
+    whatsappLink: ""
+  };
+  
+  document.getElementById("edit-class-leader").value = group.leaderEmail || "";
+  document.getElementById("edit-class-duration").value = group.duration || "Weekly";
+  document.getElementById("edit-class-whatsapp").value = group.whatsappLink || "";
+  
+  // Render student enlistment
+  renderClassStudents(group);
+  
+  const modal = document.getElementById("manage-class-modal");
+  modal.style.display = "flex";
+  setTimeout(() => { modal.classList.add("active"); }, 10);
+};
+
+window.closeManageClassModal = function() {
+  const modal = document.getElementById("manage-class-modal");
+  modal.classList.remove("active");
+  setTimeout(() => { modal.style.display = "none"; }, 300);
+  document.getElementById("edit-class-form").reset();
+  document.getElementById("add-class-student-email").value = "";
+  activeManageGroupSkill = null;
+};
+
+// Render students currently inside the group
+function renderClassStudents(group) {
+  const tbody = document.getElementById("class-students-list");
+  const emails = group.studentEmails || [];
+  
+  if (emails.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="3" style="text-align: center; padding: 20px; color: rgba(241,231,210,0.4);">No students currently enrolled.</td></tr>`;
+    return;
+  }
+  
+  tbody.innerHTML = emails.map(email => {
+    // Find student details from studentsList if available
+    const stud = studentsList.find(s => s.email.toLowerCase() === email.toLowerCase());
+    const name = stud ? stud.name : "Unregistered Account";
+    
+    return `
+      <tr style="border-bottom: 1px solid rgba(241,231,210,0.05);">
+        <td style="padding: 8px 12px; font-weight: 500;">${name}</td>
+        <td style="padding: 8px 12px; opacity: 0.85;">${email}</td>
+        <td style="padding: 8px 12px; text-align: right;">
+          <button onclick="removeStudentFromClassFromAdmin('${email}')" style="background: none; border: none; color: #f27474; cursor: pointer; font-size: 11px;" onmouseenter="this.style.textDecoration='underline'" onmouseleave="this.style.textDecoration='none'">Remove</button>
+        </td>
+      </tr>
+    `;
+  }).join("");
+}
+
+// Edit class group config submit
+window.submitEditClassForm = async function(event) {
+  event.preventDefault();
+  if (!activeManageGroupSkill) return;
+  
+  const leaderEmail = document.getElementById("edit-class-leader").value.trim().toLowerCase();
+  const duration = document.getElementById("edit-class-duration").value;
+  const whatsappLink = document.getElementById("edit-class-whatsapp").value.trim();
+  
+  try {
+    // Find active group record
+    let group = classesList.find(c => c.skill === activeManageGroupSkill);
+    if (!group) {
+      group = {
+        id: activeManageGroupSkill,
+        skill: activeManageGroupSkill,
+        leaderEmail: leaderEmail,
+        duration: duration,
+        whatsappLink: whatsappLink,
+        studentEmails: []
+      };
+    } else {
+      group.leaderEmail = leaderEmail;
+      group.duration = duration;
+      group.whatsappLink = whatsappLink;
+    }
+    
+    await window.saveCoachingGroup(activeManageGroupSkill, group);
+    alert("Group details saved successfully!");
+    
+    // Refresh
+    await loadDashboardData();
+    closeManageClassModal();
+  } catch (err) {
+    alert("Failed to update group: " + err.message);
+  }
+};
+
+// Add student from admin panel modal
+window.addStudentToClassFromAdmin = async function() {
+  if (!activeManageGroupSkill) return;
+  const emailInput = document.getElementById("add-class-student-email");
+  const email = emailInput.value.trim().toLowerCase();
+  
+  if (!email) {
+    alert("Please enter a student email to enlist.");
+    return;
+  }
+  
+  // Verify student exists in our studentList
+  const student = studentsList.find(s => s.email.toLowerCase() === email);
+  if (!student) {
+    alert(`No student profile found for email ${email}. The student must first sign up on the platform.`);
+    return;
+  }
+  
+  try {
+    await window.registerStudentForCoaching(email, activeManageGroupSkill);
+    emailInput.value = "";
+    alert("Student enlisted successfully!");
+    
+    // Update local cache and refresh modal view
+    await loadDashboardData();
+    const updatedGroup = classesList.find(c => c.skill === activeManageGroupSkill);
+    renderClassStudents(updatedGroup);
+  } catch (err) {
+    alert("Failed to enlist student: " + err.message);
+  }
+};
+
+// Remove student from admin panel modal
+window.removeStudentFromClassFromAdmin = async function(email) {
+  if (!activeManageGroupSkill) return;
+  
+  if (confirm(`Are you sure you want to remove student ${email} from this coaching group?`)) {
+    try {
+      await window.unregisterStudentFromCoaching(email, activeManageGroupSkill);
+      alert("Student removed successfully.");
+      
+      // Update local cache and refresh modal view
+      await loadDashboardData();
+      const updatedGroup = classesList.find(c => c.skill === activeManageGroupSkill);
+      renderClassStudents(updatedGroup);
+    } catch (err) {
+      alert("Failed to remove student: " + err.message);
+    }
+  }
+};
 </script>
 
 <!-- Add Student Modal -->
@@ -1437,6 +1671,72 @@ window.submitAddBusinessForm = async function(event) {
 
       <button type="submit" class="btn-submit-form">Add Business Profile</button>
     </form>
+  </div>
+</div>
+
+<!-- Manage Class Modal -->
+<div id="manage-class-modal" class="modal-overlay">
+  <div class="modal-card" style="width: min(580px, 95%); max-height: 90vh; overflow-y: auto; display: flex; flex-direction: column; gap: 20px;">
+    <button onclick="closeManageClassModal()" class="modal-close-btn" aria-label="Close modal">✕</button>
+    <div>
+      <h3 class="font-playfair" style="font-size: 24px; color: #ffd15c; font-style: italic; font-weight: 400; margin-bottom: 4px;">Manage Coaching Group</h3>
+      <p id="manage-class-title" style="font-size: 14px; font-weight: 600; color: #fff; margin-bottom: 4px;">Skill Group: Software Development</p>
+    </div>
+
+    <!-- Edit Group Settings Form -->
+    <form id="edit-class-form" onsubmit="submitEditClassForm(event)" style="display: flex; flex-direction: column; gap: 16px; border-bottom: 1px solid rgba(241, 231, 210, 0.1); padding-bottom: 20px;">
+      <input type="hidden" id="edit-class-skill" />
+      
+      <div class="form-row" style="display: flex; gap: 12px; flex-wrap: wrap;">
+        <div class="form-item" style="flex: 1; min-width: 200px; display: flex; flex-direction: column; gap: 6px;">
+          <label for="edit-class-leader" style="font-size: 11px; font-weight: 600; text-transform: uppercase; color: rgba(241,231,210,0.5);">Mentor/Leader Email</label>
+          <input type="email" id="edit-class-leader" required placeholder="e.g. mentor@scube.com" style="width: 100%; padding: 10px 14px; border-radius: 10px; background: rgba(0,0,0,0.2); border: 1px solid rgba(241,231,210,0.15); color: #fff; font-size: 13px;" />
+        </div>
+        <div class="form-item" style="flex: 1; min-width: 140px; display: flex; flex-direction: column; gap: 6px;">
+          <label for="edit-class-duration" style="font-size: 11px; font-weight: 600; text-transform: uppercase; color: rgba(241,231,210,0.5);">Duration</label>
+          <select id="edit-class-duration" required style="width: 100%; padding: 10px 14px; border-radius: 10px; background: rgba(0,0,0,0.2); border: 1px solid rgba(241,231,210,0.15); color: #fff; font-size: 13px;">
+            <option value="Weekly">Weekly</option>
+            <option value="Monthly">Monthly</option>
+            <option value="Bi-weekly">Bi-weekly</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-item" style="display: flex; flex-direction: column; gap: 6px;">
+        <label for="edit-class-whatsapp" style="font-size: 11px; font-weight: 600; text-transform: uppercase; color: rgba(241,231,210,0.5);">WhatsApp Group Link</label>
+        <input type="url" id="edit-class-whatsapp" required placeholder="e.g. https://chat.whatsapp.com/..." style="width: 100%; padding: 10px 14px; border-radius: 10px; background: rgba(0,0,0,0.2); border: 1px solid rgba(241,231,210,0.15); color: #fff; font-size: 13px;" />
+      </div>
+
+      <button type="submit" class="btn-primary" style="padding: 10px 20px; font-size: 13px; align-self: flex-start;">Save Group Details</button>
+    </form>
+
+    <!-- Students Enrolled Section -->
+    <div style="display: flex; flex-direction: column; gap: 12px;">
+      <h4 style="font-size: 14px; font-weight: 600; color: #ffd15c;">Enrolled Students</h4>
+      
+      <!-- Add Student to Class Form -->
+      <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+        <input type="email" id="add-class-student-email" placeholder="Enter student email to enroll..." style="flex: 1; min-width: 200px; padding: 10px 14px; border-radius: 10px; background: rgba(0,0,0,0.2); border: 1px solid rgba(241,231,210,0.15); color: #fff; font-size: 13px;" />
+        <button type="button" onclick="addStudentToClassFromAdmin()" class="btn-primary" style="padding: 10px 16px; font-size: 12.5px;">Enlist Student</button>
+      </div>
+
+      <!-- Enrolled Students Table/List -->
+      <div style="max-height: 180px; overflow-y: auto; background: rgba(0,0,0,0.15); border-radius: 12px; border: 1px solid rgba(241,231,210,0.08);">
+        <table style="width: 100%; border-collapse: collapse; font-size: 12.5px; text-align: left;">
+          <thead>
+            <tr style="border-bottom: 1px solid rgba(241,231,210,0.08); background: rgba(255,255,255,0.01);">
+              <th style="padding: 8px 12px; font-weight: 600; color: rgba(241,231,210,0.6);">Student Name</th>
+              <th style="padding: 8px 12px; font-weight: 600; color: rgba(241,231,210,0.6);">Email</th>
+              <th style="padding: 8px 12px; font-weight: 600; text-align: right; color: rgba(241,231,210,0.6);">Action</th>
+            </tr>
+          </thead>
+          <tbody id="class-students-list">
+            <!-- Populated dynamically -->
+          </tbody>
+        </table>
+      </div>
+    </div>
   </div>
 </div>
 

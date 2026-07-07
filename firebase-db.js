@@ -560,6 +560,100 @@ async function deleteStudent(email) {
   return true;
 }
 
+// Coaching Group Helpers
+async function getCoachingGroups() {
+  return retryFirestoreCall(async () => {
+    const db = getFirestoreDb();
+    const snap = await getDocs(collection(db, "coaching_groups"));
+    const list = [];
+    snap.forEach(docSnap => {
+      list.push(docSnap.data());
+    });
+    return list;
+  });
+}
+
+async function getCoachingGroupBySkill(skillName) {
+  return retryFirestoreCall(async () => {
+    const db = getFirestoreDb();
+    const docRef = doc(db, "coaching_groups", skillName);
+    const docSnap = await getDoc(docRef);
+    return docSnap.exists() ? docSnap.data() : null;
+  });
+}
+
+async function saveCoachingGroup(skillName, groupData) {
+  const db = getFirestoreDb();
+  const docRef = doc(db, "coaching_groups", skillName);
+  await setDoc(docRef, groupData, { merge: true });
+  return groupData;
+}
+
+async function registerStudentForCoaching(studentEmail, skillName) {
+  const db = getFirestoreDb();
+  const docRef = doc(db, "coaching_groups", skillName);
+  const snap = await getDoc(docRef);
+  if (snap.exists()) {
+    const data = snap.data();
+    const studentEmails = data.studentEmails || [];
+    if (!studentEmails.includes(studentEmail)) {
+      studentEmails.push(studentEmail);
+      await updateDoc(docRef, { studentEmails: studentEmails });
+    }
+  } else {
+    // Group doesn't exist, create it
+    await setDoc(docRef, {
+      id: skillName,
+      skill: skillName,
+      leaderEmail: "mentor." + skillName.toLowerCase().replace(/[^a-z0-9]/g, "") + "@scube.com",
+      duration: "Weekly",
+      whatsappLink: "https://chat.whatsapp.com/mock-chat-link",
+      studentEmails: [studentEmail]
+    });
+  }
+  return true;
+}
+
+async function unregisterStudentFromCoaching(studentEmail, skillName) {
+  const db = getFirestoreDb();
+  const docRef = doc(db, "coaching_groups", skillName);
+  const snap = await getDoc(docRef);
+  if (snap.exists()) {
+    const data = snap.data();
+    const studentEmails = data.studentEmails || [];
+    const index = studentEmails.indexOf(studentEmail);
+    if (index > -1) {
+      studentEmails.splice(index, 1);
+      await updateDoc(docRef, { studentEmails: studentEmails });
+    }
+  }
+  return true;
+}
+
+async function ensureCoachingGroupsSeeded() {
+  try {
+    const db = getFirestoreDb();
+    for (const skill of SKILLS_LIST) {
+      const docRef = doc(db, "coaching_groups", skill);
+      const snap = await getDoc(docRef);
+      if (!snap.exists()) {
+        const defaultLeader = "mentor." + skill.toLowerCase().replace(/[^a-z0-9]/g, "") + "@scube.com";
+        await setDoc(docRef, {
+          id: skill,
+          skill: skill,
+          leaderEmail: defaultLeader,
+          duration: "Weekly",
+          whatsappLink: "https://chat.whatsapp.com/mock-chat-link",
+          studentEmails: []
+        });
+      }
+    }
+    console.log("Coaching groups seeded / checked successfully.");
+  } catch (error) {
+    console.error("Error seeding coaching groups:", error);
+  }
+}
+
 // Export to Global Window Context
 window.SKILLS_LIST = SKILLS_LIST;
 window.getStudents = getStudents;
@@ -574,6 +668,14 @@ window.claimStudentByBusiness = claimStudentByBusiness;
 window.setStudentStatusByBusiness = setStudentStatusByBusiness;
 window.releaseStudentByBusiness = releaseStudentByBusiness;
 
+// Coaching Exports
+window.getCoachingGroups = getCoachingGroups;
+window.getCoachingGroupBySkill = getCoachingGroupBySkill;
+window.saveCoachingGroup = saveCoachingGroup;
+window.registerStudentForCoaching = registerStudentForCoaching;
+window.unregisterStudentFromCoaching = unregisterStudentFromCoaching;
+window.ensureCoachingGroupsSeeded = ensureCoachingGroupsSeeded;
+
 // Admin exports
 window.getBusinesses = getBusinesses;
 window.getBusinessByEmail = getBusinessByEmail;
@@ -584,7 +686,9 @@ window.deleteStudent = deleteStudent;
 // Execute Seeding Check
 setTimeout(() => {
   try {
-    seedFirestoreIfEmpty().catch(e => console.error("Firestore seeding failed:", e));
+    seedFirestoreIfEmpty()
+      .then(() => ensureCoachingGroupsSeeded())
+      .catch(e => console.error("Firestore seeding failed:", e));
   } catch (err) {
     console.error("Firestore seed trigger failed:", err);
   }
