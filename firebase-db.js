@@ -314,191 +314,51 @@ async function releaseStudentByBusiness(studentId) {
   return true;
 }
 
-// Seeding implementation
-async function seedFirestoreIfEmpty() {
+// Database cleanup function for dummy testing data
+async function cleanDummyTestingData() {
   const db = getFirestoreDb();
+  console.log("Cleaning up dummy testing datasets...");
   
-  // Check if we have already seeded in the past using a metadata document
-  const seedRef = doc(db, "system", "seeding");
-  try {
-    const seedSnap = await getDoc(seedRef);
-    if (seedSnap.exists() && seedSnap.data().seeded === true) {
-      console.log("Firestore already seeded (verified by system configuration).");
-      return;
-    }
-  } catch (error) {
-    console.warn("Could not read system seeding status, checking collection state:", error);
-  }
-  
-  const querySnapshot = await getDocs(collection(db, "internships"));
-  if (!querySnapshot.empty) {
-    console.log("Firestore already seeded with datasets. Marking system as seeded.");
+  const dummyInternshipIds = ["int_1", "int_2", "int_3", "int_4"];
+  for (const id of dummyInternshipIds) {
     try {
-      await setDoc(seedRef, { seeded: true });
+      await deleteDoc(doc(db, "internships", id));
     } catch (e) {
-      console.error("Failed to mark system as seeded:", e);
+      console.error(`Failed to delete dummy internship ${id}:`, e);
     }
-    return;
-  }
-  
-  console.log("Seeding Firestore with default datasets...");
-  
-  const seedInternships = [
-    {
-      id: "int_1",
-      companyName: "A.R. Founders",
-      title: "Frontend Engineer Intern",
-      skill: "Software Development",
-      preference: "Remote",
-      duration: "3 Months",
-      description: "Work with modern web technologies to build responsive landing pages and product dashboards.",
-      requirements: "Familiarity with HTML, CSS, JavaScript, and Figma prototypes."
-    },
-    {
-      id: "int_2",
-      companyName: "Hyderabad Tech Hub",
-      title: "Social Media Manager",
-      skill: "Digital Marketing",
-      preference: "On-site",
-      duration: "6 Months",
-      description: "Design and execute social media campaigns for active startup founders.",
-      requirements: "Basic design skills, copywriting, and passion for social media growth."
-    },
-    {
-      id: "int_3",
-      companyName: "Innovate Labs",
-      title: "Junior UI/UX Designer",
-      skill: "UI/UX Design",
-      preference: "Hybrid",
-      duration: "3 Months",
-      description: "Collaborate with product developers to build outstanding visual interfaces and customer journey flows.",
-      requirements: "Knowledge of Figma, responsive UI design principles, and visual branding."
-    },
-    {
-      id: "int_4",
-      companyName: "Creative Agency",
-      title: "Content Writer",
-      skill: "Content Writing",
-      preference: "Remote",
-      duration: "2 Months",
-      description: "Write engaging blog posts, newsletter editions, and marketing copy.",
-      requirements: "Strong English writing and editing skills, basic SEO understanding."
-    }
-  ];
-  
-  const seedStudents = [
-    {
-      id: "stud_1",
-      name: "Aarav Mehta",
-      age: 18,
-      grade: "12th Pass",
-      skill: "Software Development",
-      experience: "Built multiple responsive landing pages using HTML/CSS/JS. Familiar with modern JavaScript frameworks.",
-      school: "Chirec International School",
-      email: "aarav.mehta@gmail.com",
-      phone: "+91 99887 76655",
-      preference: "Remote",
-      status: "Available",
-      claimedBy: null
-    },
-    {
-      id: "stud_2",
-      name: "Sneha Reddy",
-      age: 17,
-      grade: "12th Grade",
-      skill: "Digital Marketing",
-      experience: "Managed social media handles for the school cultural fest. Designed graphic assets and ran basic Instagram campaigns.",
-      school: "Delhi Public School, Hyderabad",
-      email: "sneha.reddy@gmail.com",
-      phone: "+91 91234 56789",
-      preference: "On-site",
-      status: "Applied",
-      claimedBy: "Techcorp Solutions"
-    },
-    {
-      id: "stud_3",
-      name: "Vikram Sen",
-      age: 19,
-      grade: "NA / Other",
-      skill: "UI/UX Design",
-      experience: "Designed user interfaces for three mobile app mockups in Figma. Portfolio published on Behance.",
-      school: "VNR Vignana Jyothi Institute",
-      email: "vikram.sen@gmail.com",
-      phone: "+91 98480 12345",
-      preference: "Hybrid",
-      status: "Shortlisted",
-      claimedBy: "Innovate Labs"
-    },
-    {
-      id: "stud_4",
-      name: "Riya Sharma",
-      age: 18,
-      grade: "12th Pass",
-      skill: "Content Writing",
-      experience: "Wrote articles and copy for school newsletter. Regularly publishes personal blog posts about tech trends.",
-      school: "Oakridge International School",
-      email: "riya.sharma@gmail.com",
-      phone: "+91 88990 01122",
-      preference: "Remote",
-      status: "Completed",
-      claimedBy: "Creative Agency"
-    }
-  ];
-  
-  const seedApplications = [
-    {
-      id: "app_1",
-      studentEmail: "aarav.mehta@gmail.com",
-      internshipId: "int_1",
-      status: "Completed",
-      appliedAt: "2026-04-10"
-    },
-    {
-      id: "app_2",
-      studentEmail: "sneha.reddy@gmail.com",
-      internshipId: "int_2",
-      status: "Applied",
-      appliedAt: "2026-06-20"
-    },
-    {
-      id: "app_3",
-      studentEmail: "vikram.sen@gmail.com",
-      internshipId: "int_3",
-      status: "Shortlisted",
-      appliedAt: "2026-06-18"
-    },
-    {
-      id: "app_4",
-      studentEmail: "riya.sharma@gmail.com",
-      internshipId: "int_4",
-      status: "Completed",
-      appliedAt: "2026-05-15"
-    }
-  ];
-  
-  for (const s of seedStudents) {
-    await setDoc(doc(db, "students", s.email), s);
-  }
-  for (const i of seedInternships) {
-    await setDoc(doc(db, "internships", i.id), i);
-  }
-  for (const a of seedApplications) {
-    await setDoc(doc(db, "applications", a.id), a);
   }
 
-  // Seed default businesses if empty
-  const seedBusinesses = [];
-  for (const b of seedBusinesses) {
-    await setDoc(doc(db, "businesses", b.email), b);
+  const dummyStudentEmails = [
+    "aarav.mehta@gmail.com",
+    "sneha.reddy@gmail.com",
+    "vikram.sen@gmail.com",
+    "riya.sharma@gmail.com"
+  ];
+  for (const email of dummyStudentEmails) {
+    try {
+      await deleteDoc(doc(db, "students", email));
+    } catch (e) {
+      console.error(`Failed to delete dummy student ${email}:`, e);
+    }
+  }
+
+  const dummyApplicationIds = ["app_1", "app_2", "app_3", "app_4"];
+  for (const id of dummyApplicationIds) {
+    try {
+      await deleteDoc(doc(db, "applications", id));
+    } catch (e) {
+      console.error(`Failed to delete dummy application ${id}:`, e);
+    }
   }
   
+  // Set system seeding metadata to custom/bypassed state
   try {
-    await setDoc(seedRef, { seeded: true });
+    await setDoc(doc(db, "system", "seeding"), { seeded: true, cleaned: true });
   } catch (e) {
-    console.error("Failed to mark system as seeded after seeding:", e);
+    console.error("Failed to mark system seeding configuration:", e);
   }
 
-  console.log("Firestore seeding completed successfully.");
+  console.log("Dummy testing datasets cleaned up successfully.");
 }
 
 // Business Database Query Helpers
@@ -668,10 +528,10 @@ window.saveBusinessProfile = saveBusinessProfile;
 window.deleteBusiness = deleteBusiness;
 window.deleteStudent = deleteStudent;
 
-// Execute Seeding Check
+// Execute Database Initialization & Cleanup
 setTimeout(() => {
   try {
-    seedFirestoreIfEmpty()
+    cleanDummyTestingData()
       .then(() => ensureCoachingGroupsSeeded())
       .then(async () => {
         // Automatically clean up existing mock placeholder businesses from the database
@@ -679,9 +539,9 @@ setTimeout(() => {
         await deleteBusiness("hr@hydtechhub.in");
         console.log("Mock placeholder businesses removed.");
       })
-      .catch(e => console.error("Firestore seeding failed:", e));
+      .catch(e => console.error("Initialization failed:", e));
   } catch (err) {
-    console.error("Firestore seed trigger failed:", err);
+    console.error("Initialization trigger failed:", err);
   }
 }, 300);
 
