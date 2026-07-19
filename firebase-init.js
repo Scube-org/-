@@ -143,9 +143,65 @@ function handleSignOut() {
     });
 }
 
+function handleMockSignIn(email, role) {
+  if (!role) {
+    role = window.location.pathname.includes('business.html') ? 'business' : 'student';
+  }
+  if (isAdminEmail(email)) {
+    role = 'admin';
+  }
+  
+  const mockUser = {
+    name: email.split('@')[0],
+    email: email,
+    photoURL: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?fit=facearea&facepad=2&w=80&h=80&q=80",
+    role: role
+  };
+  
+  setSession(mockUser);
+  localStorage.setItem('s3_session_role', role);
+  updateAuthUI();
+  if (typeof onAuthSuccess === 'function') {
+    onAuthSuccess(mockUser);
+  }
+  closeSignInModal();
+}
+
 function openSignInModal() {
   const modal = document.getElementById('signin-modal');
   if (modal) {
+    // Check if mock container is already added
+    if (!document.getElementById('mock-signin-container')) {
+      const container = modal.querySelector('div'); // The inner dialog container
+      if (container) {
+        const mockDiv = document.createElement('div');
+        mockDiv.id = 'mock-signin-container';
+        mockDiv.style.width = '100%';
+        mockDiv.style.display = 'flex';
+        mockDiv.style.flexDirection = 'column';
+        mockDiv.style.gap = '12px';
+        mockDiv.style.marginTop = '12px';
+        mockDiv.style.borderTop = '1px solid rgba(241,231,210,0.12)';
+        mockDiv.style.paddingTop = '16px';
+        mockDiv.innerHTML = `
+          <div style="font-size:12px; color:rgba(241,231,210,0.5); font-family:'Inter',sans-serif; margin-bottom:4px; text-align:center;">MOCK TEST LOGIN</div>
+          <input type="email" id="mock-email-input" placeholder="Enter test email..." style="width:100%; background:rgba(255,255,255,0.05); border:1px solid rgba(241,231,210,0.2); padding:10px 16px; border-radius:50px; color:#fff; font-size:13px; font-family:'Inter',sans-serif; text-align:center; box-sizing:border-box;" />
+          <button id="mock-signin-submit-btn" style="width:100%; background:#ffd15c; border:none; color:#1a1f3a; padding:10px 24px; border-radius:50px; font-size:13px; font-weight:600; cursor:pointer; transition:background 200ms;" onmouseenter="this.style.background='#ffc43d'" onmouseleave="this.style.background='#ffd15c'">Mock Sign In</button>
+        `;
+        container.appendChild(mockDiv);
+        
+        // Add click listener
+        document.getElementById('mock-signin-submit-btn').addEventListener('click', () => {
+          const emailInput = document.getElementById('mock-email-input').value.trim();
+          if (emailInput) {
+            handleMockSignIn(emailInput);
+          } else {
+            alert('Please enter an email address.');
+          }
+        });
+      }
+    }
+    
     modal.style.display = 'flex';
     setTimeout(() => { modal.style.opacity = '1'; }, 10);
   }
@@ -233,6 +289,7 @@ window.openSignInModal = openSignInModal;
 window.closeSignInModal = closeSignInModal;
 window.toggleSignOutDropdown = toggleSignOutDropdown;
 window.updateAuthUI = updateAuthUI;
+window.handleMockSignIn = handleMockSignIn;
 
 // Setup auth listener
 document.addEventListener("DOMContentLoaded", () => {

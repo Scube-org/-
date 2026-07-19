@@ -87,6 +87,8 @@
       border-bottom: 1px solid rgba(241, 231, 210, 0.08);
       box-shadow: 0 4px 30px rgba(0, 0, 0, 0.02);
       pointer-events: auto;
+      transform: translate3d(0, 0, 0);
+      will-change: transform, background-color, border-color;
       transition: background-color 300ms ease, border-color 300ms ease
     }
 
@@ -122,7 +124,7 @@
       padding: 10px 24px;
       border-radius: 50px;
       border: 1px solid rgba(241, 231, 210, 0.25);
-      background: rgba(241, 231, 210, 0.04);
+      background: rgba(241, 231, 210, 0.07);
       font-size: 10px;
       font-weight: 500;
       letter-spacing: 0.32em;
@@ -131,11 +133,10 @@
       cursor: pointer;
       text-decoration: none;
       transition: background 250ms, border-color 250ms, transform 250ms;
-      backdrop-filter: blur(8px)
     }
 
     #s3-nav-cta:hover {
-      background: rgba(241, 231, 210, 0.08);
+      background: rgba(241, 231, 210, 0.12);
       border-color: rgba(241, 231, 210, 0.7);
       transform: scale(1.04)
     }
@@ -144,7 +145,7 @@
       padding: 10px 24px;
       border-radius: 50px;
       border: 1px solid rgba(241, 231, 210, 0.15);
-      background: rgba(241, 231, 210, 0.02);
+      background: rgba(241, 231, 210, 0.05);
       font-size: 10px;
       font-weight: 500;
       letter-spacing: 0.18em;
@@ -153,11 +154,10 @@
       cursor: pointer;
       text-decoration: none;
       transition: background 250ms, border-color 250ms, transform 250ms, color 250ms;
-      backdrop-filter: blur(8px)
     }
 
     .s3-nav-btn:hover {
-      background: rgba(241, 231, 210, 0.06);
+      background: rgba(241, 231, 210, 0.10);
       border-color: rgba(241, 231, 210, 0.5);
       color: rgba(241, 231, 210, 0.95);
       transform: scale(1.03)
@@ -1010,10 +1010,10 @@
 
     <!-- DETAILS PANEL -->
     <div id="detail-backdrop" data-no-drag aria-hidden="true"
-      style="position:absolute;z-index:40;pointer-events:none;border-radius:48px;overflow:hidden;transition:background-color 600ms cubic-bezier(0.22,1,0.36,1),backdrop-filter 600ms cubic-bezier(0.22,1,0.36,1);background-color:rgba(13,15,26,0);backdrop-filter:blur(0px);-webkit-backdrop-filter:blur(0px)">
+      style="position:absolute;z-index:40;pointer-events:none;border-radius:48px;overflow:hidden;transition:opacity 600ms cubic-bezier(0.22,1,0.36,1);opacity:0;background-color:rgba(13,15,26,0.4);backdrop-filter:blur(14px) saturate(120%);-webkit-backdrop-filter:blur(14px) saturate(120%);will-change:opacity;transform:translate3d(0,0,0)">
     </div>
     <aside id="detail-aside" data-no-drag aria-hidden="true"
-      style="position:absolute;z-index:50;border-radius:48px;overflow:visible;color:white;background:linear-gradient(180deg,rgba(20,22,40,0.92) 0%,rgba(13,15,26,0.96) 100%);backdrop-filter:blur(20px) saturate(140%);-webkit-backdrop-filter:blur(20px) saturate(140%);border:1px solid rgba(241,231,210,0.1);will-change:transform;display:flex;flex-direction:column;width:min(640px,52%);transition:transform 700ms cubic-bezier(0.22,1,0.36,1);transform:translateX(calc(100% + 200px))">
+      style="position:absolute;z-index:50;border-radius:48px;overflow:visible;color:white;background:linear-gradient(180deg,rgba(20,22,40,0.92) 0%,rgba(13,15,26,0.96) 100%);backdrop-filter:blur(20px) saturate(140%);-webkit-backdrop-filter:blur(20px) saturate(140%);border:1px solid rgba(241,231,210,0.1);will-change:transform;display:flex;flex-direction:column;width:min(640px,52%);transition:transform 700ms cubic-bezier(0.22,1,0.36,1);transform:translate3d(calc(100% + 200px),0,0)">
       <div id="detail-scroll"
         style="height:100%;width:100%;overflow-y:scroll;overscroll-behavior:contain;touch-action:pan-y;border-radius:48px;">
       </div>
@@ -1334,9 +1334,31 @@
       const detailSmooth = { x: -999, y: -999 };
       let raf = 0;
       let tickMaskCounter = 0;
+      const isTouchDevice = window.matchMedia("(pointer: coarse)").matches || 'ontouchstart' in window;
 
       const slideEls = [];
       const slideWrapCache = [];
+      const slideContentCache = [];
+      const slideGraphicsCache = [];
+      const slideRevealLayerCache = [];
+      const slideSpotlightContainerCache = [];
+
+      let cinemaLeft = 0;
+      let cinemaTop = 0;
+      let cinemaPadX = 0;
+      let detailAsideLeft = 0;
+      let detailAsideTop = 0;
+
+      let detailRevealLayer = null;
+      let detailSpotlightContainer = null;
+
+      let isAnimating = false;
+      function requestTick() {
+        if (!isAnimating) {
+          isAnimating = true;
+          raf = requestAnimationFrame(tick);
+        }
+      }
 
       function modN(i) { return ((i % N) + N) % N }
 
@@ -1348,8 +1370,8 @@
           inkSoft: 'rgba(255, 255, 255, 0.85)',
           inkDim: 'rgba(255, 255, 255, 0.55)',
           accent: '#ffd15c',
-          buttonBg: 'rgba(255, 255, 255, 0.05)',
-          buttonHoverBg: 'rgba(255, 255, 255, 0.12)',
+          buttonBg: 'rgba(255, 255, 255, 0.08)',
+          buttonHoverBg: 'rgba(255, 255, 255, 0.18)',
           buttonBorder: 'rgba(255, 255, 255, 0.3)',
           buttonHoverBorder: 'rgba(255, 255, 255, 0.8)'
         },
@@ -1359,8 +1381,8 @@
           inkSoft: 'rgba(30, 5, 9, 0.75)',
           inkDim: 'rgba(30, 5, 9, 0.45)',
           accent: '#76290B',
-          buttonBg: 'rgba(30, 5, 9, 0.05)',
-          buttonHoverBg: 'rgba(30, 5, 9, 0.12)',
+          buttonBg: 'rgba(30, 5, 9, 0.08)',
+          buttonHoverBg: 'rgba(30, 5, 9, 0.18)',
           buttonBorder: 'rgba(30, 5, 9, 0.35)',
           buttonHoverBorder: 'rgba(30, 5, 9, 0.8)'
         },
@@ -1370,8 +1392,8 @@
           inkSoft: 'rgba(255, 255, 255, 0.85)',
           inkDim: 'rgba(255, 255, 255, 0.55)',
           accent: '#ffd15c',
-          buttonBg: 'rgba(255, 255, 255, 0.05)',
-          buttonHoverBg: 'rgba(255, 255, 255, 0.12)',
+          buttonBg: 'rgba(255, 255, 255, 0.08)',
+          buttonHoverBg: 'rgba(255, 255, 255, 0.18)',
           buttonBorder: 'rgba(255, 255, 255, 0.3)',
           buttonHoverBorder: 'rgba(255, 255, 255, 0.8)'
         },
@@ -1381,8 +1403,8 @@
           inkSoft: 'rgba(255, 255, 255, 0.85)',
           inkDim: 'rgba(255, 255, 255, 0.55)',
           accent: '#ffd15c',
-          buttonBg: 'rgba(255, 255, 255, 0.05)',
-          buttonHoverBg: 'rgba(255, 255, 255, 0.12)',
+          buttonBg: 'rgba(255, 255, 255, 0.08)',
+          buttonHoverBg: 'rgba(255, 255, 255, 0.18)',
           buttonBorder: 'rgba(255, 255, 255, 0.3)',
           buttonHoverBorder: 'rgba(255, 255, 255, 0.8)'
         },
@@ -1392,8 +1414,8 @@
           inkSoft: 'rgba(255, 255, 255, 0.85)',
           inkDim: 'rgba(255, 255, 255, 0.55)',
           accent: '#ffd15c',
-          buttonBg: 'rgba(255, 255, 255, 0.05)',
-          buttonHoverBg: 'rgba(255, 255, 255, 0.12)',
+          buttonBg: 'rgba(255, 255, 255, 0.08)',
+          buttonHoverBg: 'rgba(255, 255, 255, 0.18)',
           buttonBorder: 'rgba(255, 255, 255, 0.3)',
           buttonHoverBorder: 'rgba(255, 255, 255, 0.8)'
         },
@@ -1403,8 +1425,8 @@
           inkSoft: 'rgba(255, 255, 255, 0.85)',
           inkDim: 'rgba(255, 255, 255, 0.55)',
           accent: '#ffd15c',
-          buttonBg: 'rgba(255, 255, 255, 0.05)',
-          buttonHoverBg: 'rgba(255, 255, 255, 0.12)',
+          buttonBg: 'rgba(255, 255, 255, 0.08)',
+          buttonHoverBg: 'rgba(255, 255, 255, 0.18)',
           buttonBorder: 'rgba(255, 255, 255, 0.3)',
           buttonHoverBorder: 'rgba(255, 255, 255, 0.8)'
         }
@@ -1415,13 +1437,15 @@
 
       function deactivateAndUnloadAll() {
         if (currentActiveIndex === -1) return;
-        for (let i = 0; i < TOTAL; i++) {
-          const el = slideEls[i];
-          if (el) {
-            el.classList.remove("active-anim");
-            const gc = el.querySelector("[data-slide-graphics]");
-            if (gc) gc.innerHTML = "";
+        const el = slideEls[currentActiveIndex];
+        if (el) {
+          el.classList.remove("active-anim");
+          let gc = slideGraphicsCache[currentActiveIndex];
+          if (!gc) {
+            gc = el.querySelector("[data-slide-graphics]");
+            slideGraphicsCache[currentActiveIndex] = gc;
           }
+          if (gc) gc.innerHTML = "";
         }
         currentActiveIndex = -1;
       }
@@ -1749,7 +1773,7 @@
 
         <!-- EXPLORE BUTTON -->
         <button type="button" data-no-drag data-reveal data-slide-id="${s.id}" class="slide-explore-btn"
-          style="position:absolute;right:6dvh;bottom:5dvh;display:flex;align-items:center;gap:18px;overflow:hidden;border-radius:50px;border:1px solid var(--slide-btn-border);background:var(--slide-btn-bg);padding:16px 36px;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.32em;color:var(--slide-ink);backdrop-filter:blur(8px);cursor:pointer;transition:background 300ms ease,border-color 300ms ease,transform 300ms ease,box-shadow 300ms ease;font-family:'Inter',sans-serif"
+          style="position:absolute;right:6dvh;bottom:5dvh;display:flex;align-items:center;gap:18px;overflow:hidden;border-radius:50px;border:1px solid var(--slide-btn-border);background:var(--slide-btn-bg);padding:16px 36px;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.32em;color:var(--slide-ink);cursor:pointer;transition:background 300ms ease,border-color 300ms ease,transform 300ms ease,box-shadow 300ms ease;font-family:'Inter',sans-serif"
           onmouseenter="this.style.transform='scale(1.04)';this.style.borderColor='var(--slide-btn-hover-border)';this.style.background='var(--slide-btn-hover-bg)';this.style.boxShadow='0 10px 30px rgba(0,0,0,0.5)'"
           onmouseleave="this.style.transform='';this.style.borderColor='var(--slide-btn-border)';this.style.background='var(--slide-btn-bg)';this.style.boxShadow=''">
           <span>EXPLORE</span>
@@ -1794,7 +1818,7 @@
 
       <!-- EXPLORE BUTTON -->
       <button type="button" data-no-drag data-reveal data-slide-id="${s.id}" class="slide-explore-btn"
-        style="position:absolute;right:6dvh;bottom:5dvh;display:flex;align-items:center;gap:18px;overflow:hidden;border-radius:50px;border:1px solid var(--slide-btn-border);background:var(--slide-btn-bg);padding:16px 36px;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.32em;color:var(--slide-ink);backdrop-filter:blur(8px);cursor:pointer;transition:background 300ms ease,border-color 300ms ease,transform 300ms ease,box-shadow 300ms ease;font-family:'Inter',sans-serif"
+        style="position:absolute;right:6dvh;bottom:5dvh;display:flex;align-items:center;gap:18px;overflow:hidden;border-radius:50px;border:1px solid var(--slide-btn-border);background:var(--slide-btn-bg);padding:16px 36px;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.32em;color:var(--slide-ink);cursor:pointer;transition:background 300ms ease,border-color 300ms ease,transform 300ms ease,box-shadow 300ms ease;font-family:'Inter',sans-serif"
         onmouseenter="this.style.transform='scale(1.04)';this.style.borderColor='var(--slide-btn-hover-border)';this.style.background='var(--slide-btn-hover-bg)';this.style.boxShadow='0 10px 30px rgba(0,0,0,0.5)'"
         onmouseleave="this.style.transform='';this.style.borderColor='var(--slide-btn-border)';this.style.background='var(--slide-btn-bg)';this.style.boxShadow=''">
         <span>${s.buttonText || "EXPLORE"}</span>
@@ -1815,7 +1839,7 @@
         }
 
         const inner = document.createElement("div");
-        inner.style.cssText = `position:relative;height:100%;width:100%;overflow:hidden;border-radius:48px;transform-origin:0% 50%;transform-style:preserve-3d;transition:transform 700ms cubic-bezier(0.22,1,0.36,1),box-shadow 700ms cubic-bezier(0.22,1,0.36,1)`;
+        inner.style.cssText = `position:relative;height:100%;width:100%;overflow:hidden;border-radius:48px;-webkit-mask-image:-webkit-radial-gradient(white,black);transform-origin:0% 50%;transform-style:preserve-3d;transition:transform 700ms cubic-bezier(0.22,1,0.36,1),box-shadow 700ms cubic-bezier(0.22,1,0.36,1)`;
 
         // Apply theme-specific variables
         const theme = THEMES[s.id];
@@ -1959,6 +1983,7 @@
         activeIdx = modN(next);
         updatePips();
         maybeWrap();
+        requestTick();
       }
 
       function navigateToMod(targetMod) {
@@ -1981,10 +2006,24 @@
           yRef = targetYRef;
         }
         updatePanelPositions();
+
+        const cinema = document.getElementById("cinema");
+        if (cinema) {
+          const rect = cinema.getBoundingClientRect();
+          cinemaLeft = rect.left;
+          cinemaTop = rect.top;
+        }
+        cinemaPadX = viewportH * (window.innerWidth < 640 ? 0.02 : 0.075);
+        detailAsideTop = topPad;
+        if (window.innerWidth < 640) {
+          detailAsideLeft = cinemaPadX;
+        } else {
+          detailAsideLeft = window.innerWidth - cinemaPadX - Math.min(640, window.innerWidth * 0.52);
+        }
       }
 
       function closedTransform() {
-        return `translateX(calc(100% + 120px))`;
+        return `translate3d(calc(100% + 120px), 0, 0)`;
       }
 
       function updatePanelPositions() {
@@ -2024,18 +2063,17 @@
           }
         }
 
-        detailBackdrop.style.backgroundColor = "rgba(13,15,26,0.4)";
-        detailBackdrop.style.backdropFilter = "blur(14px) saturate(120%)";
-        detailBackdrop.style.webkitBackdropFilter = "blur(14px) saturate(120%)";
+        detailBackdrop.style.opacity = "1";
         detailBackdrop.style.pointerEvents = "auto";
         detailBackdrop.setAttribute("aria-hidden", "false");
 
-        detailAside.style.transform = "translateX(0)";
+        detailAside.style.transform = "translate3d(0, 0, 0)";
         detailAside.style.boxShadow = "-30px 0 80px -20px rgba(0,0,0,0.7)";
         detailAside.setAttribute("aria-hidden", "false");
 
         reelInd.style.opacity = "0";
         reelInd.style.pointerEvents = "none";
+        requestTick();
 
         // Build detail points HTML
         const pointsHtml = s.detail.points.map(p => `
@@ -2210,6 +2248,13 @@
       ${ctaSectionHtml}
     </div>
   `;
+        if (slideId === "overview") {
+          detailRevealLayer = detailScroll.querySelector(".slide1-reveal-layer");
+          detailSpotlightContainer = detailScroll.querySelector(".slide1-spotlight-container");
+        } else {
+          detailRevealLayer = null;
+          detailSpotlightContainer = null;
+        }
       }
 
       function closeDetail() {
@@ -2221,9 +2266,7 @@
           const inner = el.querySelector("div");
           if (inner) { inner.style.transform = ""; inner.style.boxShadow = ""; }
         }
-        detailBackdrop.style.backgroundColor = "rgba(13,15,26,0)";
-        detailBackdrop.style.backdropFilter = "blur(0px)";
-        detailBackdrop.style.webkitBackdropFilter = "blur(0px)";
+        detailBackdrop.style.opacity = "0";
         detailBackdrop.style.pointerEvents = "none";
         detailBackdrop.setAttribute("aria-hidden", "true");
         detailAside.style.transform = closedTransform();
@@ -2231,6 +2274,7 @@
         detailAside.setAttribute("aria-hidden", "true");
         reelInd.style.opacity = "1";
         reelInd.style.pointerEvents = "auto";
+        requestTick();
       }
 
       // ─── BUILD ────────────────────────────────────────────────────────────────
@@ -2238,6 +2282,7 @@
       buildPips();
       updatePanelPositions();
       track.style.transform = `translate3d(0,${yRef}px,0)`;
+      if (isTouchDevice && cursor) { cursor.style.display = "none"; }
 
       // Preload local images
       SLIDES.forEach(s => { const img = new Image(); img.src = s.imagePath; });
@@ -2337,6 +2382,8 @@
         const isDragging = drag.active;
         const wheelActive = now - wheelLastTime < WHEEL_PAUSE_MS;
 
+        let needsNextFrame = autoScrolling || isDragging || wheelActive;
+
         if (!isDragging && !wheelActive && !autoScrolling) {
           const dy = targetYRef - yRef;
           if (Math.abs(dy) < 0.5) {
@@ -2346,6 +2393,7 @@
           else {
             yRef += dy * EASE;
             deactivateAndUnloadAll();
+            needsNextFrame = true;
           }
         } else if (!autoScrolling) {
           deactivateAndUnloadAll();
@@ -2369,7 +2417,8 @@
 
           let wrap = slideWrapCache[i];
           if (!wrap) { wrap = el.querySelector("[data-slide-image]"); slideWrapCache[i] = wrap; }
-          const contentEl = el.querySelector("[data-slide-content]");
+          let contentEl = slideContentCache[i];
+          if (!contentEl) { contentEl = el.querySelector("[data-slide-content]"); slideContentCache[i] = contentEl; }
 
           if (dn > 2) {
             if (contentEl && contentEl.style.opacity !== "0") { contentEl.style.opacity = "0"; }
@@ -2406,89 +2455,113 @@
           contentEl.style.opacity = opacity.toFixed(3);
         }
 
-        // Cursor — faster interpolation for snappier feel on Safari
-        const px = cursorPos.x, py = cursorPos.y;
-        if (!cursorInit && (px !== 0 || py !== 0)) { cursorRender.x = px; cursorRender.y = py; cursorInit = true; }
+        // Cursor & Spotlight Mask
+        if (!isTouchDevice) {
+          const px = cursorPos.x, py = cursorPos.y;
+          if (!cursorInit && (px !== 0 || py !== 0)) { cursorRender.x = px; cursorRender.y = py; cursorInit = true; }
 
-        // Calculate difference to determine direction
-        const dx = px - cursorRender.x;
-        if (dx > 1) { cursorRender.dirScaleX = -1; }
-        else if (dx < -1) { cursorRender.dirScaleX = 1; }
+          // Calculate difference to determine direction
+          const dx = px - cursorRender.x;
+          if (dx > 1) { cursorRender.dirScaleX = -1; }
+          else if (dx < -1) { cursorRender.dirScaleX = 1; }
 
-        // Interpolate position and scaleX flip (0.35 = snappier than 0.18)
-        cursorRender.x += (px - cursorRender.x) * 0.35;
-        cursorRender.y += (py - cursorRender.y) * 0.35;
-        cursorRender.currentScaleX += (cursorRender.dirScaleX - cursorRender.currentScaleX) * 0.25;
+          // Interpolate position and scaleX flip (0.35 = snappier than 0.18)
+          cursorRender.x += (px - cursorRender.x) * 0.35;
+          cursorRender.y += (py - cursorRender.y) * 0.35;
+          cursorRender.currentScaleX += (cursorRender.dirScaleX - cursorRender.currentScaleX) * 0.25;
 
-        const targetOpacity = onSection && cursorInit ? 1 : 0;
-        cursorRender.opacity += (targetOpacity - cursorRender.opacity) * 0.25;
-        const targetScale = isDown ? 1.2 : 1;
-        cursorRender.scale += (targetScale - cursorRender.scale) * 0.3;
+          const targetOpacity = onSection && cursorInit ? 1 : 0;
+          cursorRender.opacity += (targetOpacity - cursorRender.opacity) * 0.25;
+          const targetScale = isDown ? 1.2 : 1;
+          cursorRender.scale += (targetScale - cursorRender.scale) * 0.3;
 
-        cursor.style.transform = `translate3d(${cursorRender.x | 0}px,${cursorRender.y | 0}px,0) translate(16px, 16px) scale(${cursorRender.scale.toFixed(2)}) scaleX(${cursorRender.currentScaleX.toFixed(1)})`;
-        cursor.style.opacity = cursorRender.opacity.toFixed(2);
+          cursor.style.transform = `translate3d(${cursorRender.x | 0}px,${cursorRender.y | 0}px,0) translate(16px, 16px) scale(${cursorRender.scale.toFixed(2)}) scaleX(${cursorRender.currentScaleX.toFixed(1)})`;
+          cursor.style.opacity = cursorRender.opacity.toFixed(2);
 
-        const zone = cursorZone;
-        if (curScroll) curScroll.style.opacity = (zone === null && !isDown && !cursorOnUi) ? "1" : "0";
-        if (curDrag) curDrag.style.opacity = (isDown && zone === null) ? "1" : "0";
-        if (curUp) curUp.style.opacity = (zone === "top" || (isDown && zone === null)) ? "1" : "0";
-        if (curDown) curDown.style.opacity = (zone === "bottom" || (isDown && zone === null)) ? "1" : "0";
+          const zone = cursorZone;
+          if (curScroll) curScroll.style.opacity = (zone === null && !isDown && !cursorOnUi) ? "1" : "0";
+          if (curDrag) curDrag.style.opacity = (isDown && zone === null) ? "1" : "0";
+          if (curUp) curUp.style.opacity = (zone === "top" || (isDown && zone === null)) ? "1" : "0";
+          if (curDown) curDown.style.opacity = (zone === "bottom" || (isDown && zone === null)) ? "1" : "0";
 
-        // Spotlight reveal mask logic for Slide 1 — throttled to every 3rd frame for Safari perf
-        tickMaskCounter = (tickMaskCounter + 1) % 3;
-        if (tickMaskCounter === 0) {
-          const activeSlideEl = slideEls[idxRef];
-          if (activeSlideEl && modN(idxRef) === 0) {
-            const revealLayer = activeSlideEl.querySelector(".slide1-reveal-layer");
-            const spotlightContainer = activeSlideEl.querySelector(".slide1-spotlight-container");
-            if (revealLayer && spotlightContainer) {
-              const rect = spotlightContainer.getBoundingClientRect();
-              const relativeMouseX = cursorPos.x - rect.left;
-              const relativeMouseY = cursorPos.y - rect.top;
-
-              if (slide1Smooth.x === -999) {
-                slide1Smooth.x = relativeMouseX;
-                slide1Smooth.y = relativeMouseY;
-              } else {
-                slide1Smooth.x += (relativeMouseX - slide1Smooth.x) * 0.2;
-                slide1Smooth.y += (relativeMouseY - slide1Smooth.y) * 0.2;
-              }
-              drawSlide1Mask(revealLayer, slide1Smooth.x | 0, slide1Smooth.y | 0);
+          // Convergence checks for cursor
+          if (cursorInit) {
+            if (Math.abs(cursorRender.x - px) > 0.5 ||
+                Math.abs(cursorRender.y - py) > 0.5 ||
+                Math.abs(cursorRender.scale - targetScale) > 0.01 ||
+                Math.abs(cursorRender.currentScaleX - cursorRender.dirScaleX) > 0.01 ||
+                Math.abs(cursorRender.opacity - targetOpacity) > 0.01) {
+              needsNextFrame = true;
             }
-          } else {
-            slide1Smooth.x = -999;
-            slide1Smooth.y = -999;
           }
 
-          if (detailsOpen && openSlideKey === "overview") {
-            const detailScrollEl = document.getElementById("detail-scroll");
-            if (detailScrollEl) {
-              const revealLayer = detailScrollEl.querySelector(".slide1-reveal-layer");
-              const spotlightContainer = detailScrollEl.querySelector(".slide1-spotlight-container");
-              if (revealLayer && spotlightContainer) {
-                const rect = spotlightContainer.getBoundingClientRect();
-                const relativeMouseX = cursorPos.x - rect.left;
-                const relativeMouseY = cursorPos.y - rect.top;
-
-                if (detailSmooth.x === -999) {
-                  detailSmooth.x = relativeMouseX;
-                  detailSmooth.y = relativeMouseY;
-                } else {
-                  detailSmooth.x += (relativeMouseX - detailSmooth.x) * 0.2;
-                  detailSmooth.y += (relativeMouseY - detailSmooth.y) * 0.2;
-                }
-                drawSlide1Mask(revealLayer, detailSmooth.x | 0, detailSmooth.y | 0);
+          // Spotlight reveal mask logic for Slide 1 — throttled to every 3rd frame for Safari perf
+          tickMaskCounter = (tickMaskCounter + 1) % 3;
+          if (tickMaskCounter === 0) {
+            const activeSlideEl = slideEls[idxRef];
+            if (activeSlideEl && modN(idxRef) === 0) {
+              let revealLayer = slideRevealLayerCache[idxRef];
+              if (revealLayer === undefined) {
+                revealLayer = activeSlideEl.querySelector(".slide1-reveal-layer") || null;
+                slideRevealLayerCache[idxRef] = revealLayer;
               }
+              let spotlightContainer = slideSpotlightContainerCache[idxRef];
+              if (spotlightContainer === undefined) {
+                spotlightContainer = activeSlideEl.querySelector(".slide1-spotlight-container") || null;
+                slideSpotlightContainerCache[idxRef] = spotlightContainer;
+              }
+              if (revealLayer && spotlightContainer) {
+                const relativeMouseX = cursorPos.x;
+                const relativeMouseY = cursorPos.y - (cinemaTop + yRef + idxRef * pitch - viewportH * 0.2);
+
+                if (slide1Smooth.x === -999) {
+                  slide1Smooth.x = relativeMouseX;
+                  slide1Smooth.y = relativeMouseY;
+                } else {
+                  slide1Smooth.x += (relativeMouseX - slide1Smooth.x) * 0.2;
+                  slide1Smooth.y += (relativeMouseY - slide1Smooth.y) * 0.2;
+                }
+                drawSlide1Mask(revealLayer, slide1Smooth.x | 0, slide1Smooth.y | 0);
+
+                if (Math.abs(slide1Smooth.x - relativeMouseX) > 0.5 || Math.abs(slide1Smooth.y - relativeMouseY) > 0.5) {
+                  needsNextFrame = true;
+                }
+              }
+            } else {
+              slide1Smooth.x = -999;
+              slide1Smooth.y = -999;
             }
-          } else {
-            detailSmooth.x = -999;
-            detailSmooth.y = -999;
+
+            if (detailsOpen && openSlideKey === "overview" && detailRevealLayer && detailSpotlightContainer) {
+              const relativeMouseX = cursorPos.x - detailAsideLeft;
+              const relativeMouseY = cursorPos.y - (detailAsideTop - detailScroll.scrollTop);
+
+              if (detailSmooth.x === -999) {
+                detailSmooth.x = relativeMouseX;
+                detailSmooth.y = relativeMouseY;
+              } else {
+                detailSmooth.x += (relativeMouseX - detailSmooth.x) * 0.2;
+                detailSmooth.y += (relativeMouseY - detailSmooth.y) * 0.2;
+              }
+              drawSlide1Mask(detailRevealLayer, detailSmooth.x | 0, detailSmooth.y | 0);
+
+              if (Math.abs(detailSmooth.x - relativeMouseX) > 0.5 || Math.abs(detailSmooth.y - relativeMouseY) > 0.5) {
+                needsNextFrame = true;
+              }
+            } else {
+              detailSmooth.x = -999;
+              detailSmooth.y = -999;
+            }
           }
         }
 
-        raf = requestAnimationFrame(tick);
+        if (needsNextFrame) {
+          raf = requestAnimationFrame(tick);
+        } else {
+          isAnimating = false;
+        }
       }
-      raf = requestAnimationFrame(tick);
+      requestTick();
 
       // ─── EVENTS ───────────────────────────────────────────────────────────────
       window.addEventListener("wheel", e => {
@@ -2523,6 +2596,7 @@
         drag.pointerId = e.pointerId;
         isDown = true;
         try { section.setPointerCapture(e.pointerId); } catch { }
+        requestTick();
       });
 
       section.addEventListener("pointermove", e => {
@@ -2535,10 +2609,14 @@
         else cursorZone = null;
         const t = e.target;
         cursorOnUi = !!(t && t.closest("[data-no-drag]"));
-        if (!drag.active) return;
+        if (!drag.active) {
+          requestTick();
+          return;
+        }
         const delta = e.clientY - drag.startClientY;
         drag.delta = delta;
         yRef = drag.startTrackY + delta;
+        requestTick();
       });
 
       function endDrag(committed) {
@@ -2555,15 +2633,17 @@
         if (!drag.active) return;
         try { section.releasePointerCapture(drag.pointerId); } catch { }
         endDrag(true);
+        requestTick();
       });
-      section.addEventListener("pointercancel", () => { drag.delta = 0; yRef = drag.startTrackY; endDrag(false); });
-      section.addEventListener("pointerenter", e => { if (e.pointerType !== "touch") onSection = true; });
-      section.addEventListener("pointerleave", e => { if (e.pointerType !== "touch") { onSection = false; if (drag.active) endDrag(true); } });
+      section.addEventListener("pointercancel", () => { drag.delta = 0; yRef = drag.startTrackY; endDrag(false); requestTick(); });
+      section.addEventListener("pointerenter", e => { if (e.pointerType !== "touch") onSection = true; requestTick(); });
+      section.addEventListener("pointerleave", e => { if (e.pointerType !== "touch") { onSection = false; if (drag.active) endDrag(true); } requestTick(); });
 
       window.addEventListener("resize", () => {
         imgW = Math.max(600, Math.round(window.innerWidth / 50) * 50);
         imgH = Math.max(500, Math.round(window.innerHeight * IMG_HEIGHT_RATIO / 50) * 50);
         recomputeSizes();
+        requestTick();
       });
 
       window.addEventListener("keydown", e => {
