@@ -487,22 +487,7 @@ async function seedFirestoreIfEmpty() {
   }
 
   // Seed default businesses if empty
-  const seedBusinesses = [
-    {
-      name: "A.R. Founders",
-      email: "ventures@arfounders.com",
-      photoURL: "https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?fit=facearea&facepad=2&w=80&h=80&q=80",
-      role: "business",
-      blocked: false
-    },
-    {
-      name: "Hyderabad Tech Hub",
-      email: "hr@hydtechhub.in",
-      photoURL: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?fit=facearea&facepad=2&w=80&h=80&q=80",
-      role: "business",
-      blocked: false
-    }
-  ];
+  const seedBusinesses = [];
   for (const b of seedBusinesses) {
     await setDoc(doc(db, "businesses", b.email), b);
   }
@@ -688,6 +673,12 @@ setTimeout(() => {
   try {
     seedFirestoreIfEmpty()
       .then(() => ensureCoachingGroupsSeeded())
+      .then(async () => {
+        // Automatically clean up existing mock placeholder businesses from the database
+        await deleteBusiness("ventures@arfounders.com");
+        await deleteBusiness("hr@hydtechhub.in");
+        console.log("Mock placeholder businesses removed.");
+      })
       .catch(e => console.error("Firestore seeding failed:", e));
   } catch (err) {
     console.error("Firestore seed trigger failed:", err);

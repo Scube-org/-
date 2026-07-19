@@ -949,8 +949,9 @@ window.switchStudentTab = async function(tabId) {
   const session = getSession();
   if (!session) return;
   
-  const student = await getStudentByEmail(session.email);
-  const hasProfile = !!student;
+  const isAdmin = window.isAdminEmail ? window.isAdminEmail(session.email) : false;
+  const student = isAdmin ? null : await getStudentByEmail(session.email);
+  const hasProfile = isAdmin ? true : !!student;
   
   if (tabId !== 'form' && !hasProfile) {
     alert("Access Denied: Please fill out and submit the Profile Form first!");
@@ -975,7 +976,7 @@ window.switchStudentTab = async function(tabId) {
     document.getElementById("btn-tab-form").classList.add("active");
     
     // Show congrats view if they already submitted, otherwise show inputs
-    if (hasProfile) {
+    if (hasProfile && !isAdmin) {
       document.getElementById("student-form-inputs-container").style.display = "none";
       document.getElementById("student-form-success-container").style.display = "flex";
     } else {
@@ -1241,6 +1242,31 @@ let initialAuthHandled = false;
 window.onAuthSuccess = async function(user) {
   if (initialAuthHandled) return;
   initialAuthHandled = true;
+  
+  if (user.role === 'admin') {
+    // Hide landing hero elements
+    document.querySelector(".hero-heading").style.display = "none";
+    document.querySelector(".hero-bottom-left").style.display = "none";
+    document.querySelector(".hero-bottom-right").style.display = "none";
+    
+    // Hide the lock overlay and remove blur on the form card
+    const lockOverlay = document.getElementById("student-auth-lock-overlay");
+    if (lockOverlay) lockOverlay.style.display = "none";
+    const formCard = document.getElementById("student-form-card");
+    if (formCard) formCard.classList.remove("auth-blurred-content");
+    
+    const formSection = document.getElementById("student-form-section");
+    if (formSection) {
+      formSection.style.setProperty("overflow", "auto", "important");
+    }
+    
+    // Show student nav pill for browsing
+    document.getElementById("student-nav-pill").style.display = "flex";
+    
+    updateTabStates(true);
+    await switchStudentTab('finder');
+    return;
+  }
   
   if (user.role !== 'student') {
     alert("You are signed in as a Business. Please visit the Business section.");

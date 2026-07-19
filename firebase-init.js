@@ -175,20 +175,26 @@ function updateAuthUI() {
     const profilePicUrl = session.photoURL || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=facearea&facepad=2&w=80&h=80&q=80';
     const displayName = session.name || 'User Profile';
     
-    const adminLink = isAdminEmail(session.email) 
-      ? `<a href="admin.html" style="display:block; text-align:left; text-decoration:none; color:#ffd15c; padding:8px 12px; font-size:13px; font-family:'Inter',sans-serif; cursor:pointer; border-radius:8px; transition:background 200ms;" onmouseenter="this.style.background='rgba(255,255,255,0.08)'" onmouseleave="this.style.background='none'">Admin Panel</a>`
+    const isAdmin = isAdminEmail(session.email);
+    const adminLink = isAdmin 
+      ? `<a href="admin.html" style="display:block; text-align:left; text-decoration:none; color:#ffd15c; padding:8px 12px; font-size:13px; font-family:'Inter',sans-serif; cursor:pointer; border-radius:8px; transition:background 200ms;" onmouseenter="this.style.background='rgba(255,255,255,0.08)'" onmouseleave="this.style.background='none'">Dashboard</a>`
+      : '';
+      
+    const dashboardButton = isAdmin
+      ? `<a href="admin.html" style="display:inline-flex; align-items:center; justify-content:center; text-decoration:none; background:#ffd15c; color:#1a1f3a; border:none; margin-right:12px; padding:8px 18px; border-radius:50px; font-size:12px; font-weight:600; vertical-align:middle; transition:background 200ms, transform 200ms; font-family:'Inter',sans-serif;" onmouseenter="this.style.background='#ffc43d'; this.style.transform='scale(1.03)';" onmouseleave="this.style.background='#ffd15c'; this.style.transform=''">Dashboard</a>`
       : '';
       
     const profileHtml = `
       <div id="user-profile-container" class="user-profile-wrap" style="position:relative; display:inline-block; line-height:0; vertical-align:middle;">
+        ${dashboardButton}
         <img src="${profilePicUrl}" 
              alt="${displayName}" 
              id="user-profile-pic" 
-             style="width:36px; height:36px; border-radius:50%; border:2px solid rgba(255,255,255,0.4); cursor:pointer; object-fit:cover; transition:transform 200ms, border-color 200ms;" 
+             style="width:36px; height:36px; border-radius:50%; border:2px solid rgba(255,255,255,0.4); cursor:pointer; object-fit:cover; transition:transform 200ms, border-color 200ms; display:inline-block; vertical-align:middle;" 
              onclick="toggleSignOutDropdown()" 
              onmouseenter="this.style.transform='scale(1.05)'; this.style.borderColor='rgba(255,255,255,0.8)';" 
              onmouseleave="this.style.transform=''; this.style.borderColor='rgba(255,255,255,0.4)';" />
-        <div id="signout-dropdown" style="display:none; position:absolute; right:0; top:42px; background:rgba(26,31,58,0.96); border:1px solid rgba(241,231,210,0.15); border-radius:12px; padding:6px; z-index:1000000; box-shadow:0 10px 30px rgba(0,0,0,0.5); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); min-width:140px;">
+        <div id="signout-dropdown" style="display:none; position:absolute; right:0; top:42px; background:rgba(26,31,58,0.96); border:1px solid rgba(241,231,210,0.15); border-radius:12px; padding:6px; z-index:1000000; box-shadow:0 10px 30px rgba(0,0,0,0.5); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); min-width:140px; line-height:normal;">
           ${adminLink}
           <button onclick="handleSignOut()" style="width:100%; text-align:left; background:none; border:none; color:#f1e7d2; padding:8px 12px; font-size:13px; font-family:'Inter',sans-serif; cursor:pointer; border-radius:8px; transition:background 200ms;" onmouseenter="this.style.background='rgba(255,255,255,0.08)'" onmouseleave="this.style.background='none'">Sign Out</button>
         </div>
@@ -252,9 +258,6 @@ document.addEventListener("DOMContentLoaded", () => {
         sessionUser.role = 'admin';
         setSession(sessionUser);
         updateAuthUI();
-        if (!window.location.pathname.includes('admin.html')) {
-          window.location.href = 'admin.html';
-        }
         if (typeof onAuthSuccess === 'function') {
           onAuthSuccess(sessionUser);
         }

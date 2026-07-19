@@ -911,6 +911,32 @@ window.onAuthSuccess = async function(user) {
   if (initialAuthHandled) return;
   initialAuthHandled = true;
 
+  if (user.role === 'admin') {
+    // Hide landing hero elements
+    document.querySelector(".hero-heading").style.display = "none";
+    document.querySelector(".hero-bottom-left").style.display = "none";
+    document.querySelector(".hero-bottom-right").style.display = "none";
+    
+    // Hide the lock overlay and remove blur on the sidebar and main panel
+    const lockOverlay = document.getElementById("business-auth-lock-overlay");
+    if (lockOverlay) lockOverlay.style.display = "none";
+    const sidebar = document.getElementById("business-sidebar");
+    if (sidebar) sidebar.classList.remove("auth-blurred-content");
+    const mainPanel = document.getElementById("business-main-panel");
+    if (mainPanel) mainPanel.classList.remove("auth-blurred-content");
+    
+    // Show dashboard and make scrollable
+    const dbSection = document.getElementById("business-dashboard-section");
+    if (dbSection) {
+      dbSection.style.display = "flex";
+      dbSection.style.setProperty("overflow", "auto", "important");
+    }
+    
+    // Load database and render students
+    await applyFilters();
+    return;
+  }
+
   if (user.role !== 'business') {
     alert("You are signed in as a Student. Please visit the Students section.");
     handleSignOut();
