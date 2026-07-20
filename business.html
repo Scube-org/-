@@ -602,14 +602,18 @@ section.hero {
     <!-- Left Sidebar: Filters -->
     <div id="business-sidebar" style="background:rgba(26,31,58,0.7); backdrop-filter:blur(24px); -webkit-backdrop-filter:blur(24px); border:1px solid rgba(241,231,210,0.12); padding:25px; border-radius:24px; width: 280px; flex-shrink: 0; box-shadow:0 30px 80px rgba(0,0,0,0.4); display:flex; flex-direction:column; gap:16px; color:#f1e7d2; text-align:left; overflow-y:auto;" data-no-drag>
       
-      <!-- Post Internship Button -->
-      <button onclick="openPostInternshipModal()" style="background:#ffd15c; border:none; color:#1a1f3a; padding:12px; border-radius:30px; font-size:13px; font-weight:600; cursor:pointer; width:100%; text-align:center; transition:background 200ms, transform 150ms;" onmouseenter="this.style.background='#e6bd50'; this.style.transform='scale(1.02)';" onmouseleave="this.style.background='#ffd15c'; this.style.transform=''">+ Post Internship</button>
+      <!-- Action Buttons -->
+      <div style="display:flex; flex-direction:column; gap:8px;">
+        <button onclick="openPostInternshipModal()" style="background:#ffd15c; border:none; color:#1a1f3a; padding:12px; border-radius:30px; font-size:13px; font-weight:600; cursor:pointer; width:100%; text-align:center; transition:background 200ms, transform 150ms;" onmouseenter="this.style.background='#e6bd50'; this.style.transform='scale(1.02)';" onmouseleave="this.style.background='#ffd15c'; this.style.transform=''">+ Post Internship</button>
+        <button onclick="openTasksCenterModal()" style="background:rgba(255,209,92,0.12); border:1px solid rgba(255,209,92,0.3); color:#ffd15c; padding:10px; border-radius:30px; font-size:12px; font-weight:600; cursor:pointer; width:100%; text-align:center; transition:background 200ms;" onmouseenter="this.style.background='rgba(255,209,92,0.22)'" onmouseleave="this.style.background='rgba(255,209,92,0.12)'">🎯 Task Assignment Center</button>
+        <button onclick="openCompanyProfileModal()" style="background:rgba(255,255,255,0.06); border:1px solid rgba(241,231,210,0.2); color:#f1e7d2; padding:10px; border-radius:30px; font-size:12px; font-weight:500; cursor:pointer; width:100%; text-align:center; transition:background 200ms;" onmouseenter="this.style.background='rgba(255,255,255,0.12)'" onmouseleave="this.style.background='rgba(255,255,255,0.06)'">⚙️ Company Profile</button>
+      </div>
 
       <div style="border-bottom:1px solid rgba(241,231,210,0.1); padding-bottom:8px; margin-bottom:4px;"></div>
 
       <div>
         <h3 class="font-playfair" style="font-size:20px; font-weight:400; font-style:italic; color:#ffd15c; margin-bottom:4px;">Dashboard Filters</h3>
-        <p style="font-size:11px; color:rgba(241,231,210,0.5);">Filter registered S³ students by skills and preferences.</p>
+        <p style="font-size:11px; color:rgba(241,231,210,0.5);">Filter verified S³ students by skills and preferences.</p>
       </div>
 
       <!-- Skill Filter -->
@@ -661,10 +665,15 @@ section.hero {
 
     <!-- Right Main Panel: Student List & Detail Drawer -->
     <div id="business-main-panel" style="flex:1; display:flex; flex-direction:column; gap:16px; height:100%; box-sizing:border-box;" data-no-drag>
+      <!-- Business Verification Banner -->
+      <div id="biz-verification-banner" style="display:none; background:rgba(234,179,8,0.12); border:1px solid #eab308; color:#eab308; padding:14px 20px; border-radius:16px; font-size:13px; font-weight:500; align-items:center; gap:10px; text-align:left;">
+        ⚠️ <span><strong>Business Verification Pending:</strong> Your account is currently under review by S³ admin team. Once verified (via offline agreement), you will be able to post opportunities and request to hire candidates.</span>
+      </div>
+
       <!-- Student Grid -->
       <div style="flex:1; overflow-y:auto; background:rgba(26,31,58,0.4); border:1px solid rgba(241,231,210,0.08); border-radius:24px; padding:20px; display:flex; flex-direction:column; gap:12px; box-sizing:border-box;">
         <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(241,231,210,0.1); padding-bottom:10px; margin-bottom:10px;">
-          <h4 style="font-size:14px; font-weight:600; text-transform:uppercase; color:rgba(241,231,210,0.7); letter-spacing:0.08em;">Matching Students</h4>
+          <h4 style="font-size:14px; font-weight:600; text-transform:uppercase; color:rgba(241,231,210,0.7); letter-spacing:0.08em;">Matching Verified Students</h4>
           <span id="results-count" style="font-size:12px; color:#ffd15c; font-weight:600;">0 found</span>
         </div>
         <div id="student-grid-container" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(240px, 1fr)); gap:16px; align-content:start;">
@@ -798,6 +807,98 @@ section.hero {
         </div>
 
         <button type="submit" style="background:#ffd15c; border:none; color:#1a1f3a; padding:12px 24px; border-radius:50px; font-size:14px; font-weight:600; cursor:pointer; margin-top:10px; transition:background 200ms, transform 200ms;" onmouseenter="this.style.background='#e6bd50'; this.style.transform='scale(1.02)';" onmouseleave="this.style.background='#ffd15c'; this.style.transform=''">Post Internship</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Company Profile Modal -->
+  <div id="company-profile-modal" style="display:none; position:fixed; inset:0; z-index:999999; background:rgba(13,15,26,0.6); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); align-items:center; justify-content:center; opacity:0; transition:opacity 300ms ease;">
+    <div style="background:rgba(26,31,58,0.92); border:1px solid rgba(241,231,210,0.12); padding:35px; border-radius:32px; width:min(520px,95%); box-shadow:0 30px 80px rgba(0,0,0,0.5); display:flex; flex-direction:column; gap:20px; color:#f1e7d2; position:relative; text-align:left;">
+      <button onclick="closeCompanyProfileModal()" aria-label="Close modal" style="position:absolute; right:20px; top:20px; background:none; border:none; color:rgba(241,231,210,0.5); cursor:pointer; font-size:20px;">✕</button>
+      <div>
+        <h2 class="font-playfair" style="font-size:24px; font-style:italic; color:#ffd15c; margin-bottom:4px;">Company Profile Settings</h2>
+        <p style="font-size:12px; color:rgba(241,231,210,0.65);">Update your business details and community chat link for interns.</p>
+      </div>
+      <form id="company-profile-form" onsubmit="submitCompanyProfileForm(event)" style="display:flex; flex-direction:column; gap:14px;">
+        <div style="display:flex; flex-direction:column; gap:6px;">
+          <label style="font-size:11px; font-weight:600; color:rgba(241,231,210,0.7); text-transform:uppercase;">Company Name</label>
+          <input type="text" id="biz-profile-name" required style="background:rgba(255,255,255,0.06); border:1px solid rgba(241,231,210,0.2); border-radius:8px; padding:10px 12px; color:#fff; font-size:13px;" />
+        </div>
+        <div style="display:flex; flex-direction:column; gap:6px;">
+          <label style="font-size:11px; font-weight:600; color:rgba(241,231,210,0.7); text-transform:uppercase;">Industry / Tagline</label>
+          <input type="text" id="biz-profile-industry" placeholder="e.g. EdTech Startup / AI Development" style="background:rgba(255,255,255,0.06); border:1px solid rgba(241,231,210,0.2); border-radius:8px; padding:10px 12px; color:#fff; font-size:13px;" />
+        </div>
+        <div style="display:flex; flex-direction:column; gap:6px;">
+          <label style="font-size:11px; font-weight:600; color:rgba(241,231,210,0.7); text-transform:uppercase;">Website URL</label>
+          <input type="url" id="biz-profile-website" placeholder="https://yourcompany.com" style="background:rgba(255,255,255,0.06); border:1px solid rgba(241,231,210,0.2); border-radius:8px; padding:10px 12px; color:#fff; font-size:13px;" />
+        </div>
+        <div style="display:flex; flex-direction:column; gap:6px;">
+          <label style="font-size:11px; font-weight:600; color:#ffd15c; text-transform:uppercase;">Company Group Chat Link (Optional)</label>
+          <input type="url" id="biz-profile-chat" placeholder="https://chat.whatsapp.com/..." style="background:rgba(255,209,92,0.05); border:1px solid rgba(255,209,92,0.3); border-radius:8px; padding:10px 12px; color:#fff; font-size:13px;" />
+          <span style="font-size:10px; color:rgba(241,231,210,0.5);">Provide a WhatsApp, Telegram, or Slack group link for selected students to join.</span>
+        </div>
+        <button type="submit" style="background:#ffd15c; border:none; color:#1a1f3a; padding:12px; border-radius:50px; font-size:13px; font-weight:600; cursor:pointer; margin-top:6px;">Save Profile</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Tasks Center Modal -->
+  <div id="tasks-center-modal" style="display:none; position:fixed; inset:0; z-index:999999; background:rgba(13,15,26,0.6); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); align-items:center; justify-content:center; opacity:0; transition:opacity 300ms ease;">
+    <div style="background:rgba(26,31,58,0.95); border:1px solid rgba(241,231,210,0.12); padding:35px; border-radius:32px; width:min(680px,95%); max-height:85vh; overflow-y:auto; box-shadow:0 30px 80px rgba(0,0,0,0.5); display:flex; flex-direction:column; gap:20px; color:#f1e7d2; position:relative; text-align:left;">
+      <button onclick="closeTasksCenterModal()" aria-label="Close modal" style="position:absolute; right:20px; top:20px; background:none; border:none; color:rgba(241,231,210,0.5); cursor:pointer; font-size:20px;">✕</button>
+      <div>
+        <h2 class="font-playfair" style="font-size:24px; font-style:italic; color:#ffd15c; margin-bottom:4px;">Task Assignment Center</h2>
+        <p style="font-size:12px; color:rgba(241,231,210,0.65);">Assign work deliverables and review progress of your selected students.</p>
+      </div>
+
+      <!-- Create New Task Form -->
+      <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(241,231,210,0.1); border-radius:16px; padding:20px; display:flex; flex-direction:column; gap:12px;">
+        <h4 style="font-size:14px; font-weight:600; color:#ffd15c;">Assign New Task</h4>
+        <form id="create-task-form" onsubmit="submitCreateTaskForm(event)" style="display:flex; flex-direction:column; gap:12px;">
+          <div>
+            <label style="font-size:10px; font-weight:600; color:rgba(241,231,210,0.7); text-transform:uppercase;">Select Student</label>
+            <select id="task-student-select" required style="width:100%; background:#1a1f3a; border:1px solid rgba(241,231,210,0.2); border-radius:8px; padding:10px; color:#fff; font-size:13px; margin-top:4px;">
+              <!-- Populated with selected students -->
+            </select>
+          </div>
+          <div>
+            <label style="font-size:10px; font-weight:600; color:rgba(241,231,210,0.7); text-transform:uppercase;">Task Title</label>
+            <input type="text" id="task-title" placeholder="e.g. Build Landing Page Component" required style="width:100%; background:rgba(255,255,255,0.06); border:1px solid rgba(241,231,210,0.2); border-radius:8px; padding:10px; color:#fff; font-size:13px; margin-top:4px;" />
+          </div>
+          <div>
+            <label style="font-size:10px; font-weight:600; color:rgba(241,231,210,0.7); text-transform:uppercase;">Description & Instructions</label>
+            <textarea id="task-desc" rows="2" placeholder="Describe the deliverable expectations..." required style="width:100%; background:rgba(255,255,255,0.06); border:1px solid rgba(241,231,210,0.2); border-radius:8px; padding:10px; color:#fff; font-size:13px; resize:none; margin-top:4px;"></textarea>
+          </div>
+          <button type="submit" style="background:#ffd15c; border:none; color:#1a1f3a; padding:10px 18px; border-radius:30px; font-size:12px; font-weight:600; cursor:pointer; align-self:flex-start;">Assign Task</button>
+        </form>
+      </div>
+
+      <!-- Task List -->
+      <div>
+        <h4 style="font-size:14px; font-weight:600; color:rgba(241,231,210,0.8); margin-bottom:10px;">Assigned Tasks History</h4>
+        <div id="company-tasks-list" style="display:flex; flex-direction:column; gap:10px;">
+          <!-- Loaded dynamically -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Report Student Modal -->
+  <div id="report-student-modal" style="display:none; position:fixed; inset:0; z-index:999999; background:rgba(13,15,26,0.6); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); align-items:center; justify-content:center; opacity:0; transition:opacity 300ms ease;">
+    <div style="background:rgba(26,31,58,0.92); border:1px solid rgba(239,68,68,0.3); padding:35px; border-radius:32px; width:min(480px,95%); box-shadow:0 30px 80px rgba(0,0,0,0.5); display:flex; flex-direction:column; gap:16px; color:#f1e7d2; position:relative; text-align:left;">
+      <button onclick="closeReportStudentModal()" aria-label="Close modal" style="position:absolute; right:20px; top:20px; background:none; border:none; color:rgba(241,231,210,0.5); cursor:pointer; font-size:20px;">✕</button>
+      <div>
+        <h2 class="font-playfair" style="font-size:22px; font-style:italic; color:#ef4444; margin-bottom:4px;">Report Student to Admin</h2>
+        <p id="report-student-subtitle" style="font-size:12px; color:rgba(241,231,210,0.65);">Submit a performance or conduct report for this student.</p>
+      </div>
+      <form id="report-student-form" onsubmit="submitReportStudentForm(event)" style="display:flex; flex-direction:column; gap:12px;">
+        <input type="hidden" id="report-target-email" />
+        <input type="hidden" id="report-target-name" />
+        <div>
+          <label style="font-size:11px; font-weight:600; color:rgba(241,231,210,0.7); text-transform:uppercase;">Reason for Report</label>
+          <textarea id="report-reason" rows="3" placeholder="Describe issue (e.g. Non-responsive, uncompleted tasks, unprofessional conduct)..." required style="width:100%; background:rgba(255,255,255,0.06); border:1px solid rgba(239,68,68,0.3); border-radius:8px; padding:10px; color:#fff; font-size:13px; resize:none; margin-top:4px;"></textarea>
+        </div>
+        <button type="submit" style="background:#ef4444; border:none; color:#fff; padding:11px; border-radius:30px; font-size:13px; font-weight:600; cursor:pointer;">Submit Report</button>
       </form>
     </div>
   </div>
@@ -1010,12 +1111,25 @@ window.onAuthSignOut = function() {
 
 window.applyFilters = async function() {
   const list = await getStudents();
+  
+  // 1. Check current business verification status & toggle banner
+  const session = getSession();
+  if (session) {
+    const biz = window.getBusinessByEmail ? await window.getBusinessByEmail(session.email) : null;
+    const bizVerified = biz && biz.verificationStatus === "Verified";
+    const banner = document.getElementById("biz-verification-banner");
+    if (banner) banner.style.display = bizVerified ? "none" : "flex";
+  }
+
+  // 2. Filter ONLY Verified Students
+  const verifiedStudents = list.filter(stud => stud.verificationStatus === "Verified");
+  
   const skill = document.getElementById("filter-skill").value;
   const pref = document.getElementById("filter-pref").value;
   const grade = document.getElementById("filter-grade").value;
   const status = document.getElementById("filter-status").value;
   
-  const filtered = list.filter(stud => {
+  const filtered = verifiedStudents.filter(stud => {
     if (skill !== "All" && stud.skill !== skill) return false;
     if (pref !== "All" && stud.preference !== pref) return false;
     if (grade !== "All" && stud.grade !== grade) return false;
@@ -1029,21 +1143,22 @@ window.applyFilters = async function() {
   // Render grid
   const grid = document.getElementById("student-grid-container");
   if (!filtered.length) {
-    grid.innerHTML = `<div style="grid-column: 1/-1; padding: 40px; text-align: center; color: rgba(241,231,210,0.4); font-size: 13px;">No students match these criteria.</div>`;
+    grid.innerHTML = `<div style="grid-column: 1/-1; padding: 40px; text-align: center; color: rgba(241,231,210,0.4); font-size: 13px;">No verified students match these criteria.</div>`;
     return;
   }
   
   grid.innerHTML = filtered.map(stud => {
     let badgeColor = "#22c55e"; // Available
     if (stud.status === "Applied") badgeColor = "#f97316";
-    if (stud.status === "Shortlisted") badgeColor = "#3b82f6";
+    if (stud.status === "Shortlisted" || stud.status === "Active") badgeColor = "#3b82f6";
     if (stud.status === "Completed") badgeColor = "#9ca3af";
+    if (stud.status === "Hire Pending Approval") badgeColor = "#eab308";
     
     return `
       <div onclick="openDetailDrawer('${stud.id}')" style="background:rgba(255,255,255,0.04); border:1px solid rgba(241,231,210,0.1); border-radius:16px; padding:16px; cursor:pointer; display:flex; flex-direction:column; gap:12px; transition:transform 200ms, border-color 200ms; text-align:left;" onmouseenter="this.style.transform='translateY(-2px)'; this.style.borderColor='rgba(241,231,210,0.3)'" onmouseleave="this.style.transform=''; this.style.borderColor='rgba(241,231,210,0.1)'">
         <div style="display:flex; justify-content:space-between; align-items:start; gap:8px;">
           <h5 style="font-size:15px; font-weight:600; color:#fff; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width: 140px;">${stud.name}</h5>
-          <span style="font-size:9px; font-weight:600; text-transform:uppercase; padding:2px 6px; border-radius:50px; background:rgba(255,255,255,0.06); border:1px solid ${badgeColor}; color:${badgeColor}; white-space:nowrap;">${stud.status}</span>
+          <span style="font-size:9px; font-weight:600; text-transform:uppercase; padding:2px 6px; border-radius:50px; background:rgba(255,255,255,0.06); border:1px solid ${badgeColor}; color:${badgeColor}; white-space:nowrap;">${stud.status || 'Available'}</span>
         </div>
         <div style="font-size:12px; color:rgba(241,231,210,0.7); font-family:sans-serif;">${stud.skill}</div>
         <div style="font-size:11px; color:rgba(241,231,210,0.45); font-family:sans-serif; margin-top:auto; display:flex; justify-content:space-between;">
@@ -1087,9 +1202,11 @@ window.openDetailDrawer = async function(id) {
   const badge = document.getElementById("drawer-status-badge");
   let badgeColor = "#22c55e"; // Available
   if (stud.status === "Applied") badgeColor = "#f97316";
-  if (stud.status === "Shortlisted") badgeColor = "#3b82f6";
+  if (stud.status === "Shortlisted" || stud.status === "Active") badgeColor = "#3b82f6";
   if (stud.status === "Completed") badgeColor = "#9ca3af";
-  badge.textContent = stud.status + (stud.claimedBy ? ` (Claimed by ${stud.claimedBy})` : "");
+  if (stud.status === "Hire Pending Approval") badgeColor = "#eab308";
+  
+  badge.textContent = (stud.status || "Available") + (stud.claimedBy ? ` (Claimed by ${stud.claimedBy})` : "");
   badge.style.background = `rgba(${stud.status === 'Available' ? '34,197,94' : stud.status === 'Applied' ? '249,115,22' : stud.status === 'Shortlisted' ? '59,130,246' : '156,163,175'}, 0.12)`;
   badge.style.color = badgeColor;
   badge.style.border = `1px solid ${badgeColor}`;
@@ -1101,7 +1218,7 @@ window.openDetailDrawer = async function(id) {
     historyContainer.innerHTML = `<div style="font-size:11px; color:rgba(241,231,210,0.4); text-align:center; padding: 10px;">No internship history found.</div>`;
   } else {
     historyContainer.innerHTML = history.map(app => {
-      let statusColor = "#22c55e"; // Completed
+      let statusColor = "#22c55e";
       if (app.status === "Applied") statusColor = "#f97316";
       else if (app.status === "Shortlisted" || app.status === "Ongoing") statusColor = "#3b82f6";
       
@@ -1125,26 +1242,35 @@ window.openDetailDrawer = async function(id) {
   const session = getSession();
   
   if (!stud.claimedBy) {
-    // Unclaimed: Give option to Claim Student
-    actionArea.innerHTML = `
-      <p style="font-size:11px; color:rgba(241,231,210,0.5);">This student is currently available and has not been claimed by any company.</p>
-      <button onclick="claimStudent('${stud.id}', 'Applied')" style="background:#ffd15c; border:none; color:#1a1f3a; padding:12px; border-radius:30px; font-weight:600; cursor:pointer; width:100%; text-align:center;">Claim & Set to Applied</button>
-    `;
+    if (stud.status === "Hire Pending Approval") {
+      actionArea.innerHTML = `
+        <div style="background:rgba(234,179,8,0.08); border:1px solid rgba(234,179,8,0.3); border-radius:12px; padding:12px; text-align:center;">
+          <span style="font-size:12px; font-weight:600; color:#eab308; display:block; margin-bottom:4px;">⏳ Hire Request Under Admin Review</span>
+          <span style="font-size:11px; color:rgba(241,231,210,0.6);">A placement request for this candidate has been submitted to S³ Admin for offline agreement review.</span>
+        </div>
+      `;
+    } else {
+      actionArea.innerHTML = `
+        <p style="font-size:11px; color:rgba(241,231,210,0.5);">Request to hire this student. S³ team will process placement agreement approval.</p>
+        <button onclick="requestHire('${stud.id}')" style="background:#ffd15c; border:none; color:#1a1f3a; padding:12px; border-radius:30px; font-weight:600; cursor:pointer; width:100%; text-align:center;">🤝 Request to Hire Student</button>
+      `;
+    }
   } else if (stud.claimedBy === session.name) {
     // Claimed by CURRENT business: Provide status updating options
     actionArea.innerHTML = `
-      <p style="font-size:11px; color:#ffd15c;">You have claimed this student. Manage their status:</p>
+      <p style="font-size:11px; color:#ffd15c;">This student is placed with your company. Manage status:</p>
       <div style="display:flex; flex-direction:column; gap:8px;">
         <div style="display:flex; gap:8px;">
-          <button onclick="setStudentStatus('${stud.id}', 'Applied')" style="flex:1; background:${stud.status === 'Applied' ? '#f97316' : 'rgba(255,255,255,0.06)'}; border:1px solid rgba(241,231,210,0.2); color:${stud.status === 'Applied' ? '#fff' : '#f1e7d2'}; padding:10px; border-radius:8px; font-size:12px; font-weight:600; cursor:pointer;">Applied</button>
-          <button onclick="setStudentStatus('${stud.id}', 'Shortlisted')" style="flex:1; background:${stud.status === 'Shortlisted' ? '#3b82f6' : 'rgba(255,255,255,0.06)'}; border:1px solid rgba(241,231,210,0.2); color:${stud.status === 'Shortlisted' ? '#fff' : '#f1e7d2'}; padding:10px; border-radius:8px; font-size:12px; font-weight:600; cursor:pointer;">Shortlisted</button>
+          <button onclick="setStudentStatus('${stud.id}', 'Active')" style="flex:1; background:${stud.status === 'Active' || stud.status === 'Shortlisted' ? '#3b82f6' : 'rgba(255,255,255,0.06)'}; border:1px solid rgba(241,231,210,0.2); color:${stud.status === 'Active' || stud.status === 'Shortlisted' ? '#fff' : '#f1e7d2'}; padding:10px; border-radius:8px; font-size:12px; font-weight:600; cursor:pointer;">Active</button>
+          <button onclick="setStudentStatus('${stud.id}', 'Completed')" style="flex:1; background:${stud.status === 'Completed' ? '#9ca3af' : 'rgba(255,255,255,0.06)'}; border:1px solid rgba(241,231,210,0.2); color:${stud.status === 'Completed' ? '#fff' : '#f1e7d2'}; padding:10px; border-radius:8px; font-size:12px; font-weight:600; cursor:pointer;">Completed</button>
         </div>
-        <button onclick="setStudentStatus('${stud.id}', 'Completed')" style="background:${stud.status === 'Completed' ? '#9ca3af' : 'rgba(255,255,255,0.06)'}; border:1px solid rgba(241,231,210,0.2); color:${stud.status === 'Completed' ? '#fff' : '#f1e7d2'}; padding:10px; border-radius:8px; font-size:12px; font-weight:600; cursor:pointer;">Completed</button>
-        <button onclick="releaseStudent('${stud.id}')" style="background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.3); color:#ef4444; padding:10px; border-radius:8px; font-size:12px; font-weight:600; cursor:pointer; margin-top:8px;">Release (Make Available)</button>
+        <div style="display:flex; flex-direction:column; gap:6px; margin-top:6px;">
+          <button onclick="openReportStudentModal('${stud.email}', '${stud.name || stud.email}')" style="background:rgba(239,68,68,0.15); border:1px solid rgba(239,68,68,0.4); color:#ef4444; padding:10px; border-radius:8px; font-size:12px; font-weight:600; cursor:pointer;">⚠️ Report Student to Admin</button>
+          <button onclick="releaseStudent('${stud.id}')" style="background:rgba(255,255,255,0.04); border:1px solid rgba(241,231,210,0.15); color:rgba(241,231,210,0.6); padding:8px; border-radius:8px; font-size:11px; font-weight:500; cursor:pointer;">Release (Make Available)</button>
+        </div>
       </div>
     `;
   } else {
-    // Claimed by OTHER business: Show disabled actions
     actionArea.innerHTML = `
       <div style="background:rgba(239,68,68,0.05); border:1px solid rgba(239,68,68,0.2); border-radius:12px; padding:12px; text-align:center;">
         <span style="font-size:12px; font-weight:600; color:#ef4444; display:block; margin-bottom:4px;">Internship Active / Claimed</span>
@@ -1164,14 +1290,23 @@ window.closeDetailDrawer = function() {
   activeStudentId = null;
 };
 
-window.claimStudent = async function(id, initialStatus) {
+window.requestHire = async function(id) {
   const session = getSession();
   if (!session) return;
   
-  const res = await claimStudentByBusiness(id, session.name, initialStatus);
-  if (res) {
-    await applyFilters();
-    await openDetailDrawer(id); // Reload details
+  const biz = window.getBusinessByEmail ? await window.getBusinessByEmail(session.email) : null;
+  if (!biz || biz.verificationStatus !== "Verified") {
+    alert("Your business account is currently Pending Verification. You will be able to request hires once verified by S³ admin team.");
+    return;
+  }
+  
+  if (window.requestHireStudent) {
+    const res = await window.requestHireStudent(id, session.name, session.email);
+    if (res.success) {
+      alert("Placement request submitted to S³ Admin! Placement will be activated after agreement review.");
+      await applyFilters();
+      await openDetailDrawer(id);
+    }
   }
 };
 
@@ -1179,7 +1314,7 @@ window.setStudentStatus = async function(id, status) {
   const res = await setStudentStatusByBusiness(id, status);
   if (res) {
     await applyFilters();
-    await openDetailDrawer(id); // Reload details
+    await openDetailDrawer(id);
   }
 };
 
@@ -1187,11 +1322,20 @@ window.releaseStudent = async function(id) {
   const res = await releaseStudentByBusiness(id);
   if (res) {
     await applyFilters();
-    await openDetailDrawer(id); // Reload details
+    await openDetailDrawer(id);
   }
 };
 
-window.openPostInternshipModal = function() {
+window.openPostInternshipModal = async function() {
+  const session = getSession();
+  if (session) {
+    const biz = window.getBusinessByEmail ? await window.getBusinessByEmail(session.email) : null;
+    if (!biz || biz.verificationStatus !== "Verified") {
+      alert("Your business account is currently Pending Verification. You will be able to post opportunities once verified by S³ admin team.");
+      return;
+    }
+  }
+  
   const modal = document.getElementById("post-internship-modal");
   if (modal) {
     if (postInternshipTimeout) {
@@ -1236,7 +1380,196 @@ window.submitPostInternshipForm = async function(event) {
   
   document.getElementById("post-internship-form").reset();
   closePostInternshipModal();
-  await applyFilters(); // Refresh display/counts if appropriate
+  await applyFilters();
+};
+
+// Company Profile Handlers
+window.openCompanyProfileModal = async function() {
+  const session = getSession();
+  if (!session) return;
+  const biz = window.getBusinessByEmail ? await window.getBusinessByEmail(session.email) : null;
+  document.getElementById("biz-profile-name").value = biz?.name || session.name || "";
+  document.getElementById("biz-profile-industry").value = biz?.industry || "";
+  document.getElementById("biz-profile-website").value = biz?.website || "";
+  document.getElementById("biz-profile-chat").value = biz?.groupChatLink || "";
+  
+  const modal = document.getElementById("company-profile-modal");
+  modal.style.display = "flex";
+  setTimeout(() => { modal.style.opacity = "1"; }, 10);
+};
+
+window.closeCompanyProfileModal = function() {
+  const modal = document.getElementById("company-profile-modal");
+  modal.style.opacity = "0";
+  setTimeout(() => { modal.style.display = "none"; }, 300);
+};
+
+window.submitCompanyProfileForm = async function(event) {
+  event.preventDefault();
+  const session = getSession();
+  if (!session) return;
+  const name = document.getElementById("biz-profile-name").value.trim();
+  const industry = document.getElementById("biz-profile-industry").value.trim();
+  const website = document.getElementById("biz-profile-website").value.trim();
+  const groupChatLink = document.getElementById("biz-profile-chat").value.trim();
+  
+  if (window.saveBusinessProfile) {
+    await window.saveBusinessProfile(session.email, {
+      name: name,
+      email: session.email,
+      industry: industry,
+      website: website,
+      groupChatLink: groupChatLink,
+      role: 'business'
+    });
+    session.name = name;
+    setSession(session);
+  }
+  alert("Company profile updated successfully!");
+  closeCompanyProfileModal();
+};
+
+// Tasks Center Handlers
+window.openTasksCenterModal = async function() {
+  const session = getSession();
+  if (!session) return;
+  
+  const biz = window.getBusinessByEmail ? await window.getBusinessByEmail(session.email) : null;
+  if (!biz || biz.verificationStatus !== "Verified") {
+    alert("Your business account is currently Pending Verification. You will be able to manage tasks once verified by S³ admin team.");
+    return;
+  }
+  
+  // Populate dropdown of selected students claimed by this business
+  const students = window.getStudents ? await window.getStudents() : [];
+  const selectedStudents = students.filter(s => s.claimedBy === session.name);
+  const select = document.getElementById("task-student-select");
+  if (selectedStudents.length === 0) {
+    select.innerHTML = `<option value="">No selected students yet (Request & get approved first)</option>`;
+  } else {
+    select.innerHTML = selectedStudents.map(s => `<option value="${s.email}">${s.name || s.email} (${s.skill || 'Student'})</option>`).join("");
+  }
+  
+  await renderCompanyTasksList();
+  
+  const modal = document.getElementById("tasks-center-modal");
+  modal.style.display = "flex";
+  setTimeout(() => { modal.style.opacity = "1"; }, 10);
+};
+
+window.closeTasksCenterModal = function() {
+  const modal = document.getElementById("tasks-center-modal");
+  modal.style.opacity = "0";
+  setTimeout(() => { modal.style.display = "none"; }, 300);
+};
+
+window.renderCompanyTasksList = async function() {
+  const session = getSession();
+  if (!session) return;
+  const container = document.getElementById("company-tasks-list");
+  const tasks = window.getBusinessTasks ? await window.getBusinessTasks(session.email) : [];
+  
+  if (tasks.length === 0) {
+    container.innerHTML = `<div style="font-size:12px; color:rgba(241,231,210,0.4); text-align:center; padding:16px;">No tasks assigned yet. Use the form above to assign work to selected interns.</div>`;
+    return;
+  }
+  
+  container.innerHTML = tasks.map(t => {
+    const isCompleted = t.status === "Completed";
+    const isSubmitted = t.status === "Submitted";
+    let statusBg = "rgba(255,209,92,0.1)";
+    let statusColor = "#ffd15c";
+    if (isCompleted) { statusBg = "rgba(34,197,94,0.1)"; statusColor = "#22c55e"; }
+    else if (isSubmitted) { statusBg = "rgba(59,130,246,0.1)"; statusColor = "#3b82f6"; }
+    
+    return `
+      <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(241,231,210,0.08); border-radius:12px; padding:14px; display:flex; flex-direction:column; gap:8px;">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <span style="font-size:14px; font-weight:600; color:#fff;">${t.title}</span>
+          <span style="font-size:9px; font-weight:600; text-transform:uppercase; padding:3px 8px; border-radius:50px; background:${statusBg}; color:${statusColor}; border:1px solid ${statusColor};">${t.status}</span>
+        </div>
+        <div style="font-size:12px; color:rgba(241,231,210,0.7);">${t.description}</div>
+        <div style="font-size:11px; color:rgba(241,231,210,0.4); display:flex; justify-content:space-between;">
+          <span>Assigned to: ${t.studentEmail}</span>
+          <span>Assigned: ${t.assignedAt}</span>
+        </div>
+        ${t.submissionNotes ? `<div style="font-size:11px; background:rgba(59,130,246,0.08); border:1px solid rgba(59,130,246,0.2); padding:8px; border-radius:6px; color:#93c5fd;"><strong>Student Notes:</strong> ${t.submissionNotes}</div>` : ''}
+        ${!isCompleted ? `<button onclick="approveTask('${t.id}')" style="background:#22c55e; border:none; color:#fff; padding:8px 14px; border-radius:30px; font-size:11px; font-weight:600; cursor:pointer; align-self:flex-start; margin-top:4px;">Approve Deliverable</button>` : `<span style="font-size:11px; color:#22c55e;">✓ Approved on ${t.completedAt}</span>`}
+      </div>
+    `;
+  }).join("");
+};
+
+window.submitCreateTaskForm = async function(event) {
+  event.preventDefault();
+  const session = getSession();
+  if (!session) return;
+  
+  const studentEmail = document.getElementById("task-student-select").value;
+  if (!studentEmail) {
+    alert("Please select a student to assign the task to.");
+    return;
+  }
+  
+  const taskData = {
+    businessEmail: session.email,
+    companyName: session.name,
+    studentEmail: studentEmail,
+    title: document.getElementById("task-title").value.trim(),
+    description: document.getElementById("task-desc").value.trim()
+  };
+  
+  await window.createTask(taskData);
+  alert("Task assigned successfully! Student will see this task in their portal.");
+  document.getElementById("create-task-form").reset();
+  await renderCompanyTasksList();
+};
+
+window.approveTask = async function(taskId) {
+  if (window.approveTaskCompletion) {
+    await window.approveTaskCompletion(taskId);
+    alert("Task approved and marked as completed!");
+    await renderCompanyTasksList();
+  }
+};
+
+// Report Student Handlers
+window.openReportStudentModal = function(email, name) {
+  document.getElementById("report-target-email").value = email;
+  document.getElementById("report-target-name").value = name;
+  document.getElementById("report-student-subtitle").textContent = `Reporting ${name} (${email}) to Admin.`;
+  const modal = document.getElementById("report-student-modal");
+  modal.style.display = "flex";
+  setTimeout(() => { modal.style.opacity = "1"; }, 10);
+};
+
+window.closeReportStudentModal = function() {
+  const modal = document.getElementById("report-student-modal");
+  modal.style.opacity = "0";
+  setTimeout(() => { modal.style.display = "none"; }, 300);
+};
+
+window.submitReportStudentForm = async function(event) {
+  event.preventDefault();
+  const session = getSession();
+  if (!session) return;
+  const targetEmail = document.getElementById("report-target-email").value;
+  const targetName = document.getElementById("report-target-name").value;
+  const reason = document.getElementById("report-reason").value.trim();
+  
+  if (window.reportStudent) {
+    await window.reportStudent({
+      studentEmail: targetEmail,
+      studentName: targetName,
+      businessEmail: session.email,
+      companyName: session.name,
+      reason: reason
+    });
+    alert(`Report submitted for ${targetName}. The admin team will review it.`);
+    document.getElementById("report-student-form").reset();
+    closeReportStudentModal();
+    closeDetailDrawer();
+  }
 };
 
 // Wait for firebase auth to be resolved and check if we need to call handlers due to race conditions

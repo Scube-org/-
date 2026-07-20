@@ -11,7 +11,8 @@ import {
   updateDoc, 
   query, 
   where,
-  deleteDoc
+  deleteDoc,
+  increment
 } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
 
 // Define the 10 professional skills
@@ -87,8 +88,21 @@ async function getStudentById(id) {
 async function saveStudentProfile(email, profile) {
   const db = getFirestoreDb();
   const docRef = doc(db, "students", email);
-  await setDoc(docRef, profile, { merge: true });
-  return profile;
+  const docSnap = await getDoc(docRef);
+  const existingData = docSnap.exists() ? docSnap.data() : {};
+  const updatedProfile = {
+    verificationStatus: existingData.verificationStatus || profile.verificationStatus || "Pending",
+    ...profile
+  };
+  await setDoc(docRef, updatedProfile, { merge: true });
+  return updatedProfile;
+}
+
+async function verifyStudent(email, status = "Verified") {
+  const db = getFirestoreDb();
+  const docRef = doc(db, "students", email);
+  await updateDoc(docRef, { verificationStatus: status });
+  return true;
 }
 
 async function getInternships() {
@@ -340,8 +354,89 @@ async function getBusinessByEmail(email) {
 async function saveBusinessProfile(email, profile) {
   const db = getFirestoreDb();
   const docRef = doc(db, "businesses", email);
-  await setDoc(docRef, profile, { merge: true });
-  return profile;
+  const docSnap = await getDoc(docRef);
+  const existingData = docSnap.exists() ? docSnap.data() : {};
+  const updatedProfile = {
+    verificationStatus: existingData.verificationStatus || profile.verificationStatus || "Pending",
+    ...profile
+  };
+  await setDoc(docRef, updatedProfile, { merge: true });
+  return updatedProfile;
+}
+
+async function verifyBusiness(email, status = "Verified") {
+  const db = getFirestoreDb();
+  const docRef = doc(db, "businesses", email);
+  await updateDoc(docRef, { verificationStatus: status });
+  return true;
+}
+
+// Hire Request & Placement Approval Helpers
+async function requestHireStudent(studentId, companyName, businessEmail) {
+  const db = getFirestoreDb();
+  const student = await getStudentById(studentId);
+  if (!student) return { success: false, message: "Student profile not found" };
+  
+  const newDocRef = doc(collection(db, "hire_requests"));
+  const hireReq = {
+    id: newDocRef.id,
+    studentId: studentId,
+    studentEmail: student.email,
+    studentName: student.name || student.email,
+    businessEmail: businessEmail,
+    companyName: companyName,
+    status: "Pending Admin Approval",
+    requestedAt: new Date().toLocaleDateString()
+  };
+  await setDoc(newDocRef, hireReq);
+  
+  // Mark student status as Hire Pending
+  await saveStudentProfile(student.email, {
+    status: "Hire Pending Approval"
+  });
+  
+  return { success: true, request: hireReq };
+}
+
+async function getHireRequests() {
+  return retryFirestoreCall(async () => {
+    const db = getFirestoreDb();
+    const snap = await getDocs(collection(db, "hire_requests"));
+    const list = [];
+    snap.forEach(docSnap => list.push(docSnap.data()));
+    return list;
+  });
+}
+
+async function approveHireRequest(requestId) {
+  const db = getFirestoreDb();
+  const reqRef = doc(db, "hire_requests", requestId);
+  const reqSnap = await getDoc(reqRef);
+  if (!reqSnap.exists()) return false;
+  
+  const reqData = reqSnap.data();
+  await updateDoc(reqRef, { status: "Approved" });
+  
+  // Activate placement on student record
+  await claimStudentByBusiness(reqData.studentId, reqData.companyName, "Active");
+  return true;
+}
+
+async function rejectHireRequest(requestId) {
+  const db = getFirestoreDb();
+  const reqRef = doc(db, "hire_requests", requestId);
+  const reqSnap = await getDoc(reqRef);
+  if (!reqSnap.exists()) return false;
+  
+  const reqData = reqSnap.data();
+  await updateDoc(reqRef, { status: "Rejected" });
+  
+  // Release student status back to Available
+  await saveStudentProfile(reqData.studentEmail, {
+    status: "Available",
+    claimedBy: null
+  });
+  return true;
 }
 
 async function deleteBusiness(email) {
@@ -452,12 +547,130 @@ async function ensureCoachingGroupsSeeded() {
   }
 }
 
+// Task Helpers
+async function createTask(taskData) {
+  const db = getFirestoreDb();
+  const newDocRef = doc(collection(db, "tasks"));
+  const task = {
+    id: newDocRef.id,
+    businessEmail: taskData.businessEmail,
+    companyName: taskData.companyName,
+    studentEmail: taskData.studentEmail,
+    internshipId: taskData.internshipId || "",
+    title: taskData.title,
+    description: taskData.description,
+    status: "Assigned",
+    submissionNotes: "",
+    assignedAt: new Date().toLocaleDateString(),
+    completedAt: null
+  };
+  await setDoc(newDocRef, task);
+  return task;
+}
+
+async function getStudentTasks(studentEmail) {
+  if (!studentEmail) return [];
+  return retryFirestoreCall(async () => {
+    const db = getFirestoreDb();
+    const q = query(collection(db, "tasks"), where("studentEmail", "==", studentEmail));
+    const snap = await getDocs(q);
+    const list = [];
+    snap.forEach(docSnap => list.push(docSnap.data()));
+    return list;
+  });
+}
+
+async function getBusinessTasks(businessEmail) {
+  if (!businessEmail) return [];
+  return retryFirestoreCall(async () => {
+    const db = getFirestoreDb();
+    const q = query(collection(db, "tasks"), where("businessEmail", "==", businessEmail));
+    const snap = await getDocs(q);
+    const list = [];
+    snap.forEach(docSnap => list.push(docSnap.data()));
+    return list;
+  });
+}
+
+async function submitTask(taskId, submissionNotes) {
+  const db = getFirestoreDb();
+  const docRef = doc(db, "tasks", taskId);
+  await updateDoc(docRef, {
+    status: "Submitted",
+    submissionNotes: submissionNotes || ""
+  });
+  return true;
+}
+
+async function approveTaskCompletion(taskId) {
+  const db = getFirestoreDb();
+  const taskRef = doc(db, "tasks", taskId);
+  await updateDoc(taskRef, {
+    status: "Completed",
+    completedAt: new Date().toLocaleDateString()
+  });
+  return true;
+}
+
+// Student Reporting System Helpers
+async function reportStudent(reportData) {
+  const db = getFirestoreDb();
+  const newRef = doc(collection(db, "reports"));
+  const report = {
+    id: newRef.id,
+    studentEmail: reportData.studentEmail,
+    studentName: reportData.studentName || reportData.studentEmail,
+    businessEmail: reportData.businessEmail,
+    companyName: reportData.companyName || "Business",
+    reason: reportData.reason,
+    status: "Active",
+    createdAt: new Date().toLocaleDateString()
+  };
+  await setDoc(newRef, report);
+  
+  const studentRef = doc(db, "students", reportData.studentEmail);
+  await setDoc(studentRef, {
+    hasReports: true,
+    reportCount: increment(1)
+  }, { merge: true });
+  
+  return report;
+}
+
+async function getReports() {
+  return retryFirestoreCall(async () => {
+    const db = getFirestoreDb();
+    const snap = await getDocs(collection(db, "reports"));
+    const list = [];
+    snap.forEach(docSnap => list.push(docSnap.data()));
+    return list;
+  });
+}
+
+async function dismissReport(reportId, studentEmail) {
+  const db = getFirestoreDb();
+  await deleteDoc(doc(db, "reports", reportId));
+  
+  if (studentEmail) {
+    const q = query(collection(db, "reports"), where("studentEmail", "==", studentEmail));
+    const snap = await getDocs(q);
+    const hasRemaining = !snap.empty;
+    const studentRef = doc(db, "students", studentEmail);
+    await setDoc(studentRef, {
+      hasReports: hasRemaining,
+      reportCount: snap.size
+    }, { merge: true });
+  }
+  return true;
+}
+
 // Export to Global Window Context
 window.SKILLS_LIST = SKILLS_LIST;
 window.getStudents = getStudents;
 window.getStudentByEmail = getStudentByEmail;
 window.getStudentById = getStudentById;
 window.saveStudentProfile = saveStudentProfile;
+window.verifyStudent = verifyStudent;
 window.getInternships = getInternships;
 window.postInternship = postInternship;
 window.applyToInternship = applyToInternship;
@@ -465,6 +678,13 @@ window.getStudentHistory = getStudentHistory;
 window.claimStudentByBusiness = claimStudentByBusiness;
 window.setStudentStatusByBusiness = setStudentStatusByBusiness;
 window.releaseStudentByBusiness = releaseStudentByBusiness;
+
+// Verification & Placement Exports
+window.verifyBusiness = verifyBusiness;
+window.requestHireStudent = requestHireStudent;
+window.getHireRequests = getHireRequests;
+window.approveHireRequest = approveHireRequest;
+window.rejectHireRequest = rejectHireRequest;
 
 // Coaching Exports
 window.getCoachingGroups = getCoachingGroups;
@@ -480,6 +700,16 @@ window.getBusinessByEmail = getBusinessByEmail;
 window.saveBusinessProfile = saveBusinessProfile;
 window.deleteBusiness = deleteBusiness;
 window.deleteStudent = deleteStudent;
+
+// Task & Report Exports
+window.createTask = createTask;
+window.getStudentTasks = getStudentTasks;
+window.getBusinessTasks = getBusinessTasks;
+window.submitTask = submitTask;
+window.approveTaskCompletion = approveTaskCompletion;
+window.reportStudent = reportStudent;
+window.getReports = getReports;
+window.dismissReport = dismissReport;
 
 // Execute Database Initialization
 setTimeout(async () => {

@@ -662,6 +662,9 @@ tr:hover td {
     <button id="tab-businesses-btn" class="tab-btn" onclick="switchTab('businesses')">
       🏢 View Businesses
     </button>
+    <button id="tab-placements-btn" class="tab-btn" onclick="switchTab('placements')">
+      🤝 Hire & Placement Requests
+    </button>
     <button id="tab-classes-btn" class="tab-btn" onclick="switchTab('classes')">
       🏫 Coaching Classes
     </button>
@@ -727,6 +730,12 @@ tr:hover td {
         <span id="students-count" style="font-size: 12px; color: #ffd15c; font-weight: 500;">0 listed</span>
       </div>
       <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+        <select id="students-filter-reports" onchange="renderStudents()" style="background:#1a1f3a; border:1px solid rgba(241,231,210,0.2); border-radius:8px; padding:8px 12px; color:#fff; font-size:12px; outline:none; cursor:pointer;">
+          <option value="all">All Students</option>
+          <option value="pending">Pending Verification ⏳</option>
+          <option value="verified">Verified Students ✓</option>
+          <option value="reported">Reported Students ⚠️</option>
+        </select>
         <input type="text" id="students-search" placeholder="Search students by name, email..." class="search-input" oninput="renderStudents()" />
         <button onclick="openAddStudentModal()" class="btn-primary">➕ Add Student</button>
       </div>
@@ -739,8 +748,8 @@ tr:hover td {
             <th>Student Info</th>
             <th>Main Skill</th>
             <th>Education & School</th>
-            <th>Location</th>
-            <th>Status</th>
+            <th>Verification</th>
+            <th>Internship Status</th>
             <th>Access</th>
             <th>Manage Account</th>
           </tr>
@@ -760,6 +769,11 @@ tr:hover td {
         <span id="businesses-count" style="font-size: 12px; color: #ffd15c; font-weight: 500;">0 listed</span>
       </div>
       <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+        <select id="businesses-filter" onchange="renderBusinesses()" style="background:#1a1f3a; border:1px solid rgba(241,231,210,0.2); border-radius:8px; padding:8px 12px; color:#fff; font-size:12px; outline:none; cursor:pointer;">
+          <option value="all">All Businesses</option>
+          <option value="pending">Pending Verification ⏳</option>
+          <option value="verified">Verified Businesses ✓</option>
+        </select>
         <input type="text" id="businesses-search" placeholder="Search businesses..." class="search-input" oninput="renderBusinesses()" />
         <button onclick="openAddBusinessModal()" class="btn-primary">➕ Add Business</button>
       </div>
@@ -771,11 +785,42 @@ tr:hover td {
           <tr>
             <th>Business Details</th>
             <th>Email</th>
+            <th>Verification</th>
             <th>Access Status</th>
             <th>Manage Account</th>
           </tr>
         </thead>
         <tbody id="businesses-table-body">
+          <!-- Populated dynamically -->
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Tab 5: Placement & Hire Requests -->
+  <section id="panel-placements" class="panel" role="tabpanel">
+    <div class="panel-header">
+      <div>
+        <h4 style="font-size:14px; font-weight:600; text-transform:uppercase; color:rgba(241, 231, 210, 0.7); letter-spacing:0.08em; margin-bottom: 2px;">Placement & Hire Requests</h4>
+        <span id="placements-count" style="font-size: 12px; color: #ffd15c; font-weight: 500;">0 requests</span>
+      </div>
+      <div>
+        <input type="text" id="placements-search" placeholder="Search requests..." class="search-input" oninput="renderPlacementRequests()" />
+      </div>
+    </div>
+
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th>Requesting Business</th>
+            <th>Candidate Student</th>
+            <th>Requested Date</th>
+            <th>Status</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody id="placements-table-body">
           <!-- Populated dynamically -->
         </tbody>
       </table>
@@ -889,20 +934,26 @@ async function loadDashboardData() {
 // Tab switcher
 window.switchTab = function(tabName) {
   // Hide panels
-  document.getElementById("panel-restrictions").classList.remove("active");
-  document.getElementById("panel-students").classList.remove("active");
-  document.getElementById("panel-businesses").classList.remove("active");
-  document.getElementById("panel-classes").classList.remove("active");
+  document.getElementById("panel-restrictions")?.classList.remove("active");
+  document.getElementById("panel-students")?.classList.remove("active");
+  document.getElementById("panel-businesses")?.classList.remove("active");
+  document.getElementById("panel-placements")?.classList.remove("active");
+  document.getElementById("panel-classes")?.classList.remove("active");
   
   // Deactivate buttons
-  document.getElementById("tab-restrictions-btn").classList.remove("active");
-  document.getElementById("tab-students-btn").classList.remove("active");
-  document.getElementById("tab-businesses-btn").classList.remove("active");
-  document.getElementById("tab-classes-btn").classList.remove("active");
+  document.getElementById("tab-restrictions-btn")?.classList.remove("active");
+  document.getElementById("tab-students-btn")?.classList.remove("active");
+  document.getElementById("tab-businesses-btn")?.classList.remove("active");
+  document.getElementById("tab-placements-btn")?.classList.remove("active");
+  document.getElementById("tab-classes-btn")?.classList.remove("active");
 
   // Activate selected panel and tab button
-  document.getElementById("panel-" + tabName).classList.add("active");
-  document.getElementById("tab-" + tabName + "-btn").classList.add("active");
+  document.getElementById("panel-" + tabName)?.classList.add("active");
+  document.getElementById("tab-" + tabName + "-btn")?.classList.add("active");
+  
+  if (tabName === 'placements') {
+    renderPlacementRequests();
+  }
 };
 
 // Render Restrictions view
@@ -961,25 +1012,37 @@ window.renderRestrictions = function() {
 };
 
 // Render Students view
-window.renderStudents = function() {
+window.renderStudents = async function() {
   const searchQuery = document.getElementById("students-search").value.toLowerCase();
+  const filterType = document.getElementById("students-filter-reports") ? document.getElementById("students-filter-reports").value : "all";
   const tbody = document.getElementById("students-table-body");
   
-  const filtered = studentsList.filter(s => {
+  // Fetch active reports
+  const allReports = window.getReports ? await window.getReports() : [];
+  
+  let filtered = studentsList.filter(s => {
     return s.name.toLowerCase().includes(searchQuery) || s.email.toLowerCase().includes(searchQuery) || (s.school && s.school.toLowerCase().includes(searchQuery));
   });
+
+  if (filterType === "pending") {
+    filtered = filtered.filter(s => s.verificationStatus === "Pending" || !s.verificationStatus);
+  } else if (filterType === "verified") {
+    filtered = filtered.filter(s => s.verificationStatus === "Verified");
+  } else if (filterType === "reported") {
+    filtered = filtered.filter(s => s.hasReports || allReports.some(r => r.studentEmail === s.email));
+  }
 
   document.getElementById("students-count").textContent = `${filtered.length} student${filtered.length === 1 ? '' : 's'} listed`;
 
   if (filtered.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="7" class="empty-placeholder">No students match your search criteria.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="7" class="empty-placeholder">No students match your search/filter criteria.</td></tr>`;
     return;
   }
 
   tbody.innerHTML = filtered.map(stud => {
     let badgeColorClass = "badge-available";
     if (stud.status === "Applied") badgeColorClass = "badge-applied";
-    else if (stud.status === "Shortlisted") badgeColorClass = "badge-shortlisted";
+    else if (stud.status === "Shortlisted" || stud.status === "Active") badgeColorClass = "badge-shortlisted";
     else if (stud.status === "Completed") badgeColorClass = "badge-completed";
 
     const isBanned = stud.banned || stud.status === 'Banned';
@@ -989,9 +1052,18 @@ window.renderStudents = function() {
     if (isBanned) accessBadge = `<span class="status-badge badge-banned">Banned</span>`;
     else if (isBlocked) accessBadge = `<span class="status-badge badge-blocked">Blocked</span>`;
 
+    const isVerified = stud.verificationStatus === "Verified";
+    const verificationBadge = isVerified
+      ? `<span class="status-badge badge-active" style="background:rgba(34,197,94,0.15); color:#22c55e; border:1px solid #22c55e;">✓ Verified</span>`
+      : `<span class="status-badge badge-applied" style="background:rgba(234,179,8,0.15); color:#eab308; border:1px solid #eab308;">⏳ Pending</span>`;
+
+    const studReports = allReports.filter(r => r.studentEmail === stud.email);
+    const reportBadge = studReports.length > 0 || stud.hasReports
+      ? `<span onclick="openAdminReportsModal('${stud.email}')" style="background:rgba(239,68,68,0.15); border:1px solid #ef4444; color:#ef4444; padding:2px 8px; border-radius:50px; font-size:10px; font-weight:600; cursor:pointer; margin-left:6px; vertical-align:middle;">⚠️ Reported (${studReports.length || stud.reportCount || 1})</span>`
+      : '';
+
     const blockLabel = isBlocked ? "Unblock" : "Block";
     const banLabel = isBanned ? "Unban" : "Ban";
-
     const initials = stud.name.split(" ").map(w => w[0]).join("").substring(0, 2).toUpperCase();
 
     return `
@@ -1000,7 +1072,7 @@ window.renderStudents = function() {
           <div class="user-info-cell">
             <div class="user-avatar">${initials}</div>
             <div>
-              <div class="user-meta-name">${stud.name}</div>
+              <div class="user-meta-name">${stud.name} ${reportBadge}</div>
               <div class="user-meta-email">${stud.email}</div>
             </div>
           </div>
@@ -1010,10 +1082,11 @@ window.renderStudents = function() {
           <div style="font-weight:500;">${stud.grade}</div>
           <div style="font-size:11.5px; color:rgba(241,231,210,0.5);">${stud.school}</div>
         </td>
-        <td>${stud.preference}</td>
-        <td><span class="status-badge ${badgeColorClass}">${stud.status}</span></td>
+        <td>${verificationBadge}</td>
+        <td><span class="status-badge ${badgeColorClass}">${stud.status || 'Available'}</span></td>
         <td>${accessBadge}</td>
         <td>
+          ${!isVerified ? `<button onclick="adminVerifyStudent('${stud.email}')" class="btn-primary" style="padding:4px 10px; font-size:11px; margin-right:4px; background:#22c55e;">✓ Verify</button>` : ''}
           <button onclick="toggleBlock('${stud.email}', 'student', ${isBlocked})" class="action-btn btn-block">${blockLabel}</button>
           <button onclick="toggleBan('${stud.email}', 'student', ${isBanned})" class="action-btn btn-ban">${banLabel}</button>
           <button onclick="triggerDelete('${stud.email}', 'student')" class="action-btn btn-delete">Delete</button>
@@ -1026,16 +1099,23 @@ window.renderStudents = function() {
 // Render Businesses view
 window.renderBusinesses = function() {
   const searchQuery = document.getElementById("businesses-search").value.toLowerCase();
+  const filterType = document.getElementById("businesses-filter") ? document.getElementById("businesses-filter").value : "all";
   const tbody = document.getElementById("businesses-table-body");
   
-  const filtered = businessesList.filter(b => {
+  let filtered = businessesList.filter(b => {
     return b.name.toLowerCase().includes(searchQuery) || b.email.toLowerCase().includes(searchQuery);
   });
+
+  if (filterType === "pending") {
+    filtered = filtered.filter(b => b.verificationStatus === "Pending" || !b.verificationStatus);
+  } else if (filterType === "verified") {
+    filtered = filtered.filter(b => b.verificationStatus === "Verified");
+  }
 
   document.getElementById("businesses-count").textContent = `${filtered.length} business${filtered.length === 1 ? '' : 'es'} listed`;
 
   if (filtered.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="4" class="empty-placeholder">No businesses match your search criteria.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="5" class="empty-placeholder">No businesses match your search/filter criteria.</td></tr>`;
     return;
   }
 
@@ -1047,9 +1127,13 @@ window.renderBusinesses = function() {
     if (isBanned) accessBadge = `<span class="status-badge badge-banned">Banned</span>`;
     else if (isBlocked) accessBadge = `<span class="status-badge badge-blocked">Blocked</span>`;
 
+    const isVerified = b.verificationStatus === "Verified";
+    const verificationBadge = isVerified
+      ? `<span class="status-badge badge-active" style="background:rgba(34,197,94,0.15); color:#22c55e; border:1px solid #22c55e;">✓ Verified</span>`
+      : `<span class="status-badge badge-applied" style="background:rgba(234,179,8,0.15); color:#eab308; border:1px solid #eab308;">⏳ Pending</span>`;
+
     const blockLabel = isBlocked ? "Unblock" : "Block";
     const banLabel = isBanned ? "Unban" : "Ban";
-
     const initials = b.name.split(" ").map(w => w[0]).join("").substring(0, 2).toUpperCase();
 
     return `
@@ -1063,8 +1147,10 @@ window.renderBusinesses = function() {
           </div>
         </td>
         <td>${b.email}</td>
+        <td>${verificationBadge}</td>
         <td>${accessBadge}</td>
         <td>
+          ${!isVerified ? `<button onclick="adminVerifyBusiness('${b.email}')" class="btn-primary" style="padding:4px 10px; font-size:11px; margin-right:4px; background:#22c55e;">✓ Verify</button>` : ''}
           <button onclick="toggleBlock('${b.email}', 'business', ${isBlocked})" class="action-btn btn-block">${blockLabel}</button>
           <button onclick="toggleBan('${b.email}', 'business', ${isBanned})" class="action-btn btn-ban">${banLabel}</button>
           <button onclick="triggerDelete('${b.email}', 'business')" class="action-btn btn-delete">Delete</button>
@@ -1072,6 +1158,93 @@ window.renderBusinesses = function() {
       </tr>
     `;
   }).join("");
+};
+
+// Render Placement & Hire Requests view
+window.renderPlacementRequests = async function() {
+  const searchQuery = document.getElementById("placements-search") ? document.getElementById("placements-search").value.toLowerCase() : "";
+  const tbody = document.getElementById("placements-table-body");
+  
+  const requests = window.getHireRequests ? await window.getHireRequests() : [];
+  
+  const filtered = requests.filter(r => {
+    return (r.companyName && r.companyName.toLowerCase().includes(searchQuery)) ||
+           (r.studentName && r.studentName.toLowerCase().includes(searchQuery)) ||
+           (r.studentEmail && r.studentEmail.toLowerCase().includes(searchQuery));
+  });
+
+  const countElem = document.getElementById("placements-count");
+  if (countElem) countElem.textContent = `${filtered.length} request${filtered.length === 1 ? '' : 's'} listed`;
+
+  if (filtered.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="5" class="empty-placeholder">No placement or hire requests found.</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = filtered.map(req => {
+    let statusBg = "rgba(234,179,8,0.15)";
+    let statusColor = "#eab308";
+    if (req.status === "Approved") { statusBg = "rgba(34,197,94,0.15)"; statusColor = "#22c55e"; }
+    else if (req.status === "Rejected") { statusBg = "rgba(239,68,68,0.15)"; statusColor = "#ef4444"; }
+
+    return `
+      <tr>
+        <td>
+          <div style="font-weight:600; color:#fff;">${req.companyName}</div>
+          <div style="font-size:11.5px; color:rgba(241,231,210,0.5);">${req.businessEmail}</div>
+        </td>
+        <td>
+          <div style="font-weight:600; color:#ffd15c;">${req.studentName}</div>
+          <div style="font-size:11.5px; color:rgba(241,231,210,0.5);">${req.studentEmail}</div>
+        </td>
+        <td>${req.requestedAt}</td>
+        <td><span class="status-badge" style="background:${statusBg}; color:${statusColor}; border:1px solid ${statusColor};">${req.status}</span></td>
+        <td>
+          ${req.status === "Pending Admin Approval" ? `
+            <button onclick="adminApprovePlacement('${req.id}')" class="btn-primary" style="padding:6px 12px; font-size:11px; background:#22c55e; margin-right:4px;">✓ Approve Placement</button>
+            <button onclick="adminRejectPlacement('${req.id}')" class="action-btn btn-delete" style="padding:6px 12px; font-size:11px;">✕ Reject</button>
+          ` : `<span style="font-size:11px; color:rgba(241,231,210,0.4);">Decision Recorded</span>`}
+        </td>
+      </tr>
+    `;
+  }).join("");
+};
+
+// Verification & Placement Action Handlers
+window.adminVerifyStudent = async function(email) {
+  if (window.verifyStudent) {
+    await window.verifyStudent(email, "Verified");
+    alert(`Student ${email} has been verified and is now visible on the Business Portal!`);
+    await loadCollections();
+    renderStudents();
+  }
+};
+
+window.adminVerifyBusiness = async function(email) {
+  if (window.verifyBusiness) {
+    await window.verifyBusiness(email, "Verified");
+    alert(`Business ${email} has been verified and can now post internships and request hires!`);
+    await loadCollections();
+    renderBusinesses();
+  }
+};
+
+window.adminApprovePlacement = async function(requestId) {
+  if (window.approveHireRequest) {
+    await window.approveHireRequest(requestId);
+    alert("Placement request approved! The student is now active for this business.");
+    await loadCollections();
+    renderPlacementRequests();
+  }
+};
+
+window.adminRejectPlacement = async function(requestId) {
+  if (window.rejectHireRequest) {
+    await window.rejectHireRequest(requestId);
+    alert("Placement request rejected.");
+    await loadCollections();
+    renderPlacementRequests();
+  }
 };
 
 // Administrative Operations
@@ -1770,8 +1943,64 @@ window.removeStudentFromClassFromAdmin = async function(email) {
         </table>
       </div>
     </div>
+<!-- Admin View Reports Modal -->
+<div id="admin-reports-modal" class="modal-overlay">
+  <div class="modal-card" style="width: min(560px, 95%);">
+    <button onclick="closeAdminReportsModal()" class="modal-close-btn" aria-label="Close modal">✕</button>
+    <div>
+      <h3 class="font-playfair" style="font-size: 24px; color: #ef4444; font-style: italic; font-weight: 400; margin-bottom: 4px;">Student Reports</h3>
+      <p id="admin-reports-subtitle" style="font-size: 12px; color: rgba(241, 231, 210, 0.65);">Review performance and conduct reports submitted by businesses.</p>
+    </div>
+
+    <div id="admin-reports-list" style="display: flex; flex-direction: column; gap: 12px; max-height: 350px; overflow-y: auto;">
+      <!-- Populated dynamically -->
+    </div>
   </div>
 </div>
+
+<script>
+window.openAdminReportsModal = async function(studentEmail) {
+  const allReports = window.getReports ? await window.getReports() : [];
+  const studReports = allReports.filter(r => r.studentEmail === studentEmail);
+  const container = document.getElementById("admin-reports-list");
+  document.getElementById("admin-reports-subtitle").textContent = `Active reports for: ${studentEmail}`;
+  
+  if (studReports.length === 0) {
+    container.innerHTML = `<div style="padding:16px; text-align:center; color:rgba(241,231,210,0.4); font-size:12px;">No active reports found for this student.</div>`;
+  } else {
+    container.innerHTML = studReports.map(r => `
+      <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(239,68,68,0.2); border-radius:12px; padding:14px; display:flex; flex-direction:column; gap:8px; text-align:left;">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <span style="font-size:13px; font-weight:600; color:#ef4444;">Reported by: ${r.companyName || r.businessEmail}</span>
+          <span style="font-size:10px; color:rgba(241,231,210,0.4);">${r.createdAt}</span>
+        </div>
+        <div style="font-size:12px; color:rgba(241,231,210,0.85); background:rgba(0,0,0,0.2); padding:10px; border-radius:8px; white-space:pre-line;">${r.reason}</div>
+        <div style="display:flex; gap:8px; margin-top:4px;">
+          <button onclick="dismissReportHandler('${r.id}', '${r.studentEmail}')" class="btn-primary" style="padding:6px 12px; font-size:11px;">Dismiss Report</button>
+          <button onclick="toggleBlock('${r.studentEmail}', 'student', false); closeAdminReportsModal();" class="action-btn btn-block" style="padding:6px 12px;">Block Student</button>
+        </div>
+      </div>
+    `).join("");
+  }
+  
+  const modal = document.getElementById("admin-reports-modal");
+  if (modal) modal.classList.add("active");
+};
+
+window.closeAdminReportsModal = function() {
+  const modal = document.getElementById("admin-reports-modal");
+  if (modal) modal.classList.remove("active");
+};
+
+window.dismissReportHandler = async function(reportId, studentEmail) {
+  if (window.dismissReport) {
+    await window.dismissReport(reportId, studentEmail);
+    alert("Report dismissed successfully.");
+    await openAdminReportsModal(studentEmail);
+    if (window.renderStudents) await window.renderStudents();
+  }
+};
+</script>
 
 </body>
 </html>

@@ -775,8 +775,28 @@ section.hero {
   <div id="student-progress-section" style="display:none; position:absolute; inset:0; z-index:40; align-items:flex-start; justify-content:center; padding: 20px; box-sizing: border-box; padding-top: 100px; height: 100dvh; overflow-y:auto;">
     <div style="width:100%; display:flex; gap:20px; flex-wrap:wrap; max-width:1200px; margin:0 auto; align-items:start; margin-bottom: 40px;">
       
-      <!-- Left Column: Active Applications & Progress -->
-      <div style="flex:2; min-width:320px; background:rgba(26,31,58,0.7); backdrop-filter:blur(24px); -webkit-backdrop-filter:blur(24px); border:1px solid rgba(241,231,210,0.12); padding:30px; border-radius:24px; box-shadow:0 30px 80px rgba(0,0,0,0.4); display:flex; flex-direction:column; gap:20px; color:#f1e7d2; text-align:left;" data-no-drag>
+      <!-- Top Banner: Student Verification Status Banner -->
+      <div id="student-verification-banner" style="width:100%; background:rgba(234,179,8,0.12); border:1px solid #eab308; color:#eab308; padding:20px 24px; border-radius:24px; display:flex; align-items:center; gap:16px; text-align:left; box-shadow:0 15px 40px rgba(0,0,0,0.3);">
+        <div style="font-size:24px;" id="verification-banner-icon">⏳</div>
+        <div>
+          <h4 style="font-size:15px; font-weight:700; color:#eab308; margin-bottom:2px;" id="verification-banner-title">Account Verification Pending</h4>
+          <p style="font-size:12px; color:rgba(241,231,210,0.8); margin:0;" id="verification-banner-text">Your student profile is currently under review by the S³ admin team. Once verified, your profile will become active and visible to startup recruiters for placement opportunities.</p>
+        </div>
+      </div>
+
+      <!-- Left Column 1: Assigned Tasks & Deliverables -->
+      <div style="flex:1.5; min-width:320px; background:rgba(26,31,58,0.7); backdrop-filter:blur(24px); -webkit-backdrop-filter:blur(24px); border:1px solid rgba(241,231,210,0.12); padding:30px; border-radius:24px; box-shadow:0 30px 80px rgba(0,0,0,0.4); display:flex; flex-direction:column; gap:20px; color:#f1e7d2; text-align:left;" data-no-drag>
+        <div>
+          <h3 class="font-playfair" style="font-size:22px; font-weight:400; font-style:italic; color:#ffd15c; margin-bottom:4px;">Assigned Tasks & Deliverables</h3>
+          <p style="font-size:11px; color:rgba(241,231,210,0.5);">Complete deliverables assigned by your companies to earn SCube Points.</p>
+        </div>
+        <div id="student-tasks-list" style="display:flex; flex-direction:column; gap:16px;">
+          <!-- Filled dynamically -->
+        </div>
+      </div>
+
+      <!-- Left Column 2: Active Applications & Progress -->
+      <div style="flex:1.5; min-width:320px; background:rgba(26,31,58,0.7); backdrop-filter:blur(24px); -webkit-backdrop-filter:blur(24px); border:1px solid rgba(241,231,210,0.12); padding:30px; border-radius:24px; box-shadow:0 30px 80px rgba(0,0,0,0.4); display:flex; flex-direction:column; gap:20px; color:#f1e7d2; text-align:left;" data-no-drag>
         <div>
           <h3 class="font-playfair" style="font-size:22px; font-weight:400; font-style:italic; color:#ffd15c; margin-bottom:4px;">Your Applications</h3>
           <p style="font-size:11px; color:rgba(241,231,210,0.5);">Track status updates of your submitted applications.</p>
@@ -797,6 +817,25 @@ section.hero {
         </div>
       </div>
       
+    </div>
+  </div>
+
+  <!-- Student Submit Deliverable Modal -->
+  <div id="student-submit-task-modal" style="display:none; position:fixed; inset:0; z-index:999999; background:rgba(13,15,26,0.6); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); align-items:center; justify-content:center; opacity:0; transition:opacity 300ms ease;">
+    <div style="background:rgba(26,31,58,0.92); border:1px solid rgba(241,231,210,0.12); padding:35px; border-radius:32px; width:min(500px,95%); box-shadow:0 30px 80px rgba(0,0,0,0.5); display:flex; flex-direction:column; gap:16px; color:#f1e7d2; position:relative; text-align:left;">
+      <button onclick="closeSubmitTaskModal()" aria-label="Close modal" style="position:absolute; right:20px; top:20px; background:none; border:none; color:rgba(241,231,210,0.5); cursor:pointer; font-size:20px;">✕</button>
+      <div>
+        <h2 class="font-playfair" style="font-size:22px; font-style:italic; color:#ffd15c; margin-bottom:4px;">Submit Deliverable</h2>
+        <p id="submit-task-subtitle" style="font-size:12px; color:rgba(241,231,210,0.65);">Add work links or notes for your company to review.</p>
+      </div>
+      <form id="submit-task-form" onsubmit="submitTaskForm(event)" style="display:flex; flex-direction:column; gap:12px;">
+        <input type="hidden" id="submit-task-id" />
+        <div>
+          <label style="font-size:11px; font-weight:600; color:rgba(241,231,210,0.7); text-transform:uppercase;">Submission Notes / Link</label>
+          <textarea id="submit-task-notes" rows="4" placeholder="Paste GitHub / Google Drive link or describe what you built..." required style="width:100%; background:rgba(255,255,255,0.06); border:1px solid rgba(241,231,210,0.2); border-radius:8px; padding:10px; color:#fff; font-size:13px; resize:none; margin-top:4px;"></textarea>
+        </div>
+        <button type="submit" style="background:#ffd15c; border:none; color:#1a1f3a; padding:12px; border-radius:30px; font-size:13px; font-weight:600; cursor:pointer;">Submit Work for Review</button>
+      </form>
     </div>
   </div>
 
@@ -1171,6 +1210,69 @@ window.renderProgressAndHistory = async function() {
   const session = getSession();
   if (!session) return;
   
+  // 1. Fetch student profile and set verification banner state
+  const student = window.getStudentByEmail ? await window.getStudentByEmail(session.email) : null;
+  const isVerified = student && student.verificationStatus === "Verified";
+  
+  const banner = document.getElementById("student-verification-banner");
+  const icon = document.getElementById("verification-banner-icon");
+  const title = document.getElementById("verification-banner-title");
+  const text = document.getElementById("verification-banner-text");
+  
+  if (banner) {
+    if (isVerified) {
+      banner.style.background = "rgba(34,197,94,0.12)";
+      banner.style.borderColor = "#22c55e";
+      banner.style.color = "#22c55e";
+      if (icon) icon.textContent = "✓";
+      if (title) { title.textContent = "Verified S³ Profile"; title.style.color = "#22c55e"; }
+      if (text) text.textContent = "Your profile is verified and active! Startup recruiters can browse your profile and request placements.";
+    } else {
+      banner.style.background = "rgba(234,179,8,0.12)";
+      banner.style.borderColor = "#eab308";
+      banner.style.color = "#eab308";
+      if (icon) icon.textContent = "⏳";
+      if (title) { title.textContent = "Account Verification Pending"; title.style.color = "#eab308"; }
+      if (text) text.textContent = "Your student profile is currently under review by the S³ admin team. Once verified (via offline check), your profile will become visible to startup recruiters.";
+    }
+  }
+  
+  // 2. Fetch assigned tasks
+  const tasks = window.getStudentTasks ? await window.getStudentTasks(session.email) : [];
+  const tasksList = document.getElementById("student-tasks-list");
+  if (tasksList) {
+    if (tasks.length === 0) {
+      tasksList.innerHTML = `<div style="padding: 20px; text-align: center; color: rgba(241,231,210,0.4); font-size: 13px;">No tasks assigned yet. Once placed with a company, your assigned tasks will appear here.</div>`;
+    } else {
+      tasksList.innerHTML = tasks.map(t => {
+        const isCompleted = t.status === "Completed";
+        const isSubmitted = t.status === "Submitted";
+        let statusBg = "rgba(255,209,92,0.1)";
+        let statusColor = "#ffd15c";
+        if (isCompleted) { statusBg = "rgba(34,197,94,0.1)"; statusColor = "#22c55e"; }
+        else if (isSubmitted) { statusBg = "rgba(59,130,246,0.1)"; statusColor = "#3b82f6"; }
+
+        return `
+          <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(241,231,210,0.08); padding:16px; border-radius:14px; display:flex; flex-direction:column; gap:8px;">
+            <div style="display:flex; justify-content:space-between; align-items:start;">
+              <div>
+                <h5 style="font-size:15px; font-weight:600; color:#fff;">${t.title}</h5>
+                <span style="font-size:11px; color:#ffd15c; font-weight:500;">${t.companyName}</span>
+              </div>
+              <div style="text-align:right;">
+                <span style="font-size:8px; font-weight:600; text-transform:uppercase; padding:2px 6px; border-radius:50px; background:${statusBg}; color:${statusColor}; border:1px solid ${statusColor};">${t.status}</span>
+              </div>
+            </div>
+            <p style="font-size:12px; color:rgba(241,231,210,0.8); margin:0;">${t.description}</p>
+            ${t.submissionNotes ? `<div style="font-size:11px; color:#93c5fd; background:rgba(59,130,246,0.08); padding:8px; border-radius:6px;"><strong>Your Submission:</strong> ${t.submissionNotes}</div>` : ''}
+            ${!isCompleted && !isSubmitted ? `<button onclick="openSubmitTaskModal('${t.id}', '${t.title}')" style="background:#ffd15c; border:none; color:#1a1f3a; padding:8px 16px; border-radius:30px; font-size:11px; font-weight:600; cursor:pointer; align-self:flex-start; margin-top:4px;">Submit Deliverable</button>` : ''}
+          </div>
+        `;
+      }).join("");
+    }
+  }
+  
+  // 3. Fetch applications history
   const history = await getStudentHistory(session.email);
   
   // Split into active and completed applications
@@ -1245,6 +1347,35 @@ window.renderProgressAndHistory = async function() {
         <div style="font-size:10px; color:rgba(241,231,210,0.4); font-family:sans-serif; margin-top:4px;">Ended: ${app.appliedAt}</div>
       </div>
     `).join("");
+  }
+};
+
+// Task Deliverable Submission Handlers
+window.openSubmitTaskModal = function(taskId, title) {
+  document.getElementById("submit-task-id").value = taskId;
+  document.getElementById("submit-task-subtitle").textContent = `Submitting work for: ${title}`;
+  const modal = document.getElementById("student-submit-task-modal");
+  modal.style.display = "flex";
+  setTimeout(() => { modal.style.opacity = "1"; }, 10);
+};
+
+window.closeSubmitTaskModal = function() {
+  const modal = document.getElementById("student-submit-task-modal");
+  modal.style.opacity = "0";
+  setTimeout(() => { modal.style.display = "none"; }, 300);
+};
+
+window.submitTaskForm = async function(event) {
+  event.preventDefault();
+  const taskId = document.getElementById("submit-task-id").value;
+  const notes = document.getElementById("submit-task-notes").value.trim();
+  
+  if (window.submitTask) {
+    await window.submitTask(taskId, notes);
+    alert("Task deliverable submitted successfully! Your company has been notified.");
+    document.getElementById("submit-task-form").reset();
+    closeSubmitTaskModal();
+    await renderProgressAndHistory();
   }
 };
 
