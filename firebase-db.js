@@ -85,11 +85,24 @@ async function getStudentById(id) {
   });
 }
 
-async function saveStudentProfile(email, profile) {
+async function saveStudentProfile(email, profile, options = {}) {
   const db = getFirestoreDb();
   const docRef = doc(db, "students", email);
   const docSnap = await getDoc(docRef);
-  const existingData = docSnap.exists() ? docSnap.data() : {};
+  const exists = docSnap.exists();
+  
+  // 1. Cross-role check: prevent registering as student if email is registered as Business
+  const bizSnap = await getDoc(doc(db, "businesses", email));
+  if (bizSnap.exists()) {
+    throw new Error("Registration Failed: The email '" + email + "' is already registered as a Business account. A single email cannot be registered under both roles.");
+  }
+  
+  // 2. Duplicate check for new student registration
+  if (options.isNew && exists) {
+    throw new Error("Registration Failed: A student profile with email '" + email + "' already exists.");
+  }
+
+  const existingData = exists ? docSnap.data() : {};
   const updatedProfile = {
     verificationStatus: existingData.verificationStatus || profile.verificationStatus || "Pending",
     ...profile
@@ -351,11 +364,24 @@ async function getBusinessByEmail(email) {
   });
 }
 
-async function saveBusinessProfile(email, profile) {
+async function saveBusinessProfile(email, profile, options = {}) {
   const db = getFirestoreDb();
   const docRef = doc(db, "businesses", email);
   const docSnap = await getDoc(docRef);
-  const existingData = docSnap.exists() ? docSnap.data() : {};
+  const exists = docSnap.exists();
+  
+  // 1. Cross-role check: prevent registering as business if email is registered as Student
+  const studSnap = await getDoc(doc(db, "students", email));
+  if (studSnap.exists()) {
+    throw new Error("Registration Failed: The email '" + email + "' is already registered as a Student account. A single email cannot be registered under both roles.");
+  }
+  
+  // 2. Duplicate check for new business registration
+  if (options.isNew && exists) {
+    throw new Error("Registration Failed: A business profile with email '" + email + "' already exists.");
+  }
+
+  const existingData = exists ? docSnap.data() : {};
   const updatedProfile = {
     verificationStatus: existingData.verificationStatus || profile.verificationStatus || "Pending",
     ...profile

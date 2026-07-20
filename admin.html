@@ -1487,7 +1487,7 @@ window.submitAddStudentForm = async function(event) {
     };
 
     if (window.saveStudentProfile) {
-      await window.saveStudentProfile(email, profile);
+      await window.saveStudentProfile(email, profile, { isNew: true });
       alert(`Student profile for ${profile.name} added successfully!`);
       closeAddStudentModal();
       await loadDashboardData();
@@ -1547,7 +1547,7 @@ window.submitAddBusinessForm = async function(event) {
     };
 
     if (window.saveBusinessProfile) {
-      await window.saveBusinessProfile(email, profile);
+      await window.saveBusinessProfile(email, profile, { isNew: true });
       alert(`Business profile for ${profile.name} added successfully!`);
       closeAddBusinessModal();
       await loadDashboardData();

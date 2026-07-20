@@ -1417,6 +1417,14 @@ window.onAuthSuccess = async function(user) {
     return;
   }
   
+  // Check if email is already registered as a Business
+  const isBiz = window.getBusinessByEmail ? await window.getBusinessByEmail(user.email) : null;
+  if (isBiz) {
+    alert("Registration Denied: The email address '" + user.email + "' is already registered as a Business account. A single email cannot be registered under both roles.");
+    handleSignOut();
+    return;
+  }
+  
   // Hide landing hero elements
   document.querySelector(".hero-heading").style.display = "none";
   document.querySelector(".hero-bottom-left").style.display = "none";
@@ -1512,24 +1520,37 @@ window.submitStudentForm = async function(event) {
   if (!session) return;
   
   const email = session.email;
+
+  // Check cross-role conflict
+  const isBiz = window.getBusinessByEmail ? await window.getBusinessByEmail(email) : null;
+  if (isBiz) {
+    alert("Registration Failed: The email '" + email + "' is already registered as a Business account. A single email cannot be registered under both roles.");
+    return;
+  }
+  
   const existing = await getStudentByEmail(email);
   
   const studentProfile = {
     id: existing ? existing.id : "stud_" + Date.now(),
-    name: document.getElementById("stud-name").value,
+    name: document.getElementById("stud-name").value.trim(),
     age: parseInt(document.getElementById("stud-age").value) || 18,
     grade: document.getElementById("stud-grade").value,
     skill: document.getElementById("stud-skill").value,
     preference: document.getElementById("stud-pref").value,
-    school: document.getElementById("stud-school").value,
-    experience: document.getElementById("stud-exp").value,
+    school: document.getElementById("stud-school").value.trim(),
+    experience: document.getElementById("stud-exp").value.trim(),
     email: email,
-    phone: document.getElementById("stud-phone").value,
+    phone: document.getElementById("stud-phone").value.trim(),
     status: existing ? existing.status : "Available",
     claimedBy: existing ? existing.claimedBy : null
   };
   
-  await saveStudentProfile(email, studentProfile);
+  try {
+    await saveStudentProfile(email, studentProfile);
+  } catch (err) {
+    alert(err.message || "Failed to save profile.");
+    return;
+  }
   
   // Unlock other tabs immediately
   updateTabStates(true);
