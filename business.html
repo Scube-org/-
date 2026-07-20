@@ -903,6 +903,7 @@ function populateBusinessDropdowns() {
 populateBusinessDropdowns();
 
 let activeStudentId = null;
+let postInternshipTimeout = null;
 
 // Auth callbacks
 let initialAuthHandled = false;
@@ -1193,6 +1194,10 @@ window.releaseStudent = async function(id) {
 window.openPostInternshipModal = function() {
   const modal = document.getElementById("post-internship-modal");
   if (modal) {
+    if (postInternshipTimeout) {
+      clearTimeout(postInternshipTimeout);
+      postInternshipTimeout = null;
+    }
     modal.style.display = "flex";
     setTimeout(() => { modal.style.opacity = "1"; }, 10);
   }
@@ -1202,7 +1207,13 @@ window.closePostInternshipModal = function() {
   const modal = document.getElementById("post-internship-modal");
   if (modal) {
     modal.style.opacity = "0";
-    setTimeout(() => { modal.style.display = "none"; }, 300);
+    if (postInternshipTimeout) {
+      clearTimeout(postInternshipTimeout);
+    }
+    postInternshipTimeout = setTimeout(() => {
+      modal.style.display = "none";
+      postInternshipTimeout = null;
+    }, 300);
   }
 };
 

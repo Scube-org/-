@@ -314,53 +314,6 @@ async function releaseStudentByBusiness(studentId) {
   return true;
 }
 
-// Database cleanup function for dummy testing data
-async function cleanDummyTestingData() {
-  const db = getFirestoreDb();
-  console.log("Cleaning up dummy testing datasets...");
-  
-  const dummyInternshipIds = ["int_1", "int_2", "int_3", "int_4"];
-  for (const id of dummyInternshipIds) {
-    try {
-      await deleteDoc(doc(db, "internships", id));
-    } catch (e) {
-      console.error(`Failed to delete dummy internship ${id}:`, e);
-    }
-  }
-
-  const dummyStudentEmails = [
-    "aarav.mehta@gmail.com",
-    "sneha.reddy@gmail.com",
-    "vikram.sen@gmail.com",
-    "riya.sharma@gmail.com"
-  ];
-  for (const email of dummyStudentEmails) {
-    try {
-      await deleteDoc(doc(db, "students", email));
-    } catch (e) {
-      console.error(`Failed to delete dummy student ${email}:`, e);
-    }
-  }
-
-  const dummyApplicationIds = ["app_1", "app_2", "app_3", "app_4"];
-  for (const id of dummyApplicationIds) {
-    try {
-      await deleteDoc(doc(db, "applications", id));
-    } catch (e) {
-      console.error(`Failed to delete dummy application ${id}:`, e);
-    }
-  }
-  
-  // Set system seeding metadata to custom/bypassed state
-  try {
-    await setDoc(doc(db, "system", "seeding"), { seeded: true, cleaned: true });
-  } catch (e) {
-    console.error("Failed to mark system seeding configuration:", e);
-  }
-
-  console.log("Dummy testing datasets cleaned up successfully.");
-}
-
 // Business Database Query Helpers
 async function getBusinesses() {
   return retryFirestoreCall(async () => {
@@ -452,7 +405,7 @@ async function registerStudentForCoaching(studentEmail, skillName) {
       skill: skillName,
       leaderEmail: "mentor." + skillName.toLowerCase().replace(/[^a-z0-9]/g, "") + "@scube.com",
       duration: "Weekly",
-      whatsappLink: "https://chat.whatsapp.com/mock-chat-link",
+      whatsappLink: "Not Set",
       studentEmails: [studentEmail]
     });
   }
@@ -488,7 +441,7 @@ async function ensureCoachingGroupsSeeded() {
           skill: skill,
           leaderEmail: defaultLeader,
           duration: "Weekly",
-          whatsappLink: "https://chat.whatsapp.com/mock-chat-link",
+          whatsappLink: "Not Set",
           studentEmails: []
         });
       }
@@ -528,18 +481,17 @@ window.saveBusinessProfile = saveBusinessProfile;
 window.deleteBusiness = deleteBusiness;
 window.deleteStudent = deleteStudent;
 
-// Execute Database Initialization & Cleanup
-setTimeout(() => {
+// Execute Database Initialization
+setTimeout(async () => {
   try {
-    cleanDummyTestingData()
-      .then(() => ensureCoachingGroupsSeeded())
-      .then(async () => {
-        // Automatically clean up existing mock placeholder businesses from the database
-        await deleteBusiness("ventures@arfounders.com");
-        await deleteBusiness("hr@hydtechhub.in");
-        console.log("Mock placeholder businesses removed.");
-      })
-      .catch(e => console.error("Initialization failed:", e));
+    const db = getFirestoreDb();
+    const seedDoc = await getDoc(doc(db, "system", "seeding"));
+    const isCleaned = seedDoc.exists() && seedDoc.data().cleanedV2 === true;
+    
+    if (!isCleaned) {
+      await ensureCoachingGroupsSeeded();
+      await setDoc(doc(db, "system", "seeding"), { seeded: true, cleanedV2: true });
+    }
   } catch (err) {
     console.error("Initialization trigger failed:", err);
   }

@@ -850,6 +850,9 @@ document.addEventListener("DOMContentLoaded", async () => {
 let studentsList = [];
 let businessesList = [];
 let classesList = [];
+let addStudentModalTimeout = null;
+let addBusinessModalTimeout = null;
+let manageClassModalTimeout = null;
 
 async function loadDashboardData() {
   if (!window.getStudents || !window.getBusinesses || !window.getCoachingGroups) {
@@ -1262,6 +1265,10 @@ window.applyManualRestriction = async function() {
 // Add Student Modal controls
 window.openAddStudentModal = function() {
   const modal = document.getElementById("add-student-modal");
+  if (addStudentModalTimeout) {
+    clearTimeout(addStudentModalTimeout);
+    addStudentModalTimeout = null;
+  }
   modal.style.display = "flex";
   setTimeout(() => { modal.classList.add("active"); }, 10);
 };
@@ -1269,7 +1276,13 @@ window.openAddStudentModal = function() {
 window.closeAddStudentModal = function() {
   const modal = document.getElementById("add-student-modal");
   modal.classList.remove("active");
-  setTimeout(() => { modal.style.display = "none"; }, 300);
+  if (addStudentModalTimeout) {
+    clearTimeout(addStudentModalTimeout);
+  }
+  addStudentModalTimeout = setTimeout(() => {
+    modal.style.display = "none";
+    addStudentModalTimeout = null;
+  }, 300);
   document.getElementById("add-student-form").reset();
 };
 
@@ -1316,6 +1329,10 @@ window.submitAddStudentForm = async function(event) {
 // Add Business Modal controls
 window.openAddBusinessModal = function() {
   const modal = document.getElementById("add-business-modal");
+  if (addBusinessModalTimeout) {
+    clearTimeout(addBusinessModalTimeout);
+    addBusinessModalTimeout = null;
+  }
   modal.style.display = "flex";
   setTimeout(() => { modal.classList.add("active"); }, 10);
 };
@@ -1323,7 +1340,13 @@ window.openAddBusinessModal = function() {
 window.closeAddBusinessModal = function() {
   const modal = document.getElementById("add-business-modal");
   modal.classList.remove("active");
-  setTimeout(() => { modal.style.display = "none"; }, 300);
+  if (addBusinessModalTimeout) {
+    clearTimeout(addBusinessModalTimeout);
+  }
+  addBusinessModalTimeout = setTimeout(() => {
+    modal.style.display = "none";
+    addBusinessModalTimeout = null;
+  }, 300);
   document.getElementById("add-business-form").reset();
 };
 
@@ -1390,7 +1413,7 @@ window.renderClasses = function() {
         <td>${group.leaderEmail || "Not Assigned"}</td>
         <td><span class="status-badge" style="background: rgba(255,255,255,0.06); color: #f1e7d2; border: 1px solid rgba(241,231,210,0.15);">${group.duration || "Weekly"}</span></td>
         <td style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-          ${group.whatsappLink && group.whatsappLink !== "Not Set" && group.whatsappLink !== "https://chat.whatsapp.com/mock-chat-link"
+          ${group.whatsappLink && group.whatsappLink !== "Not Set"
             ? `<a href="${group.whatsappLink}" target="_blank" style="color: #25d366; text-decoration: underline;">Open Link</a>` 
             : `<span style="opacity: 0.5;">No link assigned</span>`
           }
@@ -1432,6 +1455,10 @@ window.openManageClassModal = async function(skillName) {
   renderClassStudents(group);
   
   const modal = document.getElementById("manage-class-modal");
+  if (manageClassModalTimeout) {
+    clearTimeout(manageClassModalTimeout);
+    manageClassModalTimeout = null;
+  }
   modal.style.display = "flex";
   setTimeout(() => { modal.classList.add("active"); }, 10);
 };
@@ -1439,7 +1466,13 @@ window.openManageClassModal = async function(skillName) {
 window.closeManageClassModal = function() {
   const modal = document.getElementById("manage-class-modal");
   modal.classList.remove("active");
-  setTimeout(() => { modal.style.display = "none"; }, 300);
+  if (manageClassModalTimeout) {
+    clearTimeout(manageClassModalTimeout);
+  }
+  manageClassModalTimeout = setTimeout(() => {
+    modal.style.display = "none";
+    manageClassModalTimeout = null;
+  }, 300);
   document.getElementById("edit-class-form").reset();
   document.getElementById("add-class-student-email").value = "";
   activeManageGroupSkill = null;

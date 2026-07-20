@@ -942,6 +942,8 @@ function populateSkillsDropdowns() {
 populateSkillsDropdowns();
 
 let activeInternshipId = null;
+let internshipDetailTimeout = null;
+let coachingPromptTimeout = null;
 let currentTab = 'form';
 
 // Tab switching logic
@@ -1125,6 +1127,10 @@ window.openInternshipDetailModal = async function(id) {
     btn.style.cursor = "pointer";
   }
   
+  if (internshipDetailTimeout) {
+    clearTimeout(internshipDetailTimeout);
+    internshipDetailTimeout = null;
+  }
   const modal = document.getElementById("internship-detail-modal");
   modal.style.display = "flex";
   setTimeout(() => { modal.style.opacity = "1"; }, 10);
@@ -1134,7 +1140,13 @@ window.closeInternshipDetailModal = function() {
   const modal = document.getElementById("internship-detail-modal");
   if (modal) {
     modal.style.opacity = "0";
-    setTimeout(() => { modal.style.display = "none"; }, 300);
+    if (internshipDetailTimeout) {
+      clearTimeout(internshipDetailTimeout);
+    }
+    internshipDetailTimeout = setTimeout(() => {
+      modal.style.display = "none";
+      internshipDetailTimeout = null;
+    }, 300);
   }
   activeInternshipId = null;
 };
@@ -1558,6 +1570,10 @@ window.openCoachingPromptModal = function(skillName, email) {
     switchStudentTab('finder');
   };
   
+  if (coachingPromptTimeout) {
+    clearTimeout(coachingPromptTimeout);
+    coachingPromptTimeout = null;
+  }
   modal.style.display = "flex";
   setTimeout(() => { modal.style.opacity = "1"; }, 10);
 };
@@ -1565,7 +1581,13 @@ window.openCoachingPromptModal = function(skillName, email) {
 window.closeCoachingPromptModal = function() {
   const modal = document.getElementById("coaching-prompt-modal");
   modal.style.opacity = "0";
-  setTimeout(() => { modal.style.display = "none"; }, 300);
+  if (coachingPromptTimeout) {
+    clearTimeout(coachingPromptTimeout);
+  }
+  coachingPromptTimeout = setTimeout(() => {
+    modal.style.display = "none";
+    coachingPromptTimeout = null;
+  }, 300);
 };
 
 // Wait for firebase auth to be resolved and check if we need to call handlers due to race conditions
