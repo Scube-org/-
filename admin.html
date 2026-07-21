@@ -1021,7 +1021,10 @@ window.renderStudents = async function() {
   const allReports = window.getReports ? await window.getReports() : [];
   
   let filtered = studentsList.filter(s => {
-    return s.name.toLowerCase().includes(searchQuery) || s.email.toLowerCase().includes(searchQuery) || (s.school && s.school.toLowerCase().includes(searchQuery));
+    return s.name.toLowerCase().includes(searchQuery) || 
+           s.email.toLowerCase().includes(searchQuery) || 
+           (s.school && s.school.toLowerCase().includes(searchQuery)) ||
+           ((s.phone || s.mobile) && (s.phone || s.mobile).toLowerCase().includes(searchQuery));
   });
 
   if (filterType === "pending") {
@@ -1065,6 +1068,7 @@ window.renderStudents = async function() {
     const blockLabel = isBlocked ? "Unblock" : "Block";
     const banLabel = isBanned ? "Unban" : "Ban";
     const initials = stud.name.split(" ").map(w => w[0]).join("").substring(0, 2).toUpperCase();
+    const phoneDisplay = stud.phone || stud.mobile || 'N/A';
 
     return `
       <tr>
@@ -1074,6 +1078,7 @@ window.renderStudents = async function() {
             <div>
               <div class="user-meta-name">${stud.name} ${reportBadge}</div>
               <div class="user-meta-email">${stud.email}</div>
+              <div class="user-meta-phone" style="font-size:11.5px; color:rgba(241,231,210,0.65); margin-top:2px;">📱 ${phoneDisplay}</div>
             </div>
           </div>
         </td>
@@ -1215,8 +1220,7 @@ window.adminVerifyStudent = async function(email) {
   if (window.verifyStudent) {
     await window.verifyStudent(email, "Verified");
     alert(`Student ${email} has been verified and is now visible on the Business Portal!`);
-    await loadCollections();
-    renderStudents();
+    await loadDashboardData();
   }
 };
 
@@ -1224,8 +1228,7 @@ window.adminVerifyBusiness = async function(email) {
   if (window.verifyBusiness) {
     await window.verifyBusiness(email, "Verified");
     alert(`Business ${email} has been verified and can now post internships and request hires!`);
-    await loadCollections();
-    renderBusinesses();
+    await loadDashboardData();
   }
 };
 
@@ -1233,8 +1236,7 @@ window.adminApprovePlacement = async function(requestId) {
   if (window.approveHireRequest) {
     await window.approveHireRequest(requestId);
     alert("Placement request approved! The student is now active for this business.");
-    await loadCollections();
-    renderPlacementRequests();
+    await loadDashboardData();
   }
 };
 
@@ -1242,8 +1244,7 @@ window.adminRejectPlacement = async function(requestId) {
   if (window.rejectHireRequest) {
     await window.rejectHireRequest(requestId);
     alert("Placement request rejected.");
-    await loadCollections();
-    renderPlacementRequests();
+    await loadDashboardData();
   }
 };
 
@@ -1996,8 +1997,8 @@ window.dismissReportHandler = async function(reportId, studentEmail) {
   if (window.dismissReport) {
     await window.dismissReport(reportId, studentEmail);
     alert("Report dismissed successfully.");
+    await loadDashboardData();
     await openAdminReportsModal(studentEmail);
-    if (window.renderStudents) await window.renderStudents();
   }
 };
 </script>

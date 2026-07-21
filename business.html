@@ -665,9 +665,9 @@ section.hero {
 
     <!-- Right Main Panel: Student List & Detail Drawer -->
     <div id="business-main-panel" style="flex:1; display:flex; flex-direction:column; gap:16px; height:100%; box-sizing:border-box;" data-no-drag>
-      <!-- Business Verification Banner -->
+      <!-- Business Verification Pending Banner -->
       <div id="biz-verification-banner" style="display:none; background:rgba(234,179,8,0.12); border:1px solid #eab308; color:#eab308; padding:14px 20px; border-radius:16px; font-size:13px; font-weight:500; align-items:center; gap:10px; text-align:left;">
-        ⚠️ <span><strong>Business Verification Pending:</strong> Your account is currently under review by S³ admin team. Once verified (via offline agreement), you will be able to post opportunities and request to hire candidates.</span>
+        ⚠️ <span><strong>Business Verification Pending:</strong> Your account is currently under review by S³ admin team. Once verified (via online check), you will be able to post opportunities and request to hire candidates.</span>
       </div>
 
       <!-- Student Grid -->
@@ -682,11 +682,14 @@ section.hero {
       </div>
     </div>
 
+    <!-- Detail Drawer Backdrop -->
+    <div id="detail-drawer-backdrop" onclick="closeDetailDrawer()" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); backdrop-filter:blur(4px); -webkit-backdrop-filter:blur(4px); z-index:10000;"></div>
+
     <!-- Detail Drawer Overlay (Right Side Modal overlaying dashboard) -->
-    <div id="detail-drawer" style="display:none; position:fixed; right:0; top:0; bottom:0; width:min(460px, 90%); background:rgba(20,22,40,0.95); backdrop-filter:blur(24px); -webkit-backdrop-filter:blur(24px); border-left:1px solid rgba(241,231,210,0.15); box-shadow:-20px 0 50px rgba(0,0,0,0.6); padding:40px 30px; flex-direction:column; gap:20px; overflow-y:auto; color:#f1e7d2; text-align:left; z-index:50;">
-      <div style="display:flex; justify-content:space-between; align-items:start;">
-        <h3 class="font-playfair" style="font-size:24px; font-style:italic; font-weight:400; color:#ffd15c;">Student Details</h3>
-        <button onclick="closeDetailDrawer()" style="background:none; border:none; color:rgba(241,231,210,0.5); cursor:pointer; font-size:20px; transition:color 200ms;" onmouseenter="this.style.color='#fff'" onmouseleave="this.style.color='rgba(241,231,210,0.5)'">✕</button>
+    <div id="detail-drawer" style="display:none; position:fixed; right:0; top:0; bottom:0; width:min(460px, 90%); background:rgba(20,22,40,0.98); backdrop-filter:blur(24px); -webkit-backdrop-filter:blur(24px); border-left:1px solid rgba(241,231,210,0.15); box-shadow:-20px 0 50px rgba(0,0,0,0.8); padding:40px 30px; flex-direction:column; gap:20px; overflow-y:auto; color:#f1e7d2; text-align:left; z-index:10001;">
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <h3 class="font-playfair" style="font-size:24px; font-style:italic; font-weight:400; color:#ffd15c; margin:0;">Student Details</h3>
+        <button type="button" onclick="closeDetailDrawer()" aria-label="Close details" style="background:rgba(255,255,255,0.08); border:1px solid rgba(241,231,210,0.2); color:#fff; cursor:pointer; font-size:18px; width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; transition:all 200ms; z-index:10002;" onmouseenter="this.style.background='rgba(239,68,68,0.2)'; this.style.borderColor='#ef4444';" onmouseleave="this.style.background='rgba(255,255,255,0.08)'; this.style.borderColor='rgba(241,231,210,0.2)';">✕</button>
       </div>
 
       <div style="display:flex; align-items:center; gap:16px; border-bottom:1px solid rgba(241,231,210,0.1); padding-bottom:16px;">
@@ -1256,7 +1259,7 @@ window.openDetailDrawer = async function(id) {
       actionArea.innerHTML = `
         <div style="background:rgba(234,179,8,0.08); border:1px solid rgba(234,179,8,0.3); border-radius:12px; padding:12px; text-align:center;">
           <span style="font-size:12px; font-weight:600; color:#eab308; display:block; margin-bottom:4px;">⏳ Hire Request Under Admin Review</span>
-          <span style="font-size:11px; color:rgba(241,231,210,0.6);">A placement request for this candidate has been submitted to S³ Admin for offline agreement review.</span>
+          <span style="font-size:11px; color:rgba(241,231,210,0.6);">A placement request for this candidate has been submitted to S³ Admin for online check review.</span>
         </div>
       `;
     } else {
@@ -1289,16 +1292,24 @@ window.openDetailDrawer = async function(id) {
     `;
   }
   
-  // Show drawer
+  // Show drawer and backdrop
   const drawer = document.getElementById("detail-drawer");
+  const backdrop = document.getElementById("detail-drawer-backdrop");
   if (drawer) drawer.style.display = "flex";
+  if (backdrop) backdrop.style.display = "block";
 };
 
 window.closeDetailDrawer = function() {
   const drawer = document.getElementById("detail-drawer");
+  const backdrop = document.getElementById("detail-drawer-backdrop");
   if (drawer) drawer.style.display = "none";
+  if (backdrop) backdrop.style.display = "none";
   activeStudentId = null;
 };
+
+window.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') closeDetailDrawer();
+});
 
 window.requestHire = async function(id) {
   const session = getSession();
@@ -1579,6 +1590,7 @@ window.submitReportStudentForm = async function(event) {
     document.getElementById("report-student-form").reset();
     closeReportStudentModal();
     closeDetailDrawer();
+    await applyFilters();
   }
 };
 
