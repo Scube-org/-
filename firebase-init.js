@@ -5,8 +5,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
 import { 
   getAuth, 
-  signInWithRedirect, 
-  getRedirectResult, 
+  signInWithPopup, 
   GoogleAuthProvider, 
   signOut, 
   onAuthStateChanged, 
@@ -83,13 +82,25 @@ function handleGoogleSignIn(role) {
     role = window.location.pathname.includes('business.html') ? 'business' : 'student';
   }
   
+  console.log('[AUTH DEBUG] handleGoogleSignIn called with role:', role);
+  console.log('[AUTH DEBUG] Current page:', window.location.pathname);
+  
   closeSignInModal();
 
   localStorage.setItem('s3_session_role', role);
+  console.log('[AUTH DEBUG] Saved role to localStorage:', role);
   
-  signInWithRedirect(auth, provider)
+  signInWithPopup(auth, provider)
+    .then((result) => {
+      console.log('[AUTH DEBUG] signInWithPopup SUCCESS:', result.user.email);
+      // onAuthStateChanged will handle session setup
+    })
     .catch((error) => {
-      console.error("Firebase Sign-In Error:", error);
+      if (error.code === 'auth/popup-closed-by-user') {
+        console.warn('[AUTH DEBUG] Sign-in popup was closed by the user.');
+        return;
+      }
+      console.error('[AUTH DEBUG] signInWithPopup FAILED:', error.code, error.message);
       alert("Firebase Sign-In failed: " + error.message);
     });
 }
@@ -242,28 +253,23 @@ window.toggleSignOutDropdown = toggleSignOutDropdown;
 window.updateAuthUI = updateAuthUI;
 
 // Setup auth listener
+console.log('[AUTH DEBUG] Setting up DOMContentLoaded auth listener...');
 document.addEventListener("DOMContentLoaded", () => {
-  // Handle redirect result
-  getRedirectResult(auth)
-    .then((result) => {
-      if (result) {
-        console.log("Google Sign-In Redirect success:", result.user);
-      }
-    })
-    .catch((error) => {
-      console.error("Firebase Auth Redirect Error:", error);
-      alert("Firebase Sign-In failed: " + error.message);
-    });
+  console.log('[AUTH DEBUG] DOMContentLoaded fired. Setting up onAuthStateChanged...');
+  console.log('[AUTH DEBUG] Current localStorage s3_session_role:', localStorage.getItem('s3_session_role'));
+  console.log('[AUTH DEBUG] Current localStorage s3_session:', localStorage.getItem('s3_session'));
+  console.log('[AUTH DEBUG] Current page:', window.location.pathname);
 
   onAuthStateChanged(auth, async (user) => {
-    // Resolve auth ready promise on first fire
-    if (resolveAuthReady) {
-      resolveAuthReady(user);
-    }
+    console.log('[AUTH DEBUG] ===== onAuthStateChanged FIRED =====');
+    console.log('[AUTH DEBUG] Firebase user:', user ? user.email : 'NULL (signed out)');
+    
     if (user) {
       let role = localStorage.getItem('s3_session_role');
+      console.log('[AUTH DEBUG] Role from localStorage:', role);
       if (!role) {
         role = window.location.pathname.includes('business.html') ? 'business' : 'student';
+        console.log('[AUTH DEBUG] No role in localStorage, detected from URL:', role);
       }
       
       let sessionUser = {
@@ -272,23 +278,38 @@ document.addEventListener("DOMContentLoaded", () => {
         photoURL: user.photoURL || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?fit=facearea&facepad=2&w=80&h=80&q=80",
         role: role
       };
+      console.log('[AUTH DEBUG] Built sessionUser:', JSON.stringify(sessionUser));
 
       if (isAdminEmail(user.email)) {
         sessionUser.role = 'admin';
+        console.log('[AUTH DEBUG] User is ADMIN, setting role to admin');
         setSession(sessionUser);
         updateAuthUI();
+        if (resolveAuthReady) {
+          resolveAuthReady(sessionUser);
+          resolveAuthReady = null;
+        }
         if (typeof onAuthSuccess === 'function') {
+          console.log('[AUTH DEBUG] Calling onAuthSuccess with admin sessionUser');
           onAuthSuccess(sessionUser);
+        } else {
+          console.log('[AUTH DEBUG] WARNING: onAuthSuccess is NOT defined on this page');
         }
         return;
       }
 
+      console.log('[AUTH DEBUG] Checking user restrictions...');
       const isRestricted = await checkUserRestrictions(user.email, role);
+      console.log('[AUTH DEBUG] isRestricted:', isRestricted);
       if (isRestricted) {
         alert("Access Denied: Your account has been banned/blocked by the admin.");
         clearSession();
         signOut(auth);
         updateAuthUI();
+        if (resolveAuthReady) {
+          resolveAuthReady(null);
+          resolveAuthReady = null;
+        }
         if (typeof onAuthSignOut === 'function') {
           onAuthSignOut();
         }
@@ -297,17 +318,33 @@ document.addEventListener("DOMContentLoaded", () => {
 
       setSession(sessionUser);
       updateAuthUI();
+      console.log('[AUTH DEBUG] Session set. Resolving authReady with sessionUser.');
+      if (resolveAuthReady) {
+        resolveAuthReady(sessionUser);
+        resolveAuthReady = null;
+      }
       if (typeof onAuthSuccess === 'function') {
+        console.log('[AUTH DEBUG] Calling onAuthSuccess with sessionUser:', JSON.stringify(sessionUser));
         onAuthSuccess(sessionUser);
+      } else {
+        console.log('[AUTH DEBUG] WARNING: onAuthSuccess is NOT defined on this page');
       }
     } else {
+      console.log('[AUTH DEBUG] User is NULL — signed out state');
       clearSession();
       updateAuthUI();
+      if (resolveAuthReady) {
+        resolveAuthReady(null);
+        resolveAuthReady = null;
+      }
       if (typeof onAuthSignOut === 'function') {
+        console.log('[AUTH DEBUG] Calling onAuthSignOut');
         onAuthSignOut();
+      } else {
+        console.log('[AUTH DEBUG] WARNING: onAuthSignOut is NOT defined on this page');
       }
     }
   });
 });
 
-console.log("Firebase App, Auth and Firestore Initialized Successfully.");
+console.log("[AUTH DEBUG] Firebase App, Auth and Firestore Initialized Successfully.");
