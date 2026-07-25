@@ -168,33 +168,6 @@ nav {
   font-family: 'DM Serif Display', Georgia, serif;
   font-weight: 400;
 }
-.nav-pill {
-  display: none;
-  position: absolute;
-  left: 50%; transform: translateX(-50%);
-  background: rgba(255,255,255,0.08);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255,255,255,0.15);
-  border-radius: 9999px;
-  padding: 0.5rem;
-  align-items: center;
-  gap: 4px;
-}
-.nav-pill-btn {
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  padding: 0.375rem 1rem;
-  border-radius: 9999px;
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: rgba(255,255,255,0.7);
-  transition: background 0.2s, color 0.2s;
-  font-family: 'Inter', sans-serif;
-}
-.nav-pill-btn:hover { background: rgba(255,255,255,0.12); color: #fff; }
-.nav-pill-btn.active { background: rgba(255,255,255,1); color: #111; }
 
 .nav-signup {
   background: #fff;
@@ -214,7 +187,6 @@ nav {
 
 @media (min-width: 768px) {
   nav { padding: 1.25rem 3.5rem; }
-  .nav-pill    { display: flex; }
 }
 
 /* HERO SECTION */
@@ -383,24 +355,6 @@ section.hero {
   .nav-logo .nav-wordmark {
     font-size: 1.25rem !important;
   }
-  .nav-pill {
-    display: flex !important;
-    position: static !important;
-    transform: none !important;
-    width: 100% !important;
-    justify-content: space-around !important;
-    order: 3 !important;
-    background: rgba(255,255,255,0.05) !important;
-    border-radius: 12px !important;
-    padding: 4px !important;
-    box-sizing: border-box !important;
-  }
-  .nav-pill-btn {
-    padding: 6px 8px !important;
-    font-size: 11px !important;
-    flex: 1 !important;
-    text-align: center !important;
-  }
   .nav-signup {
     padding: 6px 12px !important;
     font-size: 12px !important;
@@ -533,12 +487,6 @@ section.hero {
     <img src="images/logo.png" alt="S³ Logo" style="width:36px;height:36px;border-radius:50%;object-fit:cover;flex-shrink:0;background:#f5efe8" />
     <span class="nav-wordmark font-dm-serif">S³</span>
   </a>
-
-  <div class="nav-pill" role="navigation" aria-label="Main navigation">
-    <button class="nav-pill-btn active">Vetted Talent</button>
-    <button class="nav-pill-btn">Milestone Delivery</button>
-    <button class="nav-pill-btn">Direct Access</button>
-  </div>
 
   <div style="display:flex; align-items:center; gap:12px;">
     <button id="nav-signin-btn" class="nav-signup" onclick="openSignInModal()" style="background:rgba(255,255,255,0.06); color:#fff; border:1px solid rgba(255,255,255,0.25);">Sign In</button>
@@ -681,81 +629,81 @@ section.hero {
         </div>
       </div>
     </div>
+  </div>
 
-    <!-- Detail Drawer Backdrop -->
-    <div id="detail-drawer-backdrop" onclick="closeDetailDrawer()" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); backdrop-filter:blur(4px); -webkit-backdrop-filter:blur(4px); z-index:10000;"></div>
+  <!-- Detail Drawer Backdrop (At body root level to break stacking context constraint) -->
+  <div id="detail-drawer-backdrop" onclick="closeDetailDrawer()" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); backdrop-filter:blur(4px); -webkit-backdrop-filter:blur(4px); z-index:999998;"></div>
 
-    <!-- Detail Drawer Overlay (Right Side Modal overlaying dashboard) -->
-    <div id="detail-drawer" style="display:none; position:fixed; right:0; top:0; bottom:0; width:min(460px, 90%); background:rgba(20,22,40,0.98); backdrop-filter:blur(24px); -webkit-backdrop-filter:blur(24px); border-left:1px solid rgba(241,231,210,0.15); box-shadow:-20px 0 50px rgba(0,0,0,0.8); padding:40px 30px; flex-direction:column; gap:20px; overflow-y:auto; color:#f1e7d2; text-align:left; z-index:10001;">
-      <div style="display:flex; justify-content:space-between; align-items:center;">
-        <h3 class="font-playfair" style="font-size:24px; font-style:italic; font-weight:400; color:#ffd15c; margin:0;">Student Details</h3>
-        <button type="button" onclick="closeDetailDrawer()" aria-label="Close details" style="background:rgba(255,255,255,0.08); border:1px solid rgba(241,231,210,0.2); color:#fff; cursor:pointer; font-size:18px; width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; transition:all 200ms; z-index:10002;" onmouseenter="this.style.background='rgba(239,68,68,0.2)'; this.style.borderColor='#ef4444';" onmouseleave="this.style.background='rgba(255,255,255,0.08)'; this.style.borderColor='rgba(241,231,210,0.2)';">✕</button>
+  <!-- Detail Drawer Overlay (At body root level) -->
+  <div id="detail-drawer" style="display:none; position:fixed; right:0; top:0; bottom:0; width:min(460px, 90%); background:rgba(20,22,40,0.98); backdrop-filter:blur(24px); -webkit-backdrop-filter:blur(24px); border-left:1px solid rgba(241,231,210,0.15); box-shadow:-20px 0 50px rgba(0,0,0,0.8); padding:40px 30px; flex-direction:column; gap:20px; overflow-y:auto; color:#f1e7d2; text-align:left; z-index:999999;">
+    <div style="display:flex; justify-content:space-between; align-items:center; position:relative; z-index:1000000;">
+      <h3 class="font-playfair" style="font-size:24px; font-style:italic; font-weight:400; color:#ffd15c; margin:0;">Student Details</h3>
+      <button type="button" onclick="closeDetailDrawer()" aria-label="Close details" style="background:rgba(255,255,255,0.12); border:1px solid rgba(241,231,210,0.3); color:#fff; cursor:pointer; font-size:20px; width:40px; height:40px; border-radius:50%; display:flex; align-items:center; justify-content:center; transition:all 200ms; z-index:1000001; pointer-events:auto;" onmouseenter="this.style.background='rgba(239,68,68,0.3)'; this.style.borderColor='#ef4444';" onmouseleave="this.style.background='rgba(255,255,255,0.12)'; this.style.borderColor='rgba(241,231,210,0.3)';">✕</button>
+    </div>
+
+    <div style="display:flex; align-items:center; gap:16px; border-bottom:1px solid rgba(241,231,210,0.1); padding-bottom:16px;">
+      <div id="drawer-avatar" style="width:50px; height:50px; border-radius:50%; background:#ffd15c; color:#1a1f3a; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:18px;">JD</div>
+      <div>
+        <h4 id="drawer-name" style="font-size:18px; font-weight:600;">Jane Doe</h4>
+        <span id="drawer-status-badge" style="display:inline-block; font-size:9px; font-weight:600; text-transform:uppercase; letter-spacing:0.05em; padding:3px 8px; border-radius:50px; margin-top:4px;">Available</span>
+      </div>
+    </div>
+
+    <div style="display:flex; flex-direction:column; gap:14px; font-size:13px; font-family:'Inter',sans-serif;">
+      <div>
+        <div style="font-size:9px; font-weight:600; color:rgba(241,231,210,0.45); letter-spacing:0.05em; text-transform:uppercase; margin-bottom:2px;">Primary Skill</div>
+        <div id="drawer-skill" style="font-weight:600; color:#fff;">Software Development</div>
       </div>
 
-      <div style="display:flex; align-items:center; gap:16px; border-bottom:1px solid rgba(241,231,210,0.1); padding-bottom:16px;">
-        <div id="drawer-avatar" style="width:50px; height:50px; border-radius:50%; background:#ffd15c; color:#1a1f3a; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:18px;">JD</div>
-        <div>
-          <h4 id="drawer-name" style="font-size:18px; font-weight:600;">Jane Doe</h4>
-          <span id="drawer-status-badge" style="display:inline-block; font-size:9px; font-weight:600; text-transform:uppercase; letter-spacing:0.05em; padding:3px 8px; border-radius:50px; margin-top:4px;">Available</span>
+      <div style="display:flex; gap:20px;">
+        <div style="flex:1;">
+          <div style="font-size:9px; font-weight:600; color:rgba(241,231,210,0.45); letter-spacing:0.05em; text-transform:uppercase; margin-bottom:2px;">Grade / Class</div>
+          <div id="drawer-grade">12th Pass</div>
+        </div>
+        <div style="width:70px;">
+          <div style="font-size:9px; font-weight:600; color:rgba(241,231,210,0.45); letter-spacing:0.05em; text-transform:uppercase; margin-bottom:2px;">Age</div>
+          <div id="drawer-age">18</div>
+        </div>
+        <div style="flex:1;">
+          <div style="font-size:9px; font-weight:600; color:rgba(241,231,210,0.45); letter-spacing:0.05em; text-transform:uppercase; margin-bottom:2px;">Work Preference</div>
+          <div id="drawer-pref">Remote</div>
         </div>
       </div>
 
-      <div style="display:flex; flex-direction:column; gap:14px; font-size:13px; font-family:'Inter',sans-serif;">
-        <div>
-          <div style="font-size:9px; font-weight:600; color:rgba(241,231,210,0.45); letter-spacing:0.05em; text-transform:uppercase; margin-bottom:2px;">Primary Skill</div>
-          <div id="drawer-skill" style="font-weight:600; color:#fff;">Software Development</div>
-        </div>
+      <div>
+        <div style="font-size:9px; font-weight:600; color:rgba(241,231,210,0.45); letter-spacing:0.05em; text-transform:uppercase; margin-bottom:2px;">School / College</div>
+        <div id="drawer-school" style="color:rgba(241,231,210,0.95);">Hyderabad Public School</div>
+      </div>
 
-        <div style="display:flex; gap:20px;">
-          <div style="flex:1;">
-            <div style="font-size:9px; font-weight:600; color:rgba(241,231,210,0.45); letter-spacing:0.05em; text-transform:uppercase; margin-bottom:2px;">Grade / Class</div>
-            <div id="drawer-grade">12th Pass</div>
+      <div>
+        <div style="font-size:9px; font-weight:600; color:rgba(241,231,210,0.45); letter-spacing:0.05em; text-transform:uppercase; margin-bottom:2px;">Past Experience / Internships</div>
+        <div id="drawer-exp" style="color:rgba(241,231,210,0.85); line-height:1.5; white-space:pre-line;">Built website prototypes...</div>
+      </div>
+
+      <div style="border-top:1px solid rgba(241,231,210,0.1); padding-top:14px; display:flex; flex-direction:column; gap:8px;">
+        <div style="display:flex; gap:20px; flex-wrap:wrap;">
+          <div style="flex:1; min-width:180px;">
+            <div style="font-size:9px; font-weight:600; color:rgba(241,231,210,0.45); letter-spacing:0.05em; text-transform:uppercase; margin-bottom:2px;">Email Address</div>
+            <div id="drawer-email" style="font-weight:500;">jane.doe@gmail.com</div>
           </div>
-          <div style="width:70px;">
-            <div style="font-size:9px; font-weight:600; color:rgba(241,231,210,0.45); letter-spacing:0.05em; text-transform:uppercase; margin-bottom:2px;">Age</div>
-            <div id="drawer-age">18</div>
-          </div>
-          <div style="flex:1;">
-            <div style="font-size:9px; font-weight:600; color:rgba(241,231,210,0.45); letter-spacing:0.05em; text-transform:uppercase; margin-bottom:2px;">Work Preference</div>
-            <div id="drawer-pref">Remote</div>
-          </div>
-        </div>
-
-        <div>
-          <div style="font-size:9px; font-weight:600; color:rgba(241,231,210,0.45); letter-spacing:0.05em; text-transform:uppercase; margin-bottom:2px;">School / College</div>
-          <div id="drawer-school" style="color:rgba(241,231,210,0.95);">Hyderabad Public School</div>
-        </div>
-
-        <div>
-          <div style="font-size:9px; font-weight:600; color:rgba(241,231,210,0.45); letter-spacing:0.05em; text-transform:uppercase; margin-bottom:2px;">Past Experience / Internships</div>
-          <div id="drawer-exp" style="color:rgba(241,231,210,0.85); line-height:1.5; white-space:pre-line;">Built website prototypes...</div>
-        </div>
-
-        <div style="border-top:1px solid rgba(241,231,210,0.1); padding-top:14px; display:flex; flex-direction:column; gap:8px;">
-          <div style="display:flex; gap:20px; flex-wrap:wrap;">
-            <div style="flex:1; min-width:180px;">
-              <div style="font-size:9px; font-weight:600; color:rgba(241,231,210,0.45); letter-spacing:0.05em; text-transform:uppercase; margin-bottom:2px;">Email Address</div>
-              <div id="drawer-email" style="font-weight:500;">jane.doe@gmail.com</div>
-            </div>
-            <div style="flex:1; min-width:140px;">
-              <div style="font-size:9px; font-weight:600; color:rgba(241,231,210,0.45); letter-spacing:0.05em; text-transform:uppercase; margin-bottom:2px;">Mobile Number</div>
-              <div id="drawer-phone" style="font-weight:500;">+91 98765 43210</div>
-            </div>
-          </div>
-        </div>
-
-        <div style="border-top:1px solid rgba(241,231,210,0.1); padding-top:14px;">
-          <div style="font-size:9px; font-weight:600; color:rgba(241,231,210,0.45); letter-spacing:0.05em; text-transform:uppercase; margin-bottom:8px;">Internship History</div>
-          <div id="drawer-history-container" style="display:flex; flex-direction:column; gap:8px;">
-            <!-- Filled dynamically -->
+          <div style="flex:1; min-width:140px;">
+            <div style="font-size:9px; font-weight:600; color:rgba(241,231,210,0.45); letter-spacing:0.05em; text-transform:uppercase; margin-bottom:2px;">Mobile Number</div>
+            <div id="drawer-phone" style="font-weight:500;">+91 98765 43210</div>
           </div>
         </div>
       </div>
 
-      <!-- Action Area: Claiming and Status tracking -->
-      <div id="drawer-actions" style="margin-top:auto; padding-top:20px; border-top:1px solid rgba(241,231,210,0.15); display:flex; flex-direction:column; gap:12px;">
-        <!-- Filled dynamically depending on student claiming condition -->
+      <div style="border-top:1px solid rgba(241,231,210,0.1); padding-top:14px;">
+        <div style="font-size:9px; font-weight:600; color:rgba(241,231,210,0.45); letter-spacing:0.05em; text-transform:uppercase; margin-bottom:8px;">Internship History</div>
+        <div id="drawer-history-container" style="display:flex; flex-direction:column; gap:8px;">
+          <!-- Filled dynamically -->
+        </div>
       </div>
+    </div>
+
+    <!-- Action Area: Claiming and Status tracking -->
+    <div id="drawer-actions" style="margin-top:auto; padding-top:20px; border-top:1px solid rgba(241,231,210,0.15); display:flex; flex-direction:column; gap:12px;">
+      <!-- Filled dynamically depending on student claiming condition -->
     </div>
   </div>
 

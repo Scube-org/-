@@ -14,6 +14,7 @@ import {
   deleteDoc,
   increment
 } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
 
 // Define the 10 professional skills
 const SKILLS_LIST = [
@@ -737,19 +738,30 @@ window.reportStudent = reportStudent;
 window.getReports = getReports;
 window.dismissReport = dismissReport;
 
-// Execute Database Initialization
-setTimeout(async () => {
-  try {
-    const db = getFirestoreDb();
-    const seedDoc = await getDoc(doc(db, "system", "seeding"));
-    const isCleaned = seedDoc.exists() && seedDoc.data().cleanedV2 === true;
+// Execute Database Initialization ONLY if an admin is logged in
+try {
+  const auth = getAuth();
+  onAuthStateChanged(auth, async (user) => {
+    if (!user) return;
+    const isUserAdmin = (window.isAdminEmail && window.isAdminEmail(user.email)) || 
+      (['thescubeofficial@gmail.com', 'akshithreddyworld2020@gmail.com'].includes(user.email.trim().toLowerCase()));
     
-    if (!isCleaned) {
-      await ensureCoachingGroupsSeeded();
-      await setDoc(doc(db, "system", "seeding"), { seeded: true, cleanedV2: true });
+    if (isUserAdmin) {
+      try {
+        const db = getFirestoreDb();
+        const seedDoc = await getDoc(doc(db, "system", "seeding"));
+        const isCleaned = seedDoc.exists() && seedDoc.data().cleanedV2 === true;
+        
+        if (!isCleaned) {
+          await ensureCoachingGroupsSeeded();
+          await setDoc(doc(db, "system", "seeding"), { seeded: true, cleanedV2: true });
+        }
+      } catch (err) {
+        console.error("Initialization trigger failed:", err);
+      }
     }
-  } catch (err) {
-    console.error("Initialization trigger failed:", err);
-  }
-}, 300);
+  });
+} catch (err) {
+  console.error("Failed to setup auth observer for database seeding:", err);
+}
 

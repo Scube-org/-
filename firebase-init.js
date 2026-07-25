@@ -3,7 +3,16 @@
  * Configured with live Firebase details. Exposes Firestore and Auth globally.
  */
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
-import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+import { 
+  getAuth, 
+  signInWithRedirect, 
+  getRedirectResult, 
+  GoogleAuthProvider, 
+  signOut, 
+  onAuthStateChanged, 
+  setPersistence, 
+  browserLocalPersistence 
+} from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
 import { getFirestore } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -78,21 +87,7 @@ function handleGoogleSignIn(role) {
 
   localStorage.setItem('s3_session_role', role);
   
-  signInWithPopup(auth, provider)
-    .then((result) => {
-      const user = result.user;
-      const sessionUser = {
-        name: user.displayName || "Google User",
-        email: user.email,
-        photoURL: user.photoURL || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?fit=facearea&facepad=2&w=80&h=80&q=80",
-        role: role
-      };
-      setSession(sessionUser);
-      updateAuthUI();
-      if (typeof onAuthSuccess === 'function') {
-        onAuthSuccess(sessionUser);
-      }
-    })
+  signInWithRedirect(auth, provider)
     .catch((error) => {
       console.error("Firebase Sign-In Error:", error);
       alert("Firebase Sign-In failed: " + error.message);
@@ -248,6 +243,18 @@ window.updateAuthUI = updateAuthUI;
 
 // Setup auth listener
 document.addEventListener("DOMContentLoaded", () => {
+  // Handle redirect result
+  getRedirectResult(auth)
+    .then((result) => {
+      if (result) {
+        console.log("Google Sign-In Redirect success:", result.user);
+      }
+    })
+    .catch((error) => {
+      console.error("Firebase Auth Redirect Error:", error);
+      alert("Firebase Sign-In failed: " + error.message);
+    });
+
   onAuthStateChanged(auth, async (user) => {
     // Resolve auth ready promise on first fire
     if (resolveAuthReady) {
