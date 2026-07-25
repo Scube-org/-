@@ -996,6 +996,7 @@ window.onAuthSuccess = async function(user) {
     return;
   }
 
+  /*
   // Prevent cross-role registration: check if email is registered as a Student
   const isStud = window.getStudentByEmail ? await window.getStudentByEmail(user.email) : null;
   if (isStud) {
@@ -1003,6 +1004,7 @@ window.onAuthSuccess = async function(user) {
     handleSignOut();
     return;
   }
+  */
 
   // Register or update business profile in database
   if (window.saveBusinessProfile) {

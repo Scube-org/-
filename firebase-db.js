@@ -92,11 +92,13 @@ async function saveStudentProfile(email, profile, options = {}) {
   const docSnap = await getDoc(docRef);
   const exists = docSnap.exists();
   
+  /*
   // 1. Cross-role check: prevent registering as student if email is registered as Business
   const bizSnap = await getDoc(doc(db, "businesses", email));
   if (bizSnap.exists()) {
     throw new Error("Registration Failed: The email '" + email + "' is already registered as a Business account. A single email cannot be registered under both roles.");
   }
+  */
   
   // 2. Duplicate check for new student registration
   if (options.isNew && exists) {
@@ -371,11 +373,13 @@ async function saveBusinessProfile(email, profile, options = {}) {
   const docSnap = await getDoc(docRef);
   const exists = docSnap.exists();
   
+  /*
   // 1. Cross-role check: prevent registering as business if email is registered as Student
   const studSnap = await getDoc(doc(db, "students", email));
   if (studSnap.exists()) {
     throw new Error("Registration Failed: The email '" + email + "' is already registered as a Student account. A single email cannot be registered under both roles.");
   }
+  */
   
   // 2. Duplicate check for new business registration
   if (options.isNew && exists) {
