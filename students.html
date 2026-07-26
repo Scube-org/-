@@ -1383,10 +1383,15 @@ window.submitTaskForm = async function(event) {
 function validateIndianPhoneNumber(phoneVal) {
   if (!phoneVal) return { valid: false, message: "Mobile Number Error: Please enter your mobile number." };
   
-  let digits = phoneVal.replace(/\D/g, '');
-  if (digits.startsWith('91') && digits.length > 10) {
-    digits = digits.substring(2);
-  } else if (digits.startsWith('0') && digits.length > 10) {
+  let raw = phoneVal.trim();
+  if (raw.startsWith('+91')) {
+    raw = raw.substring(3);
+  } else if (raw.startsWith('91') && raw.replace(/\D/g, '').length > 10) {
+    raw = raw.substring(2);
+  }
+  
+  let digits = raw.replace(/\D/g, '');
+  if (digits.startsWith('0') && digits.length === 11) {
     digits = digits.substring(1);
   }
   
@@ -1412,15 +1417,15 @@ function validateIndianPhoneNumber(phoneVal) {
 
 function formatIndianPhoneOnInput(inputEl) {
   let val = inputEl.value;
-  let digits = val.replace(/\D/g, '');
   
-  if (digits.startsWith('91') && digits.length > 10) {
-    digits = digits.substring(2);
-  } else if (digits.startsWith('0') && digits.length > 10) {
-    digits = digits.substring(1);
+  let raw = val.trim();
+  if (raw.startsWith('+91')) {
+    raw = raw.substring(3);
+  } else if (raw.startsWith('91') && raw.replace(/\D/g, '').length > 10) {
+    raw = raw.substring(2);
   }
   
-  digits = digits.substring(0, 10);
+  let digits = raw.replace(/\D/g, '').substring(0, 10);
   
   if (digits.length === 0) {
     inputEl.value = "+91 ";
