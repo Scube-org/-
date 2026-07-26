@@ -958,11 +958,11 @@ let activeStudentId = null;
 let postInternshipTimeout = null;
 
 // Auth callbacks
-let initialAuthHandled = false;
+let currentAuthEmail = null;
 
 window.onAuthSuccess = async function(user) {
-  if (initialAuthHandled) return;
-  initialAuthHandled = true;
+  if (currentAuthEmail && currentAuthEmail === user.email) return;
+  currentAuthEmail = user.email;
 
   if (user.role === 'admin') {
     // Hide landing hero elements
@@ -1047,7 +1047,7 @@ window.onAuthSuccess = async function(user) {
 };
 
 window.onAuthSignOut = function() {
-  initialAuthHandled = true;
+  currentAuthEmail = null;
   
   // Hide landing hero elements since we show the blurred dashboard instead
   document.querySelector(".hero-heading").style.display = "none";
@@ -1547,7 +1547,7 @@ window.submitReportStudentForm = async function(event) {
 // Wait for firebase auth to be resolved and check if we need to call handlers due to race conditions
 if (window.firebaseAuthReady) {
   window.firebaseAuthReady.then(async (user) => {
-    if (!initialAuthHandled) {
+    if (!currentAuthEmail) {
       if (user) {
         if (typeof window.onAuthSuccess === 'function') {
           await window.onAuthSuccess(user);
