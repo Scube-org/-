@@ -703,7 +703,7 @@ section.hero {
             </div>
             <div style="flex:1; min-width:200px; display:flex; flex-direction:column; gap:6px;">
               <label style="font-size:11px; font-weight:600; color:rgba(241,231,210,0.7); letter-spacing:0.05em; text-transform:uppercase;">Mobile Number</label>
-              <input type="tel" id="stud-phone" placeholder="+91 XXXXX XXXXX" required style="background:rgba(255,255,255,0.06); border:1px solid rgba(241,231,210,0.2); border-radius:8px; padding:10px 12px; color:#fff; font-size:13px; outline:none;" />
+              <input type="tel" id="stud-phone" placeholder="+91 XXXXX XXXXX" value="+91 " required style="background:rgba(255,255,255,0.06); border:1px solid rgba(241,231,210,0.2); border-radius:8px; padding:10px 12px; color:#fff; font-size:13px; outline:none; transition:border-color 200ms;" onfocus="if(!this.value) this.value='+91 '; this.style.borderColor='#ffd15c';" onblur="this.style.borderColor='rgba(241,231,210,0.2)'" />
             </div>
           </div>
 
@@ -1379,6 +1379,71 @@ window.submitTaskForm = async function(event) {
   }
 };
 
+// Mobile Number Validation & Auto-Formatting Helpers
+function validateIndianPhoneNumber(phoneVal) {
+  if (!phoneVal) return { valid: false, message: "Mobile Number Error: Please enter your mobile number." };
+  
+  let digits = phoneVal.replace(/\D/g, '');
+  if (digits.startsWith('91') && digits.length > 10) {
+    digits = digits.substring(2);
+  } else if (digits.startsWith('0') && digits.length > 10) {
+    digits = digits.substring(1);
+  }
+  
+  if (digits.length !== 10) {
+    return { valid: false, message: "Invalid Mobile Number: Indian phone numbers must contain exactly 10 digits after +91." };
+  }
+  
+  const firstDigit = digits.charAt(0);
+  if (!['6', '7', '8', '9'].includes(firstDigit)) {
+    return { valid: false, message: "Invalid Mobile Number: Valid Indian mobile numbers must start with 6, 7, 8, or 9." };
+  }
+  
+  if (/^(\d)\1{9}$/.test(digits) || digits === '1234567890') {
+    return { valid: false, message: "Invalid Mobile Number: Please enter a genuine, active 10-digit mobile number." };
+  }
+  
+  return { 
+    valid: true, 
+    formatted: "+91 " + digits.substring(0, 5) + " " + digits.substring(5),
+    rawDigits: digits 
+  };
+}
+
+function formatIndianPhoneOnInput(inputEl) {
+  let val = inputEl.value;
+  let digits = val.replace(/\D/g, '');
+  
+  if (digits.startsWith('91') && digits.length > 10) {
+    digits = digits.substring(2);
+  } else if (digits.startsWith('0') && digits.length > 10) {
+    digits = digits.substring(1);
+  }
+  
+  digits = digits.substring(0, 10);
+  
+  if (digits.length === 0) {
+    inputEl.value = "+91 ";
+  } else if (digits.length <= 5) {
+    inputEl.value = "+91 " + digits;
+  } else {
+    inputEl.value = "+91 " + digits.substring(0, 5) + " " + digits.substring(5);
+  }
+}
+
+// Attach input listeners for mobile number formatting
+document.addEventListener("DOMContentLoaded", () => {
+  const phoneEl = document.getElementById("stud-phone");
+  if (phoneEl) {
+    phoneEl.addEventListener("input", () => formatIndianPhoneOnInput(phoneEl));
+    phoneEl.addEventListener("focus", () => {
+      if (!phoneEl.value || phoneEl.value.trim() === "") {
+        phoneEl.value = "+91 ";
+      }
+    });
+  }
+});
+
 // Auth callbacks
 let currentAuthEmail = null;
 
@@ -1417,16 +1482,6 @@ window.onAuthSuccess = async function(user) {
     return;
   }
   
-  /*
-  // Check if email is already registered as a Business
-  const isBiz = window.getBusinessByEmail ? await window.getBusinessByEmail(user.email) : null;
-  if (isBiz) {
-    alert("Registration Denied: The email address '" + user.email + "' is already registered as a Business account. A single email cannot be registered under both roles.");
-    handleSignOut();
-    return;
-  }
-  */
-  
   // Hide landing hero elements
   document.querySelector(".hero-heading").style.display = "none";
   document.querySelector(".hero-bottom-left").style.display = "none";
@@ -1461,7 +1516,12 @@ window.onAuthSuccess = async function(user) {
     document.getElementById("stud-pref").value = existing.preference;
     document.getElementById("stud-school").value = existing.school;
     document.getElementById("stud-exp").value = existing.experience;
-    document.getElementById("stud-phone").value = existing.phone;
+    if (existing.phone) {
+      const phoneCheck = validateIndianPhoneNumber(existing.phone);
+      document.getElementById("stud-phone").value = phoneCheck.valid ? phoneCheck.formatted : existing.phone;
+    } else {
+      document.getElementById("stud-phone").value = "+91 ";
+    }
     
     // Set default filter values to match profile selections
     const filterSkill = document.getElementById("finder-filter-skill");
@@ -1478,7 +1538,7 @@ window.onAuthSuccess = async function(user) {
     document.getElementById("stud-pref").value = "Remote";
     document.getElementById("stud-school").value = "";
     document.getElementById("stud-exp").value = "";
-    document.getElementById("stud-phone").value = "";
+    document.getElementById("stud-phone").value = "+91 ";
   }
   
   // Switch to form tab by default
@@ -1523,28 +1583,105 @@ window.submitStudentForm = async function(event) {
   
   const email = session.email;
 
-  /*
-  // Check cross-role conflict
-  const isBiz = window.getBusinessByEmail ? await window.getBusinessByEmail(email) : null;
-  if (isBiz) {
-    alert("Registration Failed: The email '" + email + "' is already registered as a Business account. A single email cannot be registered under both roles.");
+  // 1. Full Name Validation
+  const nameInput = document.getElementById("stud-name");
+  const name = nameInput.value.trim();
+  if (!name || name.length < 2) {
+    alert("Full Name Error: Please enter your full name (at least 2 characters).");
+    nameInput.focus();
+    nameInput.style.borderColor = "#ef4444";
     return;
   }
-  */
+  if (!/^[a-zA-Z\s\.\'\-]+$/.test(name)) {
+    alert("Full Name Error: Full name should only contain letters and standard characters.");
+    nameInput.focus();
+    nameInput.style.borderColor = "#ef4444";
+    return;
+  }
+  nameInput.style.borderColor = "rgba(241,231,210,0.2)";
+
+  // 2. Age Validation
+  const ageInput = document.getElementById("stud-age");
+  const ageVal = parseInt(ageInput.value);
+  if (isNaN(ageVal) || ageVal < 13 || ageVal > 35) {
+    alert("Age Error: Please enter a valid age between 13 and 35.");
+    ageInput.focus();
+    ageInput.style.borderColor = "#ef4444";
+    return;
+  }
+  ageInput.style.borderColor = "rgba(241,231,210,0.2)";
+
+  // 3. Grade / Education Level
+  const gradeInput = document.getElementById("stud-grade");
+  if (!gradeInput.value) {
+    alert("Education Error: Please select your grade or education level.");
+    gradeInput.focus();
+    return;
+  }
+
+  // 4. Primary Skill
+  const skillInput = document.getElementById("stud-skill");
+  if (!skillInput.value) {
+    alert("Skill Error: Please select your primary skill.");
+    skillInput.focus();
+    return;
+  }
+
+  // 5. Preference
+  const prefInput = document.getElementById("stud-pref");
+  if (!prefInput.value) {
+    alert("Preference Error: Please select your work preference.");
+    prefInput.focus();
+    return;
+  }
+
+  // 6. School or College Name Validation
+  const schoolInput = document.getElementById("stud-school");
+  const school = schoolInput.value.trim();
+  if (!school || school.length < 2) {
+    alert("School/College Error: Please enter a valid school or college name (at least 2 characters).");
+    schoolInput.focus();
+    schoolInput.style.borderColor = "#ef4444";
+    return;
+  }
+  schoolInput.style.borderColor = "rgba(241,231,210,0.2)";
+
+  // 7. Experience / Past Projects Validation
+  const expInput = document.getElementById("stud-exp");
+  const exp = expInput.value.trim();
+  if (!exp || exp.length < 10) {
+    alert("Experience Error: Please describe your past experience, projects, or background (at least 10 characters).");
+    expInput.focus();
+    expInput.style.borderColor = "#ef4444";
+    return;
+  }
+  expInput.style.borderColor = "rgba(241,231,210,0.2)";
+
+  // 8. Mobile Number Validation
+  const phoneInput = document.getElementById("stud-phone");
+  const phoneCheck = validateIndianPhoneNumber(phoneInput.value);
+  if (!phoneCheck.valid) {
+    alert(phoneCheck.message);
+    phoneInput.focus();
+    phoneInput.style.borderColor = "#ef4444";
+    return;
+  }
+  phoneInput.style.borderColor = "rgba(241,231,210,0.2)";
+  phoneInput.value = phoneCheck.formatted;
   
   const existing = await getStudentByEmail(email);
   
   const studentProfile = {
     id: existing ? existing.id : "stud_" + Date.now(),
-    name: document.getElementById("stud-name").value.trim(),
-    age: parseInt(document.getElementById("stud-age").value) || 18,
-    grade: document.getElementById("stud-grade").value,
-    skill: document.getElementById("stud-skill").value,
-    preference: document.getElementById("stud-pref").value,
-    school: document.getElementById("stud-school").value.trim(),
-    experience: document.getElementById("stud-exp").value.trim(),
+    name: name,
+    age: ageVal,
+    grade: gradeInput.value,
+    skill: skillInput.value,
+    preference: prefInput.value,
+    school: school,
+    experience: exp,
     email: email,
-    phone: document.getElementById("stud-phone").value.trim(),
+    phone: phoneCheck.formatted,
     status: existing ? existing.status : "Available",
     claimedBy: existing ? existing.claimedBy : null
   };
