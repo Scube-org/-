@@ -163,6 +163,13 @@ async function applyToInternship(studentEmail, internshipId) {
   const student = await getStudentByEmail(studentEmail);
   if (!student) return { success: false, message: "Student profile not found. Please complete the form first." };
   
+  if (student.verificationStatus !== "Verified") {
+    return { 
+      success: false, 
+      message: "Account Verification Pending: Your profile is currently pending review by the S³ Admin. Unverified students cannot apply for internships until verified." 
+    };
+  }
+  
   // Prevent duplicate active applications
   const q = query(
     collection(db, "applications"), 
@@ -514,6 +521,11 @@ async function saveCoachingGroup(skillName, groupData) {
 }
 
 async function registerStudentForCoaching(studentEmail, skillName) {
+  const student = await getStudentByEmail(studentEmail);
+  if (!student || student.verificationStatus !== "Verified") {
+    throw new Error("Account Verification Pending: Your profile must be verified by the S³ Admin before joining coaching cohorts.");
+  }
+
   const db = getFirestoreDb();
   const docRef = doc(db, "coaching_groups", skillName);
   const snap = await getDoc(docRef);

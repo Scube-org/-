@@ -760,6 +760,11 @@ section.hero {
     <!-- Right Main List -->
     <div style="flex:1; display:flex; flex-direction:column; gap:16px; height:100%; box-sizing:border-box;" data-no-drag>
       <div style="flex:1; overflow-y:auto; background:rgba(26,31,58,0.4); border:1px solid rgba(241,231,210,0.08); border-radius:24px; padding:20px; display:flex; flex-direction:column; gap:12px; box-sizing:border-box;">
+        <!-- Verification Warning Banner for Finder Tab -->
+        <div id="finder-verification-warning" style="display:none; background:rgba(234,179,8,0.12); border:1px solid #eab308; color:#eab308; padding:12px 16px; border-radius:16px; align-items:center; gap:12px; font-size:12px; font-family:'Inter',sans-serif; text-align:left; margin-bottom:10px;">
+          <span style="font-size:18px;">⏳</span>
+          <span><strong>Account Verification Pending:</strong> Your profile is currently under review by the S³ Admin. You can view positions, but you cannot apply until your profile is verified.</span>
+        </div>
         <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(241,231,210,0.1); padding-bottom:10px; margin-bottom:10px;">
           <h4 style="font-size:14px; font-weight:600; text-transform:uppercase; color:rgba(241,231,210,0.7); letter-spacing:0.08em;">Available Opportunities</h4>
           <span id="finder-results-count" style="font-size:12px; color:#ffd15c; font-weight:600;">0 found</span>
@@ -1069,6 +1074,14 @@ window.renderInternships = async function() {
   const session = getSession();
   if (!session) return;
   
+  const student = await getStudentByEmail(session.email);
+  const isVerified = student && student.verificationStatus === "Verified";
+  
+  const warningBanner = document.getElementById("finder-verification-warning");
+  if (warningBanner) {
+    warningBanner.style.display = isVerified ? "none" : "flex";
+  }
+  
   const history = await getStudentHistory(session.email);
   const skillFilter = document.getElementById("finder-filter-skill").value;
   const prefFilter = document.getElementById("finder-filter-pref").value;
@@ -1091,7 +1104,7 @@ window.renderInternships = async function() {
   
   grid.innerHTML = filtered.map(item => {
     const hasApplied = history.some(a => a.internshipId === item.id);
-    const btnText = hasApplied ? "Applied" : "View Details";
+    const btnText = hasApplied ? "Applied" : (isVerified ? "View Details" : "View Details");
     const btnStyle = hasApplied 
       ? `background:rgba(255,255,255,0.05); border:1px solid rgba(241,231,210,0.15); color:rgba(241,231,210,0.4); cursor:not-allowed;`
       : `background:#ffd15c; color:#1a1f3a; cursor:pointer;`;
@@ -1146,11 +1159,20 @@ window.openInternshipDetailModal = async function(id) {
   document.getElementById("modal-int-reqs").textContent = item.requirements || "None specified.";
   
   const session = getSession();
+  const student = session ? await getStudentByEmail(session.email) : null;
+  const isVerified = student && student.verificationStatus === "Verified";
   const history = await getStudentHistory(session.email);
   const hasApplied = history.some(a => a.internshipId === id);
   
   const btn = document.getElementById("modal-apply-btn");
-  if (hasApplied) {
+  if (!isVerified) {
+    btn.textContent = "Verification Pending";
+    btn.disabled = true;
+    btn.style.background = "rgba(234,179,8,0.15)";
+    btn.style.border = "1px solid #eab308";
+    btn.style.color = "#eab308";
+    btn.style.cursor = "not-allowed";
+  } else if (hasApplied) {
     btn.textContent = "Applied";
     btn.disabled = true;
     btn.style.background = "rgba(255,255,255,0.06)";
@@ -1194,6 +1216,12 @@ window.applyFromModal = async function() {
   const session = getSession();
   if (!session) return;
   if (!activeInternshipId) return;
+  
+  const student = await getStudentByEmail(session.email);
+  if (!student || student.verificationStatus !== "Verified") {
+    alert("Account Verification Required: Your student profile is currently under review by the S³ Admin team. You will be able to apply for internships once your profile is verified.");
+    return;
+  }
   
   const res = await applyToInternship(session.email, activeInternshipId);
   if (res.success) {
@@ -1842,8 +1870,17 @@ window.renderCoachingTab = async function() {
 };
 
 window.registerForCoachingGroupDirect = async function(email, skillName) {
-  await window.registerStudentForCoaching(email, skillName);
-  await renderCoachingTab();
+  const student = await getStudentByEmail(email);
+  if (!student || student.verificationStatus !== "Verified") {
+    alert("Account Verification Required: Your student profile is pending verification by the S³ Admin before joining coaching cohorts.");
+    return;
+  }
+  try {
+    await window.registerStudentForCoaching(email, skillName);
+    await renderCoachingTab();
+  } catch (err) {
+    alert(err.message || "Failed to register for coaching.");
+  }
 };
 
 window.unregisterFromCoachingGroup = async function(email, skillName) {
@@ -1858,9 +1895,14 @@ window.openCoachingPromptModal = function(skillName, email) {
   document.getElementById("coaching-prompt-text").innerHTML = `Want to excel in <strong>${skillName}</strong>? Register for our specialized coaching sessions to learn alongside ambitious peers and guided by industry mentors.`;
   
   document.getElementById("coaching-prompt-confirm-btn").onclick = async () => {
-    await window.registerStudentForCoaching(email, skillName);
-    closeCoachingPromptModal();
-    await switchStudentTab('coaching');
+    try {
+      await window.registerStudentForCoaching(email, skillName);
+      closeCoachingPromptModal();
+      await switchStudentTab('coaching');
+    } catch (err) {
+      alert(err.message || "Failed to join coaching cohort.");
+      closeCoachingPromptModal();
+    }
   };
   
   document.getElementById("coaching-prompt-cancel-btn").onclick = () => {
