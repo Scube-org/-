@@ -201,6 +201,11 @@ async function applyToInternship(studentEmail, internshipId) {
 
 async function getStudentHistory(studentEmail) {
   return retryFirestoreCall(async () => {
+    if (!studentEmail) return [];
+    const student = await getStudentByEmail(studentEmail);
+    if (!student || student.verificationStatus !== "Verified") {
+      return [];
+    }
     const db = getFirestoreDb();
     const q = query(collection(db, "applications"), where("studentEmail", "==", studentEmail));
     const snap = await getDocs(q);
@@ -234,7 +239,7 @@ async function getStudentHistory(studentEmail) {
 async function claimStudentByBusiness(studentId, companyName, initialStatus) {
   const db = getFirestoreDb();
   const student = await getStudentById(studentId);
-  if (!student) return false;
+  if (!student || student.verificationStatus !== "Verified") return false;
   
   await saveStudentProfile(student.email, {
     claimedBy: companyName,
@@ -413,7 +418,7 @@ async function verifyBusiness(email, status = "Verified") {
 async function requestHireStudent(studentId, companyName, businessEmail) {
   const db = getFirestoreDb();
   const student = await getStudentById(studentId);
-  if (!student) return { success: false, message: "Student profile not found" };
+  if (!student || student.verificationStatus !== "Verified") return { success: false, message: "Student profile is not verified." };
   
   const newDocRef = doc(collection(db, "hire_requests"));
   const hireReq = {
