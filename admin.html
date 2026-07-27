@@ -860,6 +860,9 @@ tr:hover td {
 <script type="module" src="firebase-init.js"></script>
 <script type="module" src="firebase-db.js"></script>
 
+<!-- Debug Mode Panel (temporary, resets on refresh) -->
+<script src="debug-mode.js"></script>
+
 <script type="module">
 // Strict Security Validation
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
@@ -873,8 +876,11 @@ document.addEventListener("DOMContentLoaded", async () => {
     return;
   }
   
-  // Wait for firebase auth to be resolved and check if we are still admin
-  if (window.firebaseAuthReady) {
+  // Skip firebaseAuthReady check if this is a debug session (debug sessions use test emails
+  // or admin email without real Firebase auth, so firebaseAuthReady would return null)
+  const isDebugSession = session && (session.email === 'debug.student@scube.test' || session.email === 'debug.business@scube.test' || (session.email === 'thescubeofficial@gmail.com' && !window.fbAuth?.currentUser));
+  
+  if (!isDebugSession && window.firebaseAuthReady) {
     try {
       const user = await window.firebaseAuthReady;
       if (!user || !(window.isAdminEmail ? window.isAdminEmail(user.email) : ['thescubeofficial@gmail.com', 'akshithreddyworld2020@gmail.com'].includes(user.email))) {
