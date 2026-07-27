@@ -1168,9 +1168,10 @@ window.openInternshipDetailModal = async function(id) {
   if (!isVerified) {
     btn.textContent = "Verification Pending";
     btn.disabled = true;
-    btn.style.background = "rgba(234,179,8,0.15)";
-    btn.style.border = "1px solid #eab308";
-    btn.style.color = "#eab308";
+    btn.style.background = "#ffd15c";
+    btn.style.border = "none";
+    btn.style.color = "#000000";
+    btn.style.fontWeight = "700";
     btn.style.cursor = "not-allowed";
   } else if (hasApplied) {
     btn.textContent = "Applied";
