@@ -26,6 +26,7 @@
 
   let panelOpen = false;
   let activeRole = null;
+  let activeVerification = null; // 'Pending' or 'Verified'
 
   // ── Wait for firebase utilities before initializing ──────────────────
   function waitForUtils(cb) {
@@ -37,13 +38,21 @@
   }
 
   // ── Activate a debug role ────────────────────────────────────────────
-  function activateRole(role) {
+  function activateRole(role, verification) {
     var user = Object.assign({}, ROLES[role]);
     activeRole = role;
+    activeVerification = verification || null;
 
     // Set the session (writes to localStorage; overwritten on next real auth event)
     window.setSession(user);
     localStorage.setItem('s3_session_role', role);
+
+    // If a verification state was chosen, write a temporary profile to Firestore
+    // so the page's normal logic picks it up, then reload
+    if (verification && (role === 'student' || role === 'business')) {
+      writeDebugProfile(role, user, verification);
+      return; // writeDebugProfile will reload the page
+    }
 
     // Update nav bar (profile pic / sign-in button)
     window.updateAuthUI();
@@ -53,6 +62,51 @@
 
     // Update panel button states
     updatePanelButtons();
+  }
+
+  // ── Write a temporary Firestore profile with the chosen verification status ──
+  function writeDebugProfile(role, user, verification) {
+    var saveFn = role === 'student' ? window.saveStudentProfile : window.saveBusinessProfile;
+    if (!saveFn) {
+      alert('Database helpers not loaded yet. Please wait a moment and try again.');
+      return;
+    }
+
+    var profile = {
+      name: user.name,
+      email: user.email,
+      photoURL: user.photoURL,
+      role: role,
+      verificationStatus: verification,
+      status: 'Available'
+    };
+
+    if (role === 'student') {
+      profile.id = 'debug_stud_' + Date.now();
+      profile.age = 20;
+      profile.grade = '12th';
+      profile.skill = 'Software Development';
+      profile.preference = 'Remote';
+      profile.school = 'Debug School';
+      profile.experience = 'Debug testing';
+      profile.phone = '0000000000';
+      profile.claimedBy = null;
+    }
+
+    saveFn(user.email, profile)
+      .then(function () {
+        console.log('[Debug] Profile saved with verificationStatus:', verification);
+        // Store debug state so it survives the reload
+        sessionStorage.setItem('s3_debug_state', JSON.stringify({
+          role: role,
+          verification: verification
+        }));
+        window.location.reload();
+      })
+      .catch(function (err) {
+        console.error('[Debug] Failed to write profile:', err);
+        alert('Debug profile write failed: ' + err.message);
+      });
   }
 
   // ── Page-specific UI unlocking ───────────────────────────────────────
@@ -229,6 +283,63 @@
     // Divider
     panel.appendChild(makeDivider());
 
+    // Verification status label
+    var verifLabel = document.createElement('div');
+    verifLabel.style.cssText = 'font-size:10px; text-transform:uppercase; letter-spacing:1px; color:rgba(241,231,210,0.45); font-weight:600;';
+    verifLabel.textContent = 'Verification State';
+    panel.appendChild(verifLabel);
+
+    // Verification status hint
+    var verifHint = document.createElement('div');
+    verifHint.style.cssText = 'font-size:10px; color:rgba(241,231,210,0.3); line-height:1.4; margin-bottom:2px;';
+    verifHint.textContent = 'Select role first, then pick a state. Page will auto-reload.';
+    panel.appendChild(verifHint);
+
+    // Verification buttons row
+    var verifRow = document.createElement('div');
+    verifRow.style.cssText = 'display:flex; gap:6px;';
+
+    var verifBtns = [
+      { key: 'Pending', label: '⏳ Pending', color: '#f0a030' },
+      { key: 'Verified', label: '✅ Verified', color: '#34d399' }
+    ];
+
+    verifBtns.forEach(function (v) {
+      var btn = document.createElement('button');
+      btn.id = 'debug-verif-' + v.key;
+      btn.textContent = v.label;
+      Object.assign(btn.style, {
+        flex: '1', padding: '8px 10px', borderRadius: '10px',
+        border: '1px solid rgba(241,231,210,0.12)', background: 'rgba(255,255,255,0.04)',
+        color: '#f1e7d2', fontSize: '12px', fontWeight: '500', cursor: 'pointer',
+        textAlign: 'center', transition: 'all 180ms', fontFamily: "'Inter', sans-serif"
+      });
+      btn.addEventListener('mouseenter', function () {
+        if (activeVerification !== v.key) {
+          btn.style.background = 'rgba(255,255,255,0.08)';
+          btn.style.borderColor = v.color;
+        }
+      });
+      btn.addEventListener('mouseleave', function () {
+        if (activeVerification !== v.key) {
+          btn.style.background = 'rgba(255,255,255,0.04)';
+          btn.style.borderColor = 'rgba(241,231,210,0.12)';
+        }
+      });
+      btn.addEventListener('click', function () {
+        if (!activeRole || activeRole === 'admin') {
+          alert('Please select a Student or Business role first.');
+          return;
+        }
+        activateRole(activeRole, v.key);
+      });
+      verifRow.appendChild(btn);
+    });
+    panel.appendChild(verifRow);
+
+    // Divider
+    panel.appendChild(makeDivider());
+
     // Page navigation label
     var navLabel = document.createElement('div');
     navLabel.style.cssText = 'font-size:10px; text-transform:uppercase; letter-spacing:1px; color:rgba(241,231,210,0.45); font-weight:600;';
@@ -317,17 +428,66 @@
         btn.style.fontWeight = '500';
       }
     });
+
+    // Update verification buttons
+    var verifColors = { Pending: '#f0a030', Verified: '#34d399' };
+    ['Pending', 'Verified'].forEach(function (v) {
+      var btn = document.getElementById('debug-verif-' + v);
+      if (!btn) return;
+      if (v === activeVerification) {
+        btn.style.background = verifColors[v] + '22';
+        btn.style.borderColor = verifColors[v];
+        btn.style.color = verifColors[v];
+        btn.style.fontWeight = '700';
+      } else {
+        btn.style.background = 'rgba(255,255,255,0.04)';
+        btn.style.borderColor = 'rgba(241,231,210,0.12)';
+        btn.style.color = '#f1e7d2';
+        btn.style.fontWeight = '500';
+      }
+    });
+
     var indicator = document.getElementById('debug-role-indicator');
     if (indicator) {
-      indicator.textContent = activeRole
-        ? 'Active: ' + activeRole.charAt(0).toUpperCase() + activeRole.slice(1)
-        : 'No role active';
+      var text = 'No role active';
+      if (activeRole) {
+        text = 'Active: ' + activeRole.charAt(0).toUpperCase() + activeRole.slice(1);
+        if (activeVerification) {
+          text += ' (' + activeVerification + ')';
+        }
+      }
+      indicator.textContent = text;
+    }
+  }
+
+  // ── Restore debug state after reload ─────────────────────────────────
+  function restoreDebugState() {
+    var stateStr = sessionStorage.getItem('s3_debug_state');
+    if (!stateStr) return;
+
+    try {
+      var state = JSON.parse(stateStr);
+      sessionStorage.removeItem('s3_debug_state');
+
+      // Re-set the session so the page recognizes the debug user
+      var user = Object.assign({}, ROLES[state.role]);
+      activeRole = state.role;
+      activeVerification = state.verification || null;
+
+      window.setSession(user);
+      localStorage.setItem('s3_session_role', state.role);
+      window.updateAuthUI();
+      unlockPage(state.role);
+      updatePanelButtons();
+    } catch (e) {
+      console.error('[Debug] Failed to restore state:', e);
     }
   }
 
   // ── Bootstrap ────────────────────────────────────────────────────────
   function init() {
     createPanel();
+    restoreDebugState();
   }
 
   if (document.readyState === 'loading') {
